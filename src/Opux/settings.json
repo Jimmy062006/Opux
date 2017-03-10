@@ -1,0 +1,59 @@
+{
+  "config": {
+    "name": "Opux",
+    "game": "Status",
+    "token": "",
+    "connstring": "datasource=localhost;port=3306;username=discord;password=password;database=discord;",
+    "commandprefix": "!", //Single Character only
+    "logchan": "0",
+    "guildId": "0",
+    "loglevel": "Info", //Critical/Warning/Info/Verbose/Debug DEFAULT = Info
+    "authCheck": false,
+    "killFeed": false,
+    "notificationFeed": false,
+    "authInterval": "30", //In Minuets
+    "adminRoles": {
+      "Admin": null
+    }
+  },
+  "killFeed": {
+    "losses":  true,
+	  "reDisqID": "",//Set this to a unique ID if using multiple on one PC
+    "groupsConfig": {
+      "group1": {
+        "name": "",
+        "channel": 0,
+        "corpID": 0,
+        "allianceID": 0,
+        "minimumValue": 0,
+        "minimumLossValue": 0,
+        "bigKill": 0,
+        "bigKillChannel": 0
+      }
+    }
+  },
+  "auth": {
+    "url": "",
+    "exempt": {
+      "Leadership": null,
+      "TXG Manager": null,
+      "Rental Partner": null,
+      "Admin": null
+    },
+    "alertChannel": 0,
+    "corpTickers": true,
+    "nameEnforce": true,
+    "authGroups": {
+      "group1": {
+        "corpID": 0,
+        "allianceID": 0,
+        "corpMemberRole": "",
+        "allianceMemberRole": ""
+      }
+    }
+  },
+  "notifications": {
+    "channelID": 0,
+    "allianceOnly": true
+  }
+}
