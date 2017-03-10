@@ -318,15 +318,29 @@ namespace Opux
                         var victimCorp = killmail["killmail"]["victim"]["corporation"];
                         var victimAlliance = killmail["killmail"]["victim"]["alliance"] ?? null;
                         var attackers = killmail["killmail"]["attackers"] ?? null;
-                        var sysName = killmail["killmail"]["solarSystem"]["name"];
+                        var sysName = (string)killmail["killmail"]["solarSystem"]["name"];
+                        var globalBigKillValue = (double)killmail["zkb"]["totalValue"];
 
                         var post = false;
+                        var globalBigKill = false;
+                        var bigKill = false;
 
                         foreach (var i in Program.Settings.GetSection("killFeed").GetSection("groupsConfig").GetChildren().ToList())
                         {
-                            channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == Convert.ToUInt64(i["channel"]));
-                            if (Convert.ToInt32(i["allianceID"]) == 0 && Convert.ToInt32(i["corpID"]) == 0)
+                            if(Convert.ToInt32(Program.Settings.GetSection("killFeed")["bigKill"]) != 0 &&
+                                (double)killmail["zkb"]["totalValue"] >= Convert.ToInt32(Program.Settings.GetSection("killFeed")["bigKill"]))
                             {
+                                channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == Convert.ToUInt64(Program.Settings.GetSection("killFeed")["bigKillChannel"]));
+                                globalBigKill = true;
+                            }
+                            else if(Convert.ToInt32(i["bigKill"]) != 0 && (double)killmail["zkb"]["totalValue"] >= Convert.ToInt32(i["bigKill"]))
+                            {
+                                channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == Convert.ToUInt64(i["bigKillChannel"]));
+                                bigKill = true;
+                            }
+                            else if (Convert.ToInt32(i["allianceID"]) == 0 && Convert.ToInt32(i["corpID"]) == 0)
+                            {
+                                channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == Convert.ToUInt64(i["channel"]));
                                 var minimumValue = Convert.ToInt64(i["minimumValue"]);
                                 var totalValue = (double)killmail["zkb"]["totalValue"];
                                 if (Convert.ToInt64(i["minimumValue"]) == 0 || minimumValue <= totalValue)
@@ -334,6 +348,7 @@ namespace Opux
                             }
                             else
                             {
+                                channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == Convert.ToUInt64(i["channel"]));
                                 if (victimAlliance != null)
                                 {
                                     if ((Int32)victimAlliance["id"] == Convert.ToInt32(i["allianceID"]) && Convert.ToBoolean(Program.Settings.GetSection("killFeed")["losses"]) == true ||
@@ -368,20 +383,26 @@ namespace Opux
                             }
                         }
 
-                        if (post)
+                        if (post || bigKill || globalBigKill)
                         {
                             if (victimCharacter == null)// Kill is probably a structure.
                             {
                                 if (victimAlliance == null)
                                 {
-                                    var message = $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{value}" +
+                                    var message = "";
+                                    if (bigKill || globalBigKill)
+                                        message = $"@here **Global Big Kill**{Environment.NewLine}";
+                                    message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{value}" +
                                         $" [{victimCorp["name"]}]** killed in **{sysName}** {Environment.NewLine} " +
                                         $"https://zkillboard.com/kill/{iD}/";
                                     await channel.SendMessageAsync(message);
                                 }
                                 else
                                 {
-                                    var message = $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{value}" +
+                                    var message = "";
+                                    if (bigKill || globalBigKill)
+                                        message = $"@here **Big Kill**{Environment.NewLine}";
+                                    message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{value}" +
                                         $" {victimCorp["name"]} | [{victimAlliance["name"]}]** killed in **{sysName}** {Environment.NewLine} " +
                                         $"https://zkillboard.com/kill/{iD}/";
                                     await channel.SendMessageAsync(message);
@@ -390,7 +411,10 @@ namespace Opux
                             }
                             else if (!victimAlliance.IsNullOrEmpty())
                             {
-                                var message = $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{value}" +
+                                var message = "";
+                                if (bigKill || globalBigKill)
+                                    message = $"@here **BIGBILL**{Environment.NewLine}";
+                                message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{value}" +
                                     $"** ISK flown by **{victimCharacter["name"]} |**  **[{victimCorp["name"]}] | <{victimAlliance["name"]}>** killed in **{sysName}** {Environment.NewLine} " +
                                     $"https://zkillboard.com/kill/{iD}/";
                                 await channel.SendMessageAsync(message);
@@ -398,7 +422,10 @@ namespace Opux
                             }
                             else
                             {
-                                var message = $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{value}" +
+                                var message = "";
+                                if (bigKill || globalBigKill)
+                                    message = $"@here **BIGBILL**{Environment.NewLine}";
+                                message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{value}" +
                                     $"** ISK flown by **{victimCharacter["name"]} |** **[{victimCorp["name"]}]** killed in **{sysName}** {Environment.NewLine} " +
                                     $"https://zkillboard.com/kill/{iD}/";
                                 await channel.SendMessageAsync(message);

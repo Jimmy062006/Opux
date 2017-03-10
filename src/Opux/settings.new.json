@@ -17,8 +17,10 @@
     }
   },
   "killFeed": {
-    "losses":  true,
-	  "reDisqID": "",//Set this to a unique ID if using multiple on one PC
+    "bigKill": 0,
+    "bigkillchannel": 0,
+    "losses": true,
+    "reDisqID": "", //Set this to a unique ID if using multiple on one PC
     "groupsConfig": {
       "group1": {
         "name": "",
