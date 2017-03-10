@@ -327,7 +327,7 @@ namespace Opux
 
                         foreach (var i in Program.Settings.GetSection("killFeed").GetSection("groupsConfig").GetChildren().ToList())
                         {
-                            if(Convert.ToInt32(Program.Settings.GetSection("killFeed")["bigKill"]) != 0 &&
+                            if(Convert.ToInt64(Program.Settings.GetSection("killFeed")["bigKill"]) != 0 &&
                                 (double)killmail["zkb"]["totalValue"] >= Convert.ToInt32(Program.Settings.GetSection("killFeed")["bigKill"]))
                             {
                                 channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == Convert.ToUInt64(Program.Settings.GetSection("killFeed")["bigKillChannel"]));
