@@ -28,17 +28,10 @@ namespace Opux
         {
             try
             {
-#if DEBUG
                 applicationBase = Path.GetDirectoryName(new Uri(Assembly.GetEntryAssembly().CodeBase).LocalPath);
                 Settings = new ConfigurationBuilder()
                 .SetBasePath(Program.applicationBase)
-                .AddJsonFile("settings.debug.json", optional: true, reloadOnChange: true).Build();
-#else
-            applicationBase = Path.GetDirectoryName(new Uri(Assembly.GetEntryAssembly().CodeBase).LocalPath);
-            Settings = new ConfigurationBuilder()
-            .SetBasePath(Program.applicationBase)
-            .AddJsonFile("settings.json", optional: true, reloadOnChange: true).Build();
-#endif
+                .AddJsonFile("settings.json", optional: true, reloadOnChange: true).Build();
 
                 MainAsync(args).GetAwaiter().GetResult();
 
