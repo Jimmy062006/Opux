@@ -333,7 +333,7 @@ namespace Opux
                                 channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == Convert.ToUInt64(Program.Settings.GetSection("killFeed")["bigKillChannel"]));
                                 globalBigKill = true;
                             }
-                            else if(Convert.ToInt32(i["bigKill"]) != 0 && (double)killmail["zkb"]["totalValue"] >= Convert.ToInt32(i["bigKill"]))
+                            else if(Convert.ToInt64(i["bigKill"]) != 0 && (double)killmail["zkb"]["totalValue"] >= Convert.ToInt64(i["bigKill"]))
                             {
                                 channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == Convert.ToUInt64(i["bigKillChannel"]));
                                 bigKill = true;
