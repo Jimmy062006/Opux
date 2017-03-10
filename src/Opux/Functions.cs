@@ -391,7 +391,7 @@ namespace Opux
                                 {
                                     var message = "";
                                     if (bigKill || globalBigKill)
-                                        message = $"@here **Global Big Kill**{Environment.NewLine}";
+                                        message = $"**Global Big Kill**{Environment.NewLine}";
                                     message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{value}" +
                                         $" [{victimCorp["name"]}]** killed in **{sysName}** {Environment.NewLine} " +
                                         $"https://zkillboard.com/kill/{iD}/";
@@ -401,7 +401,7 @@ namespace Opux
                                 {
                                     var message = "";
                                     if (bigKill || globalBigKill)
-                                        message = $"@here **Big Kill**{Environment.NewLine}";
+                                        message = $"**Big Kill**{Environment.NewLine}";
                                     message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{value}" +
                                         $" {victimCorp["name"]} | [{victimAlliance["name"]}]** killed in **{sysName}** {Environment.NewLine} " +
                                         $"https://zkillboard.com/kill/{iD}/";
@@ -413,7 +413,7 @@ namespace Opux
                             {
                                 var message = "";
                                 if (bigKill || globalBigKill)
-                                    message = $"@here **BIGBILL**{Environment.NewLine}";
+                                    message = $"**BIGBILL**{Environment.NewLine}";
                                 message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{value}" +
                                     $"** ISK flown by **{victimCharacter["name"]} |**  **[{victimCorp["name"]}] | <{victimAlliance["name"]}>** killed in **{sysName}** {Environment.NewLine} " +
                                     $"https://zkillboard.com/kill/{iD}/";
@@ -424,7 +424,7 @@ namespace Opux
                             {
                                 var message = "";
                                 if (bigKill || globalBigKill)
-                                    message = $"@here **BIGBILL**{Environment.NewLine}";
+                                    message = $"**BIGBILL**{Environment.NewLine}";
                                 message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{value}" +
                                     $"** ISK flown by **{victimCharacter["name"]} |** **[{victimCorp["name"]}]** killed in **{sysName}** {Environment.NewLine} " +
                                     $"https://zkillboard.com/kill/{iD}/";
