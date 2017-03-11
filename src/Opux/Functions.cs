@@ -257,11 +257,13 @@ namespace Opux
                                     var exemptRoles = Program.Settings.GetSection("auth").GetSection("exempt").GetChildren().ToList();
 
                                     rolesToTake.AddRange(discordUser.Roles);
-                                    foreach (var r in rolesToTake)
+                                    var exemptCheckRoles = new List<SocketRole>(rolesToTake);
+                                    foreach (var r in exemptCheckRoles)
                                     {
-                                        if (exemptRoles.Find(x => x.Key == r.Name).Key != null)
+                                        var name = r.Name;
+                                        if (exemptRoles.FindAll(x => x.Key == name).Count > 0)
                                         {
-                                            rolesToTake.Remove(r);
+                                            rolesToTake.Remove(rolesToTake.FirstOrDefault(x => x.Name == r.Name));
                                         }
                                     }
                                     rolesToTake.Remove(rolesToTake.FirstOrDefault(x => x.Name == "@everyone"));
