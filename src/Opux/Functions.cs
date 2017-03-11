@@ -327,13 +327,13 @@ namespace Opux
                         var iD = killmail["killmail"]["killID_str"];
                         var killTime = killmail["killmail"]["killTime"];
                         var ship = killmail["killmail"]["victim"]["shipType"]["name"];
-                        var value = string.Format("{0:n0}", killmail["zkb"]["totalValue"]);
+                        var value = (double)killmail["zkb"]["totalValue"];
                         var victimCharacter = killmail["killmail"]["victim"]["character"] ?? null;
                         var victimCorp = killmail["killmail"]["victim"]["corporation"];
                         var victimAlliance = killmail["killmail"]["victim"]["alliance"] ?? null;
                         var attackers = killmail["killmail"]["attackers"] ?? null;
                         var sysName = (string)killmail["killmail"]["solarSystem"]["name"];
-                        var globalBigKillValue = (double)killmail["zkb"]["totalValue"];
+                        var losses = Convert.ToBoolean(Program.Settings.GetSection("killFeed")["losses"]);
 
                         var post = false;
                         var globalBigKill = false;
@@ -341,55 +341,63 @@ namespace Opux
 
                         foreach (var i in Program.Settings.GetSection("killFeed").GetSection("groupsConfig").GetChildren().ToList())
                         {
-                            if(Convert.ToInt64(Program.Settings.GetSection("killFeed")["bigKill"]) != 0 &&
-                                (double)killmail["zkb"]["totalValue"] >= Convert.ToInt64(Program.Settings.GetSection("killFeed")["bigKill"]))
+                            var minimumValue = Convert.ToInt64(i["minimumValue"]);
+                            var minimumLossValue = Convert.ToInt64(i["minimumLossValue"]);
+                            var allianceID = Convert.ToInt32(i["allianceID"]);
+                            var corpID = Convert.ToInt32(i["corpID"]);
+                            var channelGroup = Convert.ToUInt64(i["channel"]);
+                            var bigKillValue = Convert.ToInt64(i["bigKill"]);
+                            var bigKillChannel = Convert.ToUInt64(i["bigKillChannel"]);
+                            var bigKillGlobal = Convert.ToInt64(Program.Settings.GetSection("killFeed")["bigKill"]);
+                            var bigKillGlobalChan = Convert.ToUInt64(Program.Settings.GetSection("killFeed")["bigKillChannel"]);
+
+                            if (bigKillGlobal != 0 && value >= bigKillGlobal)
                             {
-                                channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == Convert.ToUInt64(Program.Settings.GetSection("killFeed")["bigKillChannel"]));
+                                channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == bigKillGlobalChan);
                                 globalBigKill = true;
                             }
-                            else if(Convert.ToInt64(i["bigKill"]) != 0 && (double)killmail["zkb"]["totalValue"] >= Convert.ToInt64(i["bigKill"]))
+                            else if(bigKillValue != 0 && value >= bigKillValue)
                             {
-                                channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == Convert.ToUInt64(i["bigKillChannel"]));
+                                channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == bigKillChannel);
                                 bigKill = true;
                             }
-                            else if (Convert.ToInt32(i["allianceID"]) == 0 && Convert.ToInt32(i["corpID"]) == 0)
+                            else if (allianceID == 0 && corpID == 0)
                             {
-                                channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == Convert.ToUInt64(i["channel"]));
-                                var minimumValue = Convert.ToInt64(i["minimumValue"]);
-                                var totalValue = (double)killmail["zkb"]["totalValue"];
-                                if (Convert.ToInt64(i["minimumValue"]) == 0 || minimumValue <= totalValue)
+                                channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == channelGroup);
+                                var totalValue = value;
+                                if (minimumValue == 0 || minimumValue <= totalValue)
                                     post = true;
                             }
                             else
                             {
-                                channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == Convert.ToUInt64(i["channel"]));
+                                channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == channelGroup);
                                 if (victimAlliance != null)
                                 {
-                                    if ((Int32)victimAlliance["id"] == Convert.ToInt32(i["allianceID"]) && Convert.ToBoolean(Program.Settings.GetSection("killFeed")["losses"]) == true ||
-                                        (Int32)victimCorp["id"] == Convert.ToInt32(i["corpID"]) && Convert.ToBoolean(Program.Settings.GetSection("killFeed")["losses"]) == true)
+                                    if ((Int32)victimAlliance["id"] == allianceID && losses == true ||
+                                        (Int32)victimCorp["id"] == corpID && losses == true)
                                     {
-                                        if (Convert.ToInt64(i["minimumLossValue"]) == 0 || Convert.ToInt64(i["minimumLossValue"]) <= (double)killmail["zkb"]["totalValue"])
+                                        if (minimumLossValue == 0 || minimumLossValue <= value)
                                             post = true;
                                     }
                                 }
-                                else if ((Int32)victimCorp["id"] == Convert.ToInt32(i["corpID"]) && Convert.ToBoolean(Program.Settings.GetSection("killFeed")["losses"]) == true)
+                                else if ((Int32)victimCorp["id"] == corpID && losses == true)
                                 {
-                                    if (Convert.ToInt64(i["minimumLossValue"]) == 0 || Convert.ToInt64(i["minimumLossValue"]) <= (double)killmail["zkb"]["totalValue"])
+                                    if (minimumLossValue == 0 || minimumLossValue <= value)
                                         post = true;
                                 }
                                 foreach (var attacker in attackers.ToList())
                                 {
                                     if (attacker["alliance"] != null)
                                     {
-                                        if ((Int32)attacker["alliance"]["id"] == Convert.ToInt32(i["allianceID"]) ||
-                                            (Int32)attacker["corporation"]["id"] == Convert.ToInt32(i["corpID"]))
+                                        if ((Int32)attacker["alliance"]["id"] == allianceID ||
+                                            (Int32)attacker["corporation"]["id"] == corpID)
                                         {
-                                            if (Convert.ToInt64(i["minimumValue"]) == 0 || Convert.ToInt64(i["minimumValue"]) <= (double)killmail["zkb"]["totalValue"])
+                                            if (minimumValue == 0 || minimumValue <= value)
                                                 post = true;
                                         }
-                                        else if ((Int32)attacker["corporation"]["id"] == Convert.ToInt32(i["corpID"]))
+                                        else if ((Int32)attacker["corporation"]["id"] == corpID)
                                         {
-                                            if (Convert.ToInt64(i["minimumValue"]) == 0 || Convert.ToInt64(i["minimumValue"]) <= (double)killmail["zkb"]["totalValue"])
+                                            if (minimumValue == 0 || minimumValue <= value)
                                                 post = true;
                                         }
                                     }
@@ -445,7 +453,7 @@ namespace Opux
                                 await channel.SendMessageAsync(message);
 
                             }
-                            await Client_Log(new LogMessage(LogSeverity.Info, "killFeed", $"POSTING Kill/Loss ID:{killmail["killmail"]["killID"]} Value:{killmail["zkb"]["totalValue"]}"));
+                            await Client_Log(new LogMessage(LogSeverity.Info, "killFeed", $"POSTING Kill/Loss ID:{killmail["killmail"]["killID"]} Value:{string.Format("{0:n0}", value)}"));
                         }
                     }
                 }
