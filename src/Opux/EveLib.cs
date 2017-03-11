@@ -70,27 +70,35 @@ namespace EveLibCore
 
             using (HttpClient webRequest = new HttpClient())
             {
-                var commaseperated = string.Join(",", notificationID);
-
-                var xml2 = await webRequest.GetStreamAsync($"https://api.eveonline.com/char/NotificationTexts.xml.aspx?keyID={KeyID}&vCode={VCode}&characterID={CharacterID}&IDs={commaseperated}");
-                var xmlReader2 = XmlReader.Create(xml2, new XmlReaderSettings { Async = true });
-                var complete2 = await xmlReader2.ReadAsync();
-                var result = new JObject();
-                if (complete2)
+                try
                 {
-                    document.Load(xmlReader2);
-                    var tmp = JSON.XmlToJSON(document);
-                    result = JObject.Parse(tmp);
-                }
+                    var commaseperated = string.Join(",", notificationID);
 
-                var rowlist = result["eveapi"]["result"]["rowset"]["row"].ToList();
-                foreach (var r in rowlist)
+                    var xml2 = await webRequest.GetStreamAsync($"https://api.eveonline.com/char/NotificationTexts.xml.aspx?keyID={KeyID}&vCode={VCode}&characterID={CharacterID}&IDs={commaseperated}");
+                    var xmlReader2 = XmlReader.Create(xml2, new XmlReaderSettings { Async = true });
+                    var complete2 = await xmlReader2.ReadAsync();
+                    var result = new JObject();
+                    if (complete2)
+                    {
+                        document.Load(xmlReader2);
+                        var tmp = JSON.XmlToJSON(document);
+                        result = JObject.Parse(tmp);
+                    }
+
+                    var rowlist = result["eveapi"]["result"]["rowset"]["row"].ToList();
+                    foreach (var r in rowlist)
+                    {
+                        var value = "{" + r["#cdata-section"].ToString().Replace('\n', ',') + "}";
+                        dictonary.Add((int)r["notificationID"], JObject.Parse(value));
+                    }
+
+                    return dictonary;
+                }
+                catch (Exception ex)
                 {
-                    var value = "{" + r["#cdata-section"].ToString().Replace('\n', ',') + "}";
-                    dictonary.Add((int)r["notificationID"], JObject.Parse(value));
+                    Console.WriteLine(ex.ToString());
                 }
-
-                return dictonary;
+                return null;
             }
         }
 

@@ -53,6 +53,9 @@
     }
   },
   "notifications": {
+    "keyID": "",
+    "vCode": "",
+    "characterID": "",
     "channelID": 0,
     "allianceOnly": true
   }

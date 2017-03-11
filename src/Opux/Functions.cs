@@ -654,7 +654,10 @@ namespace Opux
                     var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
                     var channelD = Convert.ToUInt64(Program.Settings.GetSection("notifications")["channelID"]);
                     var chan = (ITextChannel)Program.Client.GetGuild(guildID).GetChannel(channelD);
-                    await Program.EveLib.SetApiKey("5899425", "7cnJu6f1zUtDcBqUpJvZ2W3iRICgThJphQU1uyKejapXe5OZYQpXQ1HugtevCwOU", "1561889551");
+                    var keyID = Program.Settings.GetSection("notifications")["keyID"];
+                    var vCode = Program.Settings.GetSection("notifications")["vCode");
+                    var characterID = Program.Settings.GetSection("notifications")["characterID"];
+                    await Program.EveLib.SetApiKey(keyID, vCode, characterID);
                     var notifications = await Program.EveLib.GetNotifications();
                     var notificationsSort = notifications.OrderBy(x => x.Key);
 
