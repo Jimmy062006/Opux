@@ -16,11 +16,11 @@ namespace JSONStuff
         }
         public static string XmlToJSON(XmlDocument xmlDoc)
         {
-            StringBuilder Sbjson = new StringBuilder();
-            Sbjson.Append("{ ");
-            XmlToJSONnode(Sbjson, xmlDoc.DocumentElement, true);
-            Sbjson.Append("}");
-            return Sbjson.ToString();
+            StringBuilder sbJSON = new StringBuilder();
+            sbJSON.Append("{ ");
+            XmlToJSONnode(sbJSON, xmlDoc.DocumentElement, true);
+            sbJSON.Append("}");
+            return sbJSON.ToString();
         }
 
         //  XmlToJSONnode:  Output an XmlElement, possibly as part of a higher array
@@ -54,13 +54,13 @@ namespace JSONStuff
             // Now output all stored info
             foreach (string childname in childNodeNames.Keys)
             {
-                List<object> AlChild = (List<object>)childNodeNames[childname];
-                if (AlChild.Count == 1)
-                    OutputNode(childname, AlChild[0], sbJSON, true);
+                List<object> alChild = (List<object>)childNodeNames[childname];
+                if (alChild.Count == 1)
+                    OutputNode(childname, alChild[0], sbJSON, true);
                 else
                 {
                     sbJSON.Append(" \"" + SafeJSON(childname) + "\": [ ");
-                    foreach (object Child in AlChild)
+                    foreach (object Child in alChild)
                         OutputNode(childname, Child, sbJSON, false);
                     sbJSON.Remove(sbJSON.Length - 2, 2);
                     sbJSON.Append(" ], ");
@@ -86,7 +86,7 @@ namespace JSONStuff
                     if (children.Count == 0)
                         nodeValue = null;
                     else if (children.Count == 1 && (children[0] is XmlText))
-                        nodeValue = ((XmlText)children[0]).InnerText;
+                        nodeValue = ((XmlText)(children[0])).InnerText;
                 }
             }
             // Add nodeValue to ArrayList associated with each nodeName
@@ -117,9 +117,9 @@ namespace JSONStuff
             {
                 if (showNodeName)
                     sbJSON.Append("\"" + SafeJSON(childname) + "\": ");
-                string SChild = (string)alChild;
-                SChild = SChild.Trim();
-                sbJSON.Append("\"" + SafeJSON(SChild) + "\"");
+                string sChild = (string)alChild;
+                sChild = sChild.Trim();
+                sbJSON.Append("\"" + SafeJSON(sChild) + "\"");
             }
             else
                 XmlToJSONnode(sbJSON, (XmlElement)alChild, showNodeName);
@@ -129,22 +129,22 @@ namespace JSONStuff
         // Make a string safe for JSON
         private static string SafeJSON(string sIn)
         {
-            StringBuilder SbOut = new StringBuilder(sIn.Length);
+            StringBuilder sbOut = new StringBuilder(sIn.Length);
             foreach (char ch in sIn)
             {
                 if (Char.IsControl(ch) || ch == '\'')
                 {
                     int ich = (int)ch;
-                    SbOut.Append(@"\u" + ich.ToString("x4"));
+                    sbOut.Append(@"\u" + ich.ToString("x4"));
                     continue;
                 }
                 else if (ch == '\"' || ch == '\\' || ch == '/')
                 {
-                    SbOut.Append('\\');
+                    sbOut.Append('\\');
                 }
-                SbOut.Append(ch);
+                sbOut.Append(ch);
             }
-            return SbOut.ToString();
+            return sbOut.ToString();
         }
     }
 }
