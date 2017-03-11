@@ -60,8 +60,8 @@ namespace JSONStuff
                 else
                 {
                     sbJSON.Append(" \"" + SafeJSON(childname) + "\": [ ");
-                    foreach (object Child in alChild)
-                        OutputNode(childname, Child, sbJSON, false);
+                    foreach (object child in alChild)
+                        OutputNode(childname, child, sbJSON, false);
                     sbJSON.Remove(sbJSON.Length - 2, 2);
                     sbJSON.Append(" ], ");
                 }
@@ -86,7 +86,7 @@ namespace JSONStuff
                     if (children.Count == 0)
                         nodeValue = null;
                     else if (children.Count == 1 && (children[0] is XmlText))
-                        nodeValue = ((XmlText)(children[0])).InnerText;
+                        nodeValue = ((XmlText)children[0]).InnerText;
                 }
             }
             // Add nodeValue to ArrayList associated with each nodeName
