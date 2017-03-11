@@ -16,11 +16,11 @@ namespace JSONStuff
         }
         public static string XmlToJSON(XmlDocument xmlDoc)
         {
-            StringBuilder sbJSON = new StringBuilder();
-            sbJSON.Append("{ ");
-            XmlToJSONnode(sbJSON, xmlDoc.DocumentElement, true);
-            sbJSON.Append("}");
-            return sbJSON.ToString();
+            StringBuilder Sbjson = new StringBuilder();
+            Sbjson.Append("{ ");
+            XmlToJSONnode(Sbjson, xmlDoc.DocumentElement, true);
+            Sbjson.Append("}");
+            return Sbjson.ToString();
         }
 
         //  XmlToJSONnode:  Output an XmlElement, possibly as part of a higher array
@@ -54,13 +54,13 @@ namespace JSONStuff
             // Now output all stored info
             foreach (string childname in childNodeNames.Keys)
             {
-                List<object> alChild = (List<object>)childNodeNames[childname];
-                if (alChild.Count == 1)
-                    OutputNode(childname, alChild[0], sbJSON, true);
+                List<object> AlChild = (List<object>)childNodeNames[childname];
+                if (AlChild.Count == 1)
+                    OutputNode(childname, AlChild[0], sbJSON, true);
                 else
                 {
                     sbJSON.Append(" \"" + SafeJSON(childname) + "\": [ ");
-                    foreach (object Child in alChild)
+                    foreach (object Child in AlChild)
                         OutputNode(childname, Child, sbJSON, false);
                     sbJSON.Remove(sbJSON.Length - 2, 2);
                     sbJSON.Append(" ], ");
@@ -91,18 +91,18 @@ namespace JSONStuff
             }
             // Add nodeValue to ArrayList associated with each nodeName
             // If nodeName doesn't exist then add it
-            List<object> ValuesAL;
+            List<object> valuesAL;
 
             if (childNodeNames.ContainsKey(nodeName))
             {
-                ValuesAL = (List<object>)childNodeNames[nodeName];
+                valuesAL = (List<object>)childNodeNames[nodeName];
             }
             else
             {
-                ValuesAL = new List<object>();
-                childNodeNames[nodeName] = ValuesAL;
+                valuesAL = new List<object>();
+                childNodeNames[nodeName] = valuesAL;
             }
-            ValuesAL.Add(nodeValue);
+            valuesAL.Add(nodeValue);
         }
 
         private static void OutputNode(string childname, object alChild, StringBuilder sbJSON, bool showNodeName)
@@ -117,9 +117,9 @@ namespace JSONStuff
             {
                 if (showNodeName)
                     sbJSON.Append("\"" + SafeJSON(childname) + "\": ");
-                string sChild = (string)alChild;
-                sChild = sChild.Trim();
-                sbJSON.Append("\"" + SafeJSON(sChild) + "\"");
+                string SChild = (string)alChild;
+                SChild = SChild.Trim();
+                sbJSON.Append("\"" + SafeJSON(SChild) + "\"");
             }
             else
                 XmlToJSONnode(sbJSON, (XmlElement)alChild, showNodeName);
@@ -129,22 +129,22 @@ namespace JSONStuff
         // Make a string safe for JSON
         private static string SafeJSON(string sIn)
         {
-            StringBuilder sbOut = new StringBuilder(sIn.Length);
+            StringBuilder SbOut = new StringBuilder(sIn.Length);
             foreach (char ch in sIn)
             {
                 if (Char.IsControl(ch) || ch == '\'')
                 {
                     int ich = (int)ch;
-                    sbOut.Append(@"\u" + ich.ToString("x4"));
+                    SbOut.Append(@"\u" + ich.ToString("x4"));
                     continue;
                 }
                 else if (ch == '\"' || ch == '\\' || ch == '/')
                 {
-                    sbOut.Append('\\');
+                    SbOut.Append('\\');
                 }
-                sbOut.Append(ch);
+                SbOut.Append(ch);
             }
-            return sbOut.ToString();
+            return SbOut.ToString();
         }
     }
 }

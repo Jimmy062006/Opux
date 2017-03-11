@@ -203,7 +203,7 @@ namespace Opux
                                 }
                             }
 
-                            var discordGuild = Program.client.Guilds.FirstOrDefault(X => X.Id == guildID);
+                            var discordGuild = Program.Client.Guilds.FirstOrDefault(X => X.Id == guildID);
 
                             var discordUser = discordGuild.Users.FirstOrDefault(x => x.Id == Convert.ToUInt64(u["discordID"]));
                             var rolesToAdd = new List<SocketRole>();
@@ -305,7 +305,7 @@ namespace Opux
 
                 UInt64 guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
                 UInt64 logchan = Convert.ToUInt64(Program.Settings.GetSection("auth")["alertChannel"]);
-                var tmp = Program.client.Guilds;
+                var tmp = Program.Client.Guilds;
                 var discordGuild = tmp.FirstOrDefault(X => X.Id == guildID);
                 var redisQID = Program.Settings.GetSection("killFeed")["reDisqID"].ToString();
                 ITextChannel channel = null;
@@ -645,9 +645,9 @@ namespace Opux
                 {
                     var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
                     var channelD = Convert.ToUInt64(Program.Settings.GetSection("notifications")["channelID"]);
-                    var chan = (ITextChannel)Program.client.GetGuild(guildID).GetChannel(channelD);
-                    await Program.eveLib.SetApiKey("5899425", "7cnJu6f1zUtDcBqUpJvZ2W3iRICgThJphQU1uyKejapXe5OZYQpXQ1HugtevCwOU", "1561889551");
-                    var notifications = await Program.eveLib.GetNotifications();
+                    var chan = (ITextChannel)Program.Client.GetGuild(guildID).GetChannel(channelD);
+                    await Program.EveLib.SetApiKey("5899425", "7cnJu6f1zUtDcBqUpJvZ2W3iRICgThJphQU1uyKejapXe5OZYQpXQ1HugtevCwOU", "1561889551");
+                    var notifications = await Program.EveLib.GetNotifications();
                     var notificationsSort = notifications.OrderBy(x => x.Key);
 
                     var notiIDs = new List<int>();
@@ -657,7 +657,7 @@ namespace Opux
                         notiIDs.Add((int)l.Key);
                     }
 
-                    var notificationsText = await Program.eveLib.GetNotificationText(notiIDs);
+                    var notificationsText = await Program.EveLib.GetNotificationText(notiIDs);
 
                     foreach (var notification in notificationsSort)
                     {
@@ -670,7 +670,7 @@ namespace Opux
                                 var aggressorID = (int)notificationText["aggressorID"];
                                 var defenderID = (int)notificationText["defenderID"];
 
-                                var stuff = await Program.eveLib.IDtoName(new List<int> { aggressorID, defenderID });
+                                var stuff = await Program.EveLib.IDtoName(new List<int> { aggressorID, defenderID });
                                 var aggressorName = stuff.FirstOrDefault(x => x.Key == aggressorID).Value;
                                 var defenderName = stuff.FirstOrDefault(x => x.Key == defenderID).Value;
                                 await chan.SendMessageAsync($"War declared by **{aggressorName}** against **{defenderName}**. Fighting begins in roughly 24 hours.");
@@ -810,8 +810,8 @@ namespace Opux
         #region Discord Modules
         internal static async Task InstallCommands()
         {
-            Program.client.MessageReceived += HandleCommand;
-            await Program.commands.AddModulesAsync(Assembly.GetEntryAssembly());
+            Program.Client.MessageReceived += HandleCommand;
+            await Program.Commands.AddModulesAsync(Assembly.GetEntryAssembly());
         }
 
         internal static async Task HandleCommand(SocketMessage messageParam)
@@ -823,11 +823,11 @@ namespace Opux
             int argPos = 0;
 
             if (!(message.HasCharPrefix(Program.Settings.GetSection("config")["commandprefix"].ToCharArray()[0], ref argPos) || message.HasMentionPrefix
-                  (Program.client.CurrentUser, ref argPos))) return;
+                  (Program.Client.CurrentUser, ref argPos))) return;
 
-            var context = new CommandContext(Program.client, message);
+            var context = new CommandContext(Program.Client, message);
 
-            var result = await Program.commands.ExecuteAsync(context, argPos, Program.map);
+            var result = await Program.Commands.ExecuteAsync(context, argPos, Program.Map);
             if (!result.IsSuccess && result.ErrorReason != "Unknown command.")
                 await context.Channel.SendMessageAsync(result.ErrorReason);
         }

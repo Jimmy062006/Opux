@@ -13,12 +13,12 @@ namespace Opux
 {
     public class Program
     {
-        public static DiscordSocketClient client = new DiscordSocketClient();
-        public static CommandService commands = new CommandService();
-        public static DependencyMap map = new DependencyMap();
-        public static EveLib eveLib = new EveLib();
-        public static string applicationBase;
-        public static IConfigurationRoot Settings;
+        public static DiscordSocketClient Client { get; private set; }
+        public static CommandService Commands { get; private set; }
+        public static DependencyMap Map { get; private set; }
+        public static EveLib EveLib { get; private set; }
+        public static string ApplicationBase { get; private set; }
+        public static IConfigurationRoot Settings { get; private set; }
 
         static AutoResetEvent autoEvent = new AutoResetEvent(true);
 
@@ -28,15 +28,19 @@ namespace Opux
         {
             try
             {
-                applicationBase = Path.GetDirectoryName(new Uri(Assembly.GetEntryAssembly().CodeBase).LocalPath);
+                Client = new DiscordSocketClient();
+                Commands = new CommandService();
+                Map = new DependencyMap();
+                EveLib = new EveLib();
+                ApplicationBase = Path.GetDirectoryName(new Uri(Assembly.GetEntryAssembly().CodeBase).LocalPath);
                 Settings = new ConfigurationBuilder()
-                .SetBasePath(Program.applicationBase)
+                .SetBasePath(Program.ApplicationBase)
                 .AddJsonFile("settings.json", optional: true, reloadOnChange: true).Build();
 
                 MainAsync(args).GetAwaiter().GetResult();
 
                 Console.ReadKey();
-                client.StopAsync();
+                Client.StopAsync();
             }
             catch (Exception ex)
             {
@@ -46,16 +50,16 @@ namespace Opux
 
         internal static async Task MainAsync(string[] args)
         {
-            client.Log += Functions.Client_Log;
-            client.LoggedOut += Functions.Event_LoggedOut;
-            client.LoggedIn += Functions.Event_LoggedIn;
-            client.Connected += Functions.Event_Connected;
-            client.Disconnected += Functions.Event_Disconnected;
-            client.GuildAvailable += Functions.Event_GuildAvaliable;
+            Client.Log += Functions.Client_Log;
+            Client.LoggedOut += Functions.Event_LoggedOut;
+            Client.LoggedIn += Functions.Event_LoggedIn;
+            Client.Connected += Functions.Event_Connected;
+            Client.Disconnected += Functions.Event_Disconnected;
+            Client.GuildAvailable += Functions.Event_GuildAvaliable;
 
             await Functions.InstallCommands();
-            await client.LoginAsync(TokenType.Bot, Settings.GetSection("config")["token"]);
-            await client.StartAsync();
+            await Client.LoginAsync(TokenType.Bot, Settings.GetSection("config")["token"]);
+            await Client.StartAsync();
         }
     }
 }
