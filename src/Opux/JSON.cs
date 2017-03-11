@@ -86,7 +86,7 @@ namespace JSONStuff
                     if (children.Count == 0)
                         nodeValue = null;
                     else if (children.Count == 1 && (children[0] is XmlText))
-                        nodeValue = ((XmlText)(children[0])).InnerText;
+                        nodeValue = ((XmlText)children[0]).InnerText;
                 }
             }
             // Add nodeValue to ArrayList associated with each nodeName
