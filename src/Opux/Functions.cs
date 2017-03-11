@@ -190,8 +190,9 @@ namespace Opux
                                 corporationDetails = JObject.Parse(await _corporationDetailsContent.ReadAsStringAsync());
                                 corporationDetails.TryGetValue("alliance_id", out JToken allianceid);
                                 string i = (allianceid.IsNullOrEmpty() ? "0" : allianceid.ToString());
-                                string c = (string)corporationid;
+                                string c = (corporationid.IsNullOrEmpty() ? "0" : corporationid.ToString());
                                 allianceID = i;
+                                corpID = c;
                                 if (allianceID != "0")
                                 {
                                     using (HttpResponseMessage _allianceDetails = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{allianceid}"))
