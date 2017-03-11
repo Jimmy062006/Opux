@@ -181,6 +181,7 @@ namespace Opux
                         using (HttpContent _characterDetailsContent = _characterDetails.Content)
                         {
                             var allianceID = "";
+                            var corpID = "";
                             characterDetails = JObject.Parse(await _characterDetailsContent.ReadAsStringAsync());
                             characterDetails.TryGetValue("corporation_id", out JToken corporationid);
                             using (HttpResponseMessage _corporationDetails = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corporationid}"))
@@ -189,7 +190,9 @@ namespace Opux
                                 corporationDetails = JObject.Parse(await _corporationDetailsContent.ReadAsStringAsync());
                                 corporationDetails.TryGetValue("alliance_id", out JToken allianceid);
                                 string i = (allianceid.IsNullOrEmpty() ? "0" : allianceid.ToString());
+                                string c = (corporationid.IsNullOrEmpty() ? "0" : corporationid.ToString());
                                 allianceID = i;
+                                corpID = c;
                                 if (allianceID != "0")
                                 {
                                     using (HttpResponseMessage _allianceDetails = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{allianceid}"))
@@ -209,9 +212,35 @@ namespace Opux
                             try
                             {
                                 //Check for Corp roles
-                                if (corps.ContainsKey(corporationid.ToString()))
+                                if (corps.ContainsKey(corpID))
                                 {
+                                    var cinfo = corps.FirstOrDefault(x => x.Key == corpID);
+                                    var channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
+                                    rolesToAdd.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == cinfo.Value));
+                                    foreach (var r in rolesToAdd)
+                                    {
+                                        if (discordUser.Roles.FirstOrDefault(x => x.Id == r.Id) == null)
+                                        {
+                                            await channel.SendMessageAsync($"Granting Corp Role {cinfo.Value} to {characterDetails["name"]}");
+                                            await discordUser.AddRolesAsync(rolesToAdd);
+                                        }
+                                    }
+                                }
 
+                                //Check for Alliance roles
+                                if (alliance.ContainsKey(allianceID))
+                                {
+                                    var ainfo = alliance.FirstOrDefault(x => x.Key == allianceID);
+                                    var channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
+                                    rolesToAdd.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == ainfo.Value));
+                                    foreach (var r in rolesToAdd)
+                                    {
+                                        if (discordUser.Roles.FirstOrDefault(x => x.Id == r.Id) == null)
+                                        {
+                                            await channel.SendMessageAsync($"Granting Alliance Role {ainfo.Value} to {characterDetails["name"]}");
+                                            await discordUser.AddRolesAsync(rolesToAdd);
+                                        }
+                                    }
                                 }
                             }
                             catch
@@ -220,31 +249,23 @@ namespace Opux
                                 continue;
                             }
 
-                            //Check for Alliance roles
-                            if (alliance.ContainsKey(allianceID))
-                            {
-                                var ainfo = alliance.FirstOrDefault(x => x.Key == allianceID);
-                                var channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
-                                var test = channel;
-                                rolesToAdd.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == ainfo.Value));
-                                foreach (var r in rolesToAdd)
-                                {
-                                    if (discordUser.Roles.FirstOrDefault(x => x.Id == r.Id) == null)
-                                    {
-                                        await channel.SendMessageAsync($"Granting Role {ainfo.Value} to {characterDetails["name"]}");
-                                        await discordUser.AddRolesAsync(rolesToAdd);
-                                    }
-                                }
-                            }
-
                             //Check if roles when should not have any
-
-
                             if (!corps.ContainsKey(corporationid.ToString()) && !alliance.ContainsKey(allianceID))
                             {
                                 if (discordUser != null)
                                 {
+                                    var exemptRoles = Program.Settings.GetSection("auth").GetSection("exempt").GetChildren().ToList();
+
                                     rolesToTake.AddRange(discordUser.Roles);
+                                    var exemptCheckRoles = new List<SocketRole>(rolesToTake);
+                                    foreach (var r in exemptCheckRoles)
+                                    {
+                                        var name = r.Name;
+                                        if (exemptRoles.FindAll(x => x.Key == name).Count > 0)
+                                        {
+                                            rolesToTake.Remove(rolesToTake.FirstOrDefault(x => x.Name == r.Name));
+                                        }
+                                    }
                                     rolesToTake.Remove(rolesToTake.FirstOrDefault(x => x.Name == "@everyone"));
                                     if (rolesToTake.Count > 0)
                                     {
@@ -258,15 +279,8 @@ namespace Opux
 
                                 }
                             }
-
                         }
-
                         lastAuthCheck = DateTime.Now;
-
-                        //if (authgroups.FirstOrDefault(x => x.Key == corporationDetails[""].Values))
-
-
-                        //   await tmp.SendMessageAsync(message);
                     }
                     await Task.CompletedTask;
                 }
@@ -280,7 +294,7 @@ namespace Opux
         }
         #endregion
 
-        //Mostly Complete
+        //Complete
         #region killFeed
         private static async Task KillFeed(CommandContext Context)
         {

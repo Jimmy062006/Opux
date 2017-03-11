@@ -37,10 +37,8 @@
   "auth": {
     "url": "",
     "exempt": {
-      "Leadership": null,
-      "TXG Manager": null,
-      "Rental Partner": null,
-      "Admin": null
+      "Role1": null,
+      "Role2": null
     },
     "alertChannel": 0,
     "corpTickers": true,
