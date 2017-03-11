@@ -250,13 +250,20 @@ namespace Opux
                             }
 
                             //Check if roles when should not have any
-
-
                             if (!corps.ContainsKey(corporationid.ToString()) && !alliance.ContainsKey(allianceID))
                             {
                                 if (discordUser != null)
                                 {
+                                    var exemptRoles = Program.Settings.GetSection("auth").GetSection("exempt").GetChildren().ToList();
+
                                     rolesToTake.AddRange(discordUser.Roles);
+                                    foreach (var r in rolesToTake)
+                                    {
+                                        if (exemptRoles.Find(x => x.Key == r.Name).Key != null)
+                                        {
+                                            rolesToTake.Remove(r);
+                                        }
+                                    }
                                     rolesToTake.Remove(rolesToTake.FirstOrDefault(x => x.Name == "@everyone"));
                                     if (rolesToTake.Count > 0)
                                     {
@@ -270,7 +277,6 @@ namespace Opux
 
                                 }
                             }
-
                         }
                         lastAuthCheck = DateTime.Now;
                     }
