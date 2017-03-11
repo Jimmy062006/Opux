@@ -181,6 +181,7 @@ namespace Opux
                         using (HttpContent _characterDetailsContent = _characterDetails.Content)
                         {
                             var allianceID = "";
+                            var corpID = "";
                             characterDetails = JObject.Parse(await _characterDetailsContent.ReadAsStringAsync());
                             characterDetails.TryGetValue("corporation_id", out JToken corporationid);
                             using (HttpResponseMessage _corporationDetails = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corporationid}"))
@@ -189,6 +190,7 @@ namespace Opux
                                 corporationDetails = JObject.Parse(await _corporationDetailsContent.ReadAsStringAsync());
                                 corporationDetails.TryGetValue("alliance_id", out JToken allianceid);
                                 string i = (allianceid.IsNullOrEmpty() ? "0" : allianceid.ToString());
+                                string c = (string)corporationid;
                                 allianceID = i;
                                 if (allianceID != "0")
                                 {
@@ -209,32 +211,41 @@ namespace Opux
                             try
                             {
                                 //Check for Corp roles
-                                if (corps.ContainsKey(corporationid.ToString()))
+                                if (corps.ContainsKey(corpID))
                                 {
+                                    var cinfo = corps.FirstOrDefault(x => x.Key == corpID);
+                                    var channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
+                                    rolesToAdd.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == cinfo.Value));
+                                    foreach (var r in rolesToAdd)
+                                    {
+                                        if (discordUser.Roles.FirstOrDefault(x => x.Id == r.Id) == null)
+                                        {
+                                            await channel.SendMessageAsync($"Granting Corp Role {cinfo.Value} to {characterDetails["name"]}");
+                                            await discordUser.AddRolesAsync(rolesToAdd);
+                                        }
+                                    }
+                                }
 
+                                //Check for Alliance roles
+                                if (alliance.ContainsKey(allianceID))
+                                {
+                                    var ainfo = alliance.FirstOrDefault(x => x.Key == allianceID);
+                                    var channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
+                                    rolesToAdd.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == ainfo.Value));
+                                    foreach (var r in rolesToAdd)
+                                    {
+                                        if (discordUser.Roles.FirstOrDefault(x => x.Id == r.Id) == null)
+                                        {
+                                            await channel.SendMessageAsync($"Granting Alliance Role {ainfo.Value} to {characterDetails["name"]}");
+                                            await discordUser.AddRolesAsync(rolesToAdd);
+                                        }
+                                    }
                                 }
                             }
                             catch
                             {
                                 await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential ESI Failiure for {u["eveName"]} skipping"));
                                 continue;
-                            }
-
-                            //Check for Alliance roles
-                            if (alliance.ContainsKey(allianceID))
-                            {
-                                var ainfo = alliance.FirstOrDefault(x => x.Key == allianceID);
-                                var channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
-                                var test = channel;
-                                rolesToAdd.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == ainfo.Value));
-                                foreach (var r in rolesToAdd)
-                                {
-                                    if (discordUser.Roles.FirstOrDefault(x => x.Id == r.Id) == null)
-                                    {
-                                        await channel.SendMessageAsync($"Granting Role {ainfo.Value} to {characterDetails["name"]}");
-                                        await discordUser.AddRolesAsync(rolesToAdd);
-                                    }
-                                }
                             }
 
                             //Check if roles when should not have any
@@ -260,13 +271,7 @@ namespace Opux
                             }
 
                         }
-
                         lastAuthCheck = DateTime.Now;
-
-                        //if (authgroups.FirstOrDefault(x => x.Key == corporationDetails[""].Values))
-
-
-                        //   await tmp.SendMessageAsync(message);
                     }
                     await Task.CompletedTask;
                 }
@@ -280,7 +285,7 @@ namespace Opux
         }
         #endregion
 
-        //Mostly Complete
+        //Complete
         #region killFeed
         private static async Task KillFeed(CommandContext Context)
         {
