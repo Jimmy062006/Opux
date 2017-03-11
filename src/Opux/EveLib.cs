@@ -63,10 +63,10 @@ namespace EveLibCore
             }
         }
 
-        public async Task<Dictionary<int, JObject>> GetNotificationText(List<int> notificationID)
+        public async Task<Dictionary<int, JToken>> GetNotificationText(List<int> notificationID)
         {
             var document = new XmlDocument();
-            var dictonary = new Dictionary<int, JObject>();
+            var dictonary = new Dictionary<int, JToken>();
 
             using (HttpClient webRequest = new HttpClient())
             {
@@ -88,8 +88,18 @@ namespace EveLibCore
                     var rowlist = result["eveapi"]["result"]["rowset"]["row"].ToList();
                     foreach (var r in rowlist)
                     {
-                        var value = "{" + r["#cdata-section"].ToString().Replace('\n', ',') + "}";
-                        dictonary.Add((int)r["notificationID"], JObject.Parse(value));
+                        var value = r["#cdata-section"].ToString().Replace('\n', ',');
+                        var split = value.Split(',');
+                        List<string> splitResult = new List<string>();
+                        foreach (var s in split)
+                        {
+                                var stringinprogress = s.Insert(s.IndexOf(':') + 1, "\"");
+                                stringinprogress = stringinprogress.Insert(stringinprogress.Length, "\"");
+                                splitResult.Add(stringinprogress);
+                        }
+                        var returnstuff = "{" + string.Join(",", splitResult.ToArray()) + "}";
+                        var tokentry = JToken.Parse(returnstuff);
+                        dictonary.Add((int)r["notificationID"], tokentry);
                     }
 
                     return dictonary;
