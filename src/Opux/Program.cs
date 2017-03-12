@@ -32,10 +32,11 @@ namespace Opux
                 Commands = new CommandService();
                 Map = new DependencyMap();
                 EveLib = new EveLib();
-                ApplicationBase = Path.GetDirectoryName(new Uri(Assembly.GetEntryAssembly().CodeBase).LocalPath);
-                Settings = new ConfigurationBuilder()
-                .SetBasePath(Program.ApplicationBase)
-                .AddJsonFile("settings.json", optional: true, reloadOnChange: true).Build();
+                //ApplicationBase = Path.GetDirectoryName(new Uri(Assembly.GetEntryAssembly().CodeBase).LocalPath);
+                //Settings = new ConfigurationBuilder()
+                //.SetBasePath(Program.ApplicationBase)
+                //.AddJsonFile("settings.json", optional: true, reloadOnChange: true).Build();
+                UpdateSettings();
 
                 MainAsync(args).GetAwaiter().GetResult();
 
@@ -60,6 +61,15 @@ namespace Opux
             await Functions.InstallCommands();
             await Client.LoginAsync(TokenType.Bot, Settings.GetSection("config")["token"]);
             await Client.StartAsync();
+        }
+
+        public static Task UpdateSettings()
+        {
+            ApplicationBase = Path.GetDirectoryName(new Uri(Assembly.GetEntryAssembly().CodeBase).LocalPath);
+            Settings = new ConfigurationBuilder()
+            .SetBasePath(Program.ApplicationBase)
+            .AddJsonFile("settings.json", optional: true, reloadOnChange: true).Build();
+            return Task.CompletedTask;
         }
     }
 }

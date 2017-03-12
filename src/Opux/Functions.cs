@@ -964,16 +964,6 @@ namespace Opux
             }
         }
         #endregion
-
-        //Other FUnctions
-        #region OtherFunctions
-        public static DateTime FromUnixTime(long unixTime)
-        {
-            var epoch = new DateTime(1601, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            return epoch.AddMilliseconds(unixTime);
-        }
-        #endregion
-
     }
 
     #region JToken null/empty check

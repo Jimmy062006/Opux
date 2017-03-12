@@ -112,29 +112,33 @@ namespace Opux
         /// 
         /// </summary>
         /// <returns></returns>
-        //[Command("about", RunMode = RunMode.Async), Summary("About this bot")]
-        //public async Task About()
-        //{
-        //    try
-        //    {
-        //        await Task.CompletedTask;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine(ex.Message);
-        //    }
-        //}
+        [Command("rehash", RunMode = RunMode.Async), Summary("Rehash settings file")]
+        [CheckForRole]
+        public async Task About()
+        {
+            try
+            {
+                await Program.UpdateSettings();
+                await ReplyAsync($"{Context.Message.Author.Mention} REHASH COMPLETED");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
         [Command("reauth"), Summary("Reauth all users")]
+        [CheckForRole]
         public async Task Testsql()
         {
             try
             {
                 await Functions.AuthCheck(Context);
+                await ReplyAsync($"{Context.Message.Author.Mention} REAUTH COMPLETED");
             }
             catch (Exception ex)
             {

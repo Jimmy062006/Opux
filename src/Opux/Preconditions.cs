@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Opux
 {
 
-    public class CheckForRole : PreconditionAttribute
+    public class CheckForRoleAttribute : PreconditionAttribute
     {
         // Override the CheckPermissions method
         public async override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IDependencyMap map)
