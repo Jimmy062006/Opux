@@ -739,16 +739,32 @@ namespace Opux
                         if ((int)notification.Value["notificationID"] > lastNotification)
                         {
                             var notificationText = notificationsText.FirstOrDefault(x => x.Key == notification.Key).Value;
+                            var notificationType = (int)notification.Value["typeID"];
 
-                            if ((int)notification.Value["typeID"] == 102)
+                            if (notificationType == 121)
                             {
-                                var aggressorID = (int)notificationText["aggressorID"];
+                                var aggressorID = (int)notificationText["entityID"];
                                 var defenderID = (int)notificationText["defenderID"];
 
                                 var stuff = await Program.EveLib.IDtoName(new List<int> { aggressorID, defenderID });
                                 var aggressorName = stuff.FirstOrDefault(x => x.Key == aggressorID).Value;
                                 var defenderName = stuff.FirstOrDefault(x => x.Key == defenderID).Value;
                                 await chan.SendMessageAsync($"War declared by **{aggressorName}** against **{defenderName}**. Fighting begins in roughly 24 hours.");
+                            }
+                            else if (notificationType == 100)
+                            {
+                                var allyID = (int)notificationText["allyID"];
+                                var defenderID = (int)notificationText["defenderID"];
+
+                                var stuff = await Program.EveLib.IDtoName(new List<int> { allyID, defenderID });
+                                var allyName = stuff.FirstOrDefault(x => x.Key == allyID).Value;
+                                var defenderName = stuff.FirstOrDefault(x => x.Key == defenderID).Value;
+                                var startTime = DateTime.FromFileTimeUtc((long)notificationText["startTime"]);
+                                await chan.SendMessageAsync($"**{allyName}** will join the war against **{defenderName}** at {startTime} EVE.");
+                            }
+                            else
+                            {
+                                await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Skipping Notification Type: {notificationType} Text: {notificationText}"));
                             }
                             lastNotification = (int)notification.Value["notificationID"];
                         }
@@ -946,6 +962,15 @@ namespace Opux
                 await Task.Yield();
                 return list;
             }
+        }
+        #endregion
+
+        //Other FUnctions
+        #region OtherFunctions
+        public static DateTime FromUnixTime(long unixTime)
+        {
+            var epoch = new DateTime(1601, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            return epoch.AddMilliseconds(unixTime);
         }
         #endregion
 
