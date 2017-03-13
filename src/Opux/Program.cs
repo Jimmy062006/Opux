@@ -28,16 +28,14 @@ namespace Opux
         {
             try
             {
+                ApplicationBase = Path.GetDirectoryName(new Uri(Assembly.GetEntryAssembly().CodeBase).LocalPath);
+                if (!File.Exists(ApplicationBase + "/Opux.db"))
+                    File.Copy(ApplicationBase + "/Opux.def.db", ApplicationBase + "/Opux.db");
                 Client = new DiscordSocketClient();
                 Commands = new CommandService();
                 Map = new DependencyMap();
                 EveLib = new EveLib();
-                //ApplicationBase = Path.GetDirectoryName(new Uri(Assembly.GetEntryAssembly().CodeBase).LocalPath);
-                //Settings = new ConfigurationBuilder()
-                //.SetBasePath(Program.ApplicationBase)
-                //.AddJsonFile("settings.json", optional: true, reloadOnChange: true).Build();
                 UpdateSettings();
-
                 MainAsync(args).GetAwaiter().GetResult();
 
                 Console.ReadKey();
@@ -58,6 +56,8 @@ namespace Opux
             Client.Disconnected += Functions.Event_Disconnected;
             Client.GuildAvailable += Functions.Event_GuildAvaliable;
 
+            Functions.nextNotificationCheck = DateTime.Parse(await Functions.SQLiteDataQuery("cacheData", "data", "nextNotificationCheck"));
+
             await Functions.InstallCommands();
             await Client.LoginAsync(TokenType.Bot, Settings.GetSection("config")["token"]);
             await Client.StartAsync();
@@ -65,7 +65,6 @@ namespace Opux
 
         public static Task UpdateSettings()
         {
-            ApplicationBase = Path.GetDirectoryName(new Uri(Assembly.GetEntryAssembly().CodeBase).LocalPath);
             Settings = new ConfigurationBuilder()
             .SetBasePath(Program.ApplicationBase)
             .AddJsonFile("settings.json", optional: true, reloadOnChange: true).Build();

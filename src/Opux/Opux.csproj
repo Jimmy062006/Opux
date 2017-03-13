@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="Discord.Net" Version="1.0.0-rc-00614" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="1.1.0" />
     <PackageReference Include="MySql.Data" Version="7.0.6-IR31" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.1-beta1" />
     <PackageReference Include="System.Xml.XmlDocument" Version="4.3.0" />
@@ -20,6 +21,9 @@
   <ItemGroup>
     <None Update="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Opux.def.db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="settings - Copy.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

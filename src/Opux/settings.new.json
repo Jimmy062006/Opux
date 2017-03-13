@@ -53,8 +53,16 @@
     }
   },
   "notifications": {
-    "keyID": "",
-    "vCode": "",
+    "keys": {
+      "key1": {//make sure the name is unique
+        "keyID": "",
+        "vCode": ""
+      }//,//DO NOT LEAVE EMPTY KEY SECTIONS UNCOMMENT TO USE
+      //"key1": {
+      //  "keyID": "",
+      //  "vCode": ""
+      //}
+    },
     "characterID": "",
     "channelID": 0,
     "allianceOnly": true

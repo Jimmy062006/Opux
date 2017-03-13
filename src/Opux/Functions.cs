@@ -11,6 +11,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
+using Microsoft.Data.Sqlite;
 
 namespace Opux
 {
@@ -18,7 +19,7 @@ namespace Opux
     {
         internal static DateTime lastAuthCheck = DateTime.Now;
         internal static DateTime lastFeedCheck = DateTime.Now;
-        internal static DateTime lastNotificationCheck = DateTime.Now.AddMinutes(-30);
+        internal static DateTime nextNotificationCheck = DateTime.FromFileTime(0);
         internal static int lastNotification;
         internal static bool avaliable = false;
         internal static bool running = false;
@@ -713,64 +714,96 @@ namespace Opux
             #endregion
             try
             {
-                if (DateTime.Now > lastNotificationCheck.AddMinutes(30))
+                if (DateTime.Now > nextNotificationCheck)
                 {
+                    await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", "Running Notification Check"));
+                    lastNotification = Convert.ToInt32(await SQLiteDataQuery("cacheData","data","lastNotificationID"));
                     var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
                     var channelD = Convert.ToUInt64(Program.Settings.GetSection("notifications")["channelID"]);
                     var chan = (ITextChannel)Program.Client.GetGuild(guildID).GetChannel(channelD);
-                    var keyID = Program.Settings.GetSection("notifications")["keyID"];
-                    var vCode = Program.Settings.GetSection("notifications")["vCode"];
+                    var keyID = "";//= Program.Settings.GetSection("notifications")["keyID"];
+                    var vCode= "";//= Program.Settings.GetSection("notifications")["vCode"];
                     var characterID = Program.Settings.GetSection("notifications")["characterID"];
-                    await Program.EveLib.SetApiKey(keyID, vCode, characterID);
-                    var notifications = await Program.EveLib.GetNotifications();
-                    var notificationsSort = notifications.OrderBy(x => x.Key);
+                    var keys = Program.Settings.GetSection("notifications").GetSection("keys").GetChildren();
+                    var keyCount = keys.Count();
+                    var nextKey = await SQLiteDataQuery("notifications", "data", "nextKey");
+                    var index = 0;
 
-                    var notiIDs = new List<int>();
-
-                    foreach (var l in notifications)
+                    foreach (var key in keys)
                     {
-                        notiIDs.Add((int)l.Key);
-                    }
-
-                    var notificationsText = await Program.EveLib.GetNotificationText(notiIDs);
-
-                    foreach (var notification in notificationsSort)
-                    {
-                        if ((int)notification.Value["notificationID"] > lastNotification)
+                        if (nextKey == null || String.IsNullOrWhiteSpace(nextKey) || nextKey == key.Key)
                         {
-                            var notificationText = notificationsText.FirstOrDefault(x => x.Key == notification.Key).Value;
-                            var notificationType = (int)notification.Value["typeID"];
+                            keyID = key["keyID"];
+                            vCode = key["vCode"];
 
-                            if (notificationType == 121)
+                            await Program.EveLib.SetApiKey(keyID, vCode, characterID);
+                            var notifications = await Program.EveLib.GetNotifications();
+                            var notificationsSort = notifications.OrderBy(x => x.Key);
+
+                            var notiIDs = new List<int>();
+
+                            foreach (var l in notifications)
                             {
-                                var aggressorID = (int)notificationText["entityID"];
-                                var defenderID = (int)notificationText["defenderID"];
-
-                                var stuff = await Program.EveLib.IDtoName(new List<int> { aggressorID, defenderID });
-                                var aggressorName = stuff.FirstOrDefault(x => x.Key == aggressorID).Value;
-                                var defenderName = stuff.FirstOrDefault(x => x.Key == defenderID).Value;
-                                await chan.SendMessageAsync($"War declared by **{aggressorName}** against **{defenderName}**. Fighting begins in roughly 24 hours.");
+                                notiIDs.Add((int)l.Key);
                             }
-                            else if (notificationType == 100)
-                            {
-                                var allyID = (int)notificationText["allyID"];
-                                var defenderID = (int)notificationText["defenderID"];
 
-                                var stuff = await Program.EveLib.IDtoName(new List<int> { allyID, defenderID });
-                                var allyName = stuff.FirstOrDefault(x => x.Key == allyID).Value;
-                                var defenderName = stuff.FirstOrDefault(x => x.Key == defenderID).Value;
-                                var startTime = DateTime.FromFileTimeUtc((long)notificationText["startTime"]);
-                                await chan.SendMessageAsync($"**{allyName}** will join the war against **{defenderName}** at {startTime} EVE.");
+                            var notificationsText = await Program.EveLib.GetNotificationText(notiIDs);
+
+                            foreach (var notification in notificationsSort)
+                            {
+                                if ((int)notification.Value["notificationID"] > lastNotification)
+                                {
+                                    var notificationText = notificationsText.FirstOrDefault(x => x.Key == notification.Key).Value;
+                                    var notificationType = (int)notification.Value["typeID"];
+
+                                    if (notificationType == 121)
+                                    {
+                                        var aggressorID = (int)notificationText["entityID"];
+                                        var defenderID = (int)notificationText["defenderID"];
+
+                                        var stuff = await Program.EveLib.IDtoName(new List<int> { aggressorID, defenderID });
+                                        var aggressorName = stuff.FirstOrDefault(x => x.Key == aggressorID).Value;
+                                        var defenderName = stuff.FirstOrDefault(x => x.Key == defenderID).Value;
+                                        await chan.SendMessageAsync($"War declared by **{aggressorName}** against **{defenderName}**. Fighting begins in roughly 24 hours.");
+                                    }
+                                    else if (notificationType == 100)
+                                    {
+                                        var allyID = (int)notificationText["allyID"];
+                                        var defenderID = (int)notificationText["defenderID"];
+
+                                        var stuff = await Program.EveLib.IDtoName(new List<int> { allyID, defenderID });
+                                        var allyName = stuff.FirstOrDefault(x => x.Key == allyID).Value;
+                                        var defenderName = stuff.FirstOrDefault(x => x.Key == defenderID).Value;
+                                        var startTime = DateTime.FromFileTimeUtc((long)notificationText["startTime"]);
+                                        await chan.SendMessageAsync($"**{allyName}** will join the war against **{defenderName}** at {startTime} EVE.");
+                                    }
+                                    else
+                                    {
+                                        await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Skipping Notification TypeID: {notificationType} " +
+                                            $"Type: {types[notificationType]} {Environment.NewLine} Text: {notificationText}"));
+                                    }
+                                    lastNotification = (int)notification.Value["notificationID"];
+                                    await SQLiteDataUpdate("cacheData", "data", "lastNotificationID", lastNotification.ToString());
+                                }
+                            }
+                            if (keyCount > 1 && keyCount != index+1)
+                            {
+                                await SQLiteDataUpdate("notifications", "data", "nextKey", keys.ToList()[index + 1].Key);
+                            }
+                            else if (keyCount == index+1)
+                            {
+                                await SQLiteDataUpdate("notifications", "data", "nextKey", keys.ToList()[0].Key);
                             }
                             else
                             {
-                                await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Skipping Notification Type: {notificationType} Text: {notificationText}"));
+                                await SQLiteDataUpdate("notifications", "data", "nextKey", key.Key);
                             }
-                            lastNotification = (int)notification.Value["notificationID"];
                         }
+                        index++;
                     }
-
-                    lastNotificationCheck = DateTime.Now;
+                    var interval = 30 / keys.Count();
+                    await SQLiteDataUpdate("cacheData", "data", "nextNotificationCheck", DateTime.Now.AddMinutes(interval).ToString());
+                    nextNotificationCheck = DateTime.Now.AddMinutes(interval);
                     await Task.CompletedTask;
                 }
             }
@@ -964,6 +997,50 @@ namespace Opux
             }
         }
         #endregion
+
+        //SQLite Query
+        internal async static Task<string> SQLiteDataQuery(string table, string field, string name)
+        {
+            using (SqliteConnection con = new SqliteConnection("Data Source = Opux.db;"))
+            using (SqliteCommand querySQL = new SqliteCommand($"SELECT {field} FROM {table} WHERE name = @name", con))
+            {
+                await con.OpenAsync();
+                querySQL.Parameters.Add(new SqliteParameter("@name", name));
+                try
+                {
+                    using (SqliteDataReader r = await querySQL.ExecuteReaderAsync())
+                    {
+                        var result = await r.ReadAsync();
+                        return r.GetString(0) ?? "";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+        }
+
+        //SQLite Update
+        internal async static Task SQLiteDataUpdate(string table, string field, string name, string data)
+        {
+            using (SqliteConnection con = new SqliteConnection("Data Source = Opux.db;"))
+            using (SqliteCommand insertSQL = new SqliteCommand($"UPDATE {table} SET {field} = @data WHERE name = @name", con))
+            {
+                await con.OpenAsync();
+                insertSQL.Parameters.Add(new SqliteParameter("@name", name));
+                insertSQL.Parameters.Add(new SqliteParameter("@data", data));
+                try
+                {
+                    insertSQL.ExecuteNonQuery();
+                    await Task.CompletedTask;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+        }
     }
 
     #region JToken null/empty check
