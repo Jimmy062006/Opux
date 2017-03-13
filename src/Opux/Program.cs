@@ -43,7 +43,7 @@ namespace Opux
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Functions.Client_Log(new LogMessage(LogSeverity.Error, "Main", $"{ex.StackTrace}"));
             }
         }
 
