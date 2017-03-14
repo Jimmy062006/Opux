@@ -111,7 +111,7 @@ namespace Opux
 
         internal static Task Event_UserJoined(SocketGuildUser arg)
         {
-            var channel = (ITextChannel)arg.Guild.GetChannel(0);
+            var channel = (ITextChannel)arg.Guild.DefaultChannel;
             var URL = Program.Settings.GetSection("auth")["url"];
             if (String.IsNullOrWhiteSpace(URL))
             {
