@@ -113,7 +113,7 @@ namespace Opux
         {
             var channel = (ITextChannel)arg.Guild.DefaultChannel;
             var URL = Program.Settings.GetSection("auth")["url"];
-            if (String.IsNullOrWhiteSpace(URL))
+            if (!String.IsNullOrWhiteSpace(URL))
             {
                 channel.SendMessageAsync($"Welcome {arg.Mention} to the server, To gain access please auth at {URL} ");
             }
