@@ -109,6 +109,22 @@ namespace Opux
             return Task.CompletedTask;
         }
 
+        internal static Task Event_UserJoined(SocketGuildUser arg)
+        {
+            var channel = (ITextChannel)arg.Guild.GetChannel(0);
+            var URL = Program.Settings.GetSection("auth")["url"];
+            if (String.IsNullOrWhiteSpace(URL))
+            {
+                channel.SendMessageAsync($"Welcome {arg.Mention} to the server, To gain access please auth at {URL} ");
+            }
+            else
+            {
+                channel.SendMessageAsync($"Welcome {arg.Mention} to the server");
+            }
+
+            return Task.CompletedTask;
+        }
+
         internal static Task Event_Disconnected(Exception arg)
         {
             return Task.CompletedTask;

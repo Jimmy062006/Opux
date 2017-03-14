@@ -55,6 +55,7 @@ namespace Opux
             Client.Connected += Functions.Event_Connected;
             Client.Disconnected += Functions.Event_Disconnected;
             Client.GuildAvailable += Functions.Event_GuildAvaliable;
+            Client.UserJoined += Functions.Event_UserJoined;
 
             Functions.nextNotificationCheck = DateTime.Parse(await Functions.SQLiteDataQuery("cacheData", "data", "nextNotificationCheck"));
 
