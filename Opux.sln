@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 15.0.26206.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{7B372C57-D38E-4D41-A5DF-3ADEC27C3D06}"
+	ProjectSection(SolutionItems) = preProject
+		src\Opux\NuGet.config = src\Opux\NuGet.config
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{AD2B0E05-EA76-4791-925C-A6FD86C73DD1}"
 EndProject
