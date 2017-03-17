@@ -15,7 +15,7 @@ namespace Opux
         public async Task Help()
         {
             var userInfo = Context.Message.Author;
-            await ReplyAsync($"{userInfo.Mention}, Here is a list of plugins available, !help");
+            await ReplyAsync($"{userInfo.Mention}, Here is a list of plugins available, **!help | !jita | !amarr | !dodixe | !rens | !pc**");
         }
 
         /// <summary>
@@ -123,7 +123,8 @@ namespace Opux
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
+
             }
         }
 
@@ -142,8 +143,7 @@ namespace Opux
             }
             catch (Exception ex)
             {
-                //await Logger.logError(ex.Message);
-                Console.WriteLine(ex.Message);
+                await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
                 await Task.FromException(ex);
             }
         }

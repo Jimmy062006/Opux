@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using Opux;
 
 namespace EveLibCore
 {
@@ -106,7 +107,7 @@ namespace EveLibCore
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.ToString());
+                    await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "EveLib", ex.Message, ex));
                 }
                 return null;
             }
