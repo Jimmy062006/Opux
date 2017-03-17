@@ -113,13 +113,13 @@ namespace EveLibCore
             }
         }
 
-        public async Task<Dictionary<int, string>> IDtoName(List<int> ids)
+        public async Task<Dictionary<Int64, string>> IDtoName(List<Int64> ids)
         {
             using (HttpClient webRequest = new HttpClient())
             {
                 var commaseperated = string.Join(",", ids);
                 var document = new XmlDocument();
-                var dictonary = new Dictionary<int, string>();
+                var dictonary = new Dictionary<Int64, string>();
 
                 var xml = await webRequest.GetStreamAsync($"https://api.eveonline.com//eve/CharacterName.xml.aspx?ids={commaseperated}");
                 var xmlReader = XmlReader.Create(xml, new XmlReaderSettings { Async = true });
@@ -130,9 +130,52 @@ namespace EveLibCore
                     document.Load(xmlReader);
                     result = JObject.Parse(JSON.XmlToJSON(document));
                 }
-                foreach (var row in result["eveapi"]["result"]["rowset"]["row"])
+                var test = result["eveapi"]["result"]["rowset"]["row"];
+                if (ids.Count() == 1)
                 {
-                    dictonary.Add((int) row["characterID"], (string) row["name"]);
+                    dictonary.Add((Int64)result["eveapi"]["result"]["rowset"]["row"]["characterID"],
+                        (string)result["eveapi"]["result"]["rowset"]["row"]["name"]);
+                }
+                else if (ids.Count() > 1)
+                {
+                    foreach (var row in result["eveapi"]["result"]["rowset"]["row"])
+                    {
+                        dictonary.Add((Int64)row["characterID"], (string)row["name"]);
+                    }
+                }
+
+                return dictonary;
+            }
+        }
+
+        public async Task<Dictionary<Int64, string>> IDtoTypeName(List<Int64> ids)
+        {
+            using (HttpClient webRequest = new HttpClient())
+            {
+                var commaseperated = string.Join(",", ids);
+                var document = new XmlDocument();
+                var dictonary = new Dictionary<Int64, string>();
+
+                var xml = await webRequest.GetStreamAsync($"https://api.eveonline.com//eve/TypeName.xml.aspx?ids={commaseperated}");
+                var xmlReader = XmlReader.Create(xml, new XmlReaderSettings { Async = true });
+                var complete = await xmlReader.ReadAsync();
+                var result = new JObject();
+                if (complete)
+                {
+                    document.Load(xmlReader);
+                    result = JObject.Parse(JSON.XmlToJSON(document));
+                }
+                if (ids.Count() == 1)
+                {
+                    dictonary.Add((Int64)result["eveapi"]["result"]["rowset"]["row"]["typeID"],
+                        (string)result["eveapi"]["result"]["rowset"]["row"]["typeName"]);
+                }
+                else if (ids.Count() > 1)
+                {
+                    foreach (var row in result["eveapi"]["result"]["rowset"]["row"])
+                    {
+                        dictonary.Add((Int64)row["typeID"], (string)row["typeName"]);
+                    }
                 }
 
                 return dictonary;
