@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using Opux;
+using YamlDotNet.RepresentationModel;
 
 namespace EveLibCore
 {
@@ -64,10 +65,10 @@ namespace EveLibCore
             }
         }
 
-        public async Task<Dictionary<int, JToken>> GetNotificationText(List<int> notificationID)
+        public async Task<Dictionary<int, YamlNode>> GetNotificationText(List<int> notificationID)
         {
             var document = new XmlDocument();
-            var dictonary = new Dictionary<int, JToken>();
+            var dictionary = new Dictionary<int, YamlNode>();
 
             using (HttpClient webRequest = new HttpClient())
             {
@@ -89,21 +90,39 @@ namespace EveLibCore
                     var rowlist = result["eveapi"]["result"]["rowset"]["row"].ToList();
                     foreach (var r in rowlist)
                     {
-                        var value = r["#cdata-section"].ToString().Replace('\n', ',');
-                        var split = value.Split(',');
-                        List<string> splitResult = new List<string>();
-                        foreach (var s in split)
-                        {
-                                var stringinprogress = s.Insert(s.IndexOf(':') + 1, "\"");
-                                stringinprogress = stringinprogress.Insert(stringinprogress.Length, "\"");
-                                splitResult.Add(stringinprogress);
-                        }
-                        var returnstuff = "{" + string.Join(",", splitResult.ToArray()) + "}";
-                        var tokentry = JToken.Parse(returnstuff);
-                        dictonary.Add((int)r["notificationID"], tokentry);
+                        var value = r["#cdata-section"].ToString();
+                        // Setup the input
+                        var input = new StringReader(value);
+
+                        // Load the stream
+                        var yaml = new YamlStream();
+                        yaml.Load(input);
+
+                        dictionary.Add((int)r["notificationID"], yaml.Documents[0].RootNode);
+
                     }
 
-                    return dictonary;
+                    return dictionary;
+
+
+                    //// Examine the stream
+                    //var mapping = (YamlMappingNode)yaml.Documents[0].RootNode;
+
+                    //foreach (var entry in mapping.Children)
+                    //{
+                    //    Console.WriteLine(((YamlScalarNode)entry.Key).Value);
+                    //}
+
+                    //// List all the items
+                    //var items = (YamlSequenceNode)mapping.Children[new YamlScalarNode("items")];
+                    //foreach (YamlMappingNode item in items)
+                    //{
+                    //    Console.WriteLine(
+                    //        "{0}\t{1}",
+                    //        item.Children[new YamlScalarNode("part_no")],
+                    //        item.Children[new YamlScalarNode("descrip")]
+                    //    );
+                    //}
                 }
                 catch (Exception ex)
                 {

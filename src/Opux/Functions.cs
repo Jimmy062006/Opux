@@ -775,8 +775,8 @@ namespace Opux
 
                                     if (notificationType == 121)
                                     {
-                                        var aggressorID = (int)notificationText["entityID"];
-                                        var defenderID = (int)notificationText["defenderID"];
+                                        var aggressorID = Convert.ToInt64(notificationText["entityID"]);
+                                        var defenderID = Convert.ToInt64(notificationText["defenderID"]);
 
                                         var stuff = await Program.EveLib.IDtoName(new List<Int64> { aggressorID, defenderID });
                                         var aggressorName = stuff.FirstOrDefault(x => x.Key == aggressorID).Value;
@@ -785,22 +785,22 @@ namespace Opux
                                     }
                                     else if (notificationType == 100)
                                     {
-                                        var allyID = (int)notificationText["allyID"];
-                                        var defenderID = (int)notificationText["defenderID"];
+                                        var allyID = Convert.ToInt64(notificationText["allyID"]);
+                                        var defenderID = Convert.ToInt64(notificationText["defenderID"]);
 
                                         var stuff = await Program.EveLib.IDtoName(new List<Int64> { allyID, defenderID });
                                         var allyName = stuff.FirstOrDefault(x => x.Key == allyID).Value;
                                         var defenderName = stuff.FirstOrDefault(x => x.Key == defenderID).Value;
-                                        var startTime = DateTime.FromFileTimeUtc((long)notificationText["startTime"]);
+                                        var startTime = DateTime.FromFileTimeUtc(Convert.ToInt64(notificationText["startTime"]));
                                         await chan.SendMessageAsync($"**{allyName}** will join the war against **{defenderName}** at {startTime} EVE.");
                                     }
                                     else if (notificationType == 5)
                                     {
-                                        var againstID = (int)notificationText["againstID"];
-                                        var cost = (int)notificationText["cost"];
-                                        var declaredByID = (int)notificationText["declaredByID"];
-                                        var delayHours = (int)notificationText["delayHours"];
-                                        var hostileState = (int)notificationText["hostileState"];
+                                        var againstID = Convert.ToInt64(notificationText["againstID"]);
+                                        var cost = notificationText["cost"].ToString();
+                                        var declaredByID = Convert.ToInt64(notificationText["declaredByID"]);
+                                        var delayHours = notificationText["delayHours"].ToString();
+                                        var hostileState = notificationText["hostileState"].ToString();
                                         var names = await Program.EveLib.IDtoName(new List<Int64> { declaredByID, againstID });
                                         var againstName = names.FirstOrDefault(x => x.Key == againstID);
                                         var declaredByName = names.First(x => x.Key == declaredByID);
@@ -810,8 +810,8 @@ namespace Opux
                                     }
                                     else if (notificationType == 161)
                                     {
-                                        var campaignEventType = (int)notificationText["campaignEventType"];
-                                        var constellationID = (int)notificationText["constellationID"];
+                                        var campaignEventType = notificationText["campaignEventType"];
+                                        var constellationID = notificationText["constellationID"];
                                         var solarSystemID = Convert.ToInt64(((string)notificationText["solarSystemID"]).Remove(0, 1));
                                         var names = await Program.EveLib.IDtoName(new List<Int64> { solarSystemID });
                                         var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
@@ -821,8 +821,8 @@ namespace Opux
                                     }
                                     else if (notificationType == 147)
                                     {
-                                        var solarSystemID = (Int64)notificationText["solarSystemID"];
-                                        var structureTypeID = (int)notificationText["structureTypeID"];
+                                        var solarSystemID = Convert.ToInt64(notificationText["solarSystemID"]);
+                                        var structureTypeID = Convert.ToInt64(notificationText["structureTypeID"]);
                                         var names = await Program.EveLib.IDtoName(new List<Int64> { solarSystemID });
                                         var typeNames = await Program.EveLib.IDtoTypeName(new List<Int64> { structureTypeID });
                                         var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
@@ -832,9 +832,9 @@ namespace Opux
                                     }
                                     else if (notificationType == 160)
                                     {
-                                        var campaignEventType = (int)notificationText["campaignEventType"];
-                                        var solarSystemID = Convert.ToInt64(((string)notificationText["solarSystemID"]).Remove(0, 1));
-                                        var decloakTime = (Int64)notificationText["decloakTime"];
+                                        var campaignEventType = notificationText["campaignEventType"].ToString();
+                                        var solarSystemID = Convert.ToInt64((notificationText["solarSystemID"].ToString()).Remove(0, 1));
+                                        var decloakTime = Convert.ToInt64(notificationText["decloakTime"]);
                                         var names = await Program.EveLib.IDtoName(new List<Int64> { solarSystemID });
                                         var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
                                         var decloaktime = DateTime.FromFileTime(decloakTime);
