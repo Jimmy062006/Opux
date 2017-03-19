@@ -304,7 +304,7 @@ namespace Opux
                 catch (Exception ex)
                 {
                     //await Logger.logError(ex.Message);
-                    await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", ex.StackTrace));
+                    await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", ex.Message, ex));
                 }
             }
             await Task.CompletedTask;
@@ -541,7 +541,7 @@ namespace Opux
             }
             catch (Exception ex)
             {
-                await Client_Log(new LogMessage(LogSeverity.Error, "killFeed", ex.StackTrace));
+                await Client_Log(new LogMessage(LogSeverity.Error, "killFeed", ex.Message, ex));
             }
         }
         #endregion
@@ -986,7 +986,7 @@ namespace Opux
                         }
                         catch (Exception ex)
                         {
-                            var message = ex.Message;
+                            await Client_Log(new LogMessage(LogSeverity.Error, "PC", ex.Message, ex));
                         }
                     }
                 }
@@ -1054,7 +1054,7 @@ namespace Opux
                 }
                 catch (MySqlException ex)
                 {
-                    await Client_Log(new LogMessage(LogSeverity.Error, "mySQL", ex.StackTrace));
+                    await Client_Log(new LogMessage(LogSeverity.Error, "mySQL", ex.Message, ex));
                 }
                 await Task.Yield();
                 return list;
@@ -1080,7 +1080,8 @@ namespace Opux
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception(ex.Message);
+                    await Client_Log(new LogMessage(LogSeverity.Error, "SQLite", ex.Message, ex));
+                    return null;
                 }
             }
         }
@@ -1101,7 +1102,7 @@ namespace Opux
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception(ex.Message);
+                    await Client_Log(new LogMessage(LogSeverity.Error, "SQLite", ex.Message, ex));
                 }
             }
         }

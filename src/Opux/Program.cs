@@ -43,7 +43,7 @@ namespace Opux
             }
             catch (Exception ex)
             {
-                Functions.Client_Log(new LogMessage(LogSeverity.Error, "Main", $"{ex.StackTrace}"));
+                Functions.Client_Log(new LogMessage(LogSeverity.Error, "Main", ex.Message, ex));
             }
         }
 
@@ -57,11 +57,16 @@ namespace Opux
             Client.GuildAvailable += Functions.Event_GuildAvaliable;
             Client.UserJoined += Functions.Event_UserJoined;
 
-            Functions.nextNotificationCheck = DateTime.Parse(await Functions.SQLiteDataQuery("cacheData", "data", "nextNotificationCheck"));
-
-            await Functions.InstallCommands();
-            await Client.LoginAsync(TokenType.Bot, Settings.GetSection("config")["token"]);
-            await Client.StartAsync();
+            try
+            {
+                await Functions.InstallCommands();
+                await Client.LoginAsync(TokenType.Bot, Settings.GetSection("config")["token"]);
+                await Client.StartAsync();
+            }
+            catch (Exception ex)
+            {
+                await Functions.Client_Log(new LogMessage(LogSeverity.Error, "Main", ex.Message, ex));
+            }
         }
 
         public static Task UpdateSettings()
@@ -69,6 +74,7 @@ namespace Opux
             Settings = new ConfigurationBuilder()
             .SetBasePath(Program.ApplicationBase)
             .AddJsonFile("settings.json", optional: true, reloadOnChange: true).Build();
+            Functions.nextNotificationCheck = DateTime.Parse(Functions.SQLiteDataQuery("cacheData", "data", "nextNotificationCheck").GetAwaiter().GetResult());
             return Task.CompletedTask;
         }
     }
