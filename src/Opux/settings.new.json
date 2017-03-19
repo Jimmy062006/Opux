@@ -21,6 +21,9 @@
     "bigkillchannel": 0,
     "losses": true,
     "reDisqID": "", //Set this to a unique ID if using multiple on one PC
+    "radius": "0",
+    "radiusChannel": "", //Channel ID
+    "radiusSystem": "Jita",
     "groupsConfig": {
       "group1": {
         "name": "",
