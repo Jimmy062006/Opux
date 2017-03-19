@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using Discord.Net;
 using Discord.WebSocket;
 using EveLibCore;
 using Microsoft.Extensions.Configuration;
@@ -62,6 +63,13 @@ namespace Opux
                 await Functions.InstallCommands();
                 await Client.LoginAsync(TokenType.Bot, Settings.GetSection("config")["token"]);
                 await Client.StartAsync();
+            }
+            catch (HttpException ex)
+            {
+                if (ex.Reason.Contains("401"))
+                {
+                    await Functions.Client_Log(new LogMessage(LogSeverity.Error, "Discord.NET", $"Check your Token: {ex.Reason}"));
+                }
             }
             catch (Exception ex)
             {
