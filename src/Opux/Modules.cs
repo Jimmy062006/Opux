@@ -32,7 +32,7 @@ namespace Opux
             }
             else
             {
-                await Functions.PriceCheck(Context, x, "");
+                await Functions.Price check(Context, x, "");
             }
         }
 
@@ -50,7 +50,7 @@ namespace Opux
             }
             else
             {
-                await Functions.PriceCheck(Context, x, "jita");
+                await Functions.Price check(Context, x, "jita");
             }
         }
 
@@ -68,7 +68,7 @@ namespace Opux
             }
             else
             {
-                await Functions.PriceCheck(Context, x, "amarr");
+                await Functions.Price check(Context, x, "amarr");
             }
         }
 
@@ -86,7 +86,7 @@ namespace Opux
             }
             else
             {
-                await Functions.PriceCheck(Context, x, "rens");
+                await Functions.Price check(Context, x, "rens");
             }
         }
 
@@ -104,7 +104,7 @@ namespace Opux
             }
             else
             {
-                await Functions.PriceCheck(Context, x, "dodixe");
+                await Functions.Price check(Context, x, "dodixe");
             }
         }
 
