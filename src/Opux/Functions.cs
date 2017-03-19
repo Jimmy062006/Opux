@@ -353,10 +353,15 @@ namespace Opux
                         var attackers = killmail["killmail"]["attackers"] ?? null;
                         var sysName = (string)killmail["killmail"]["solarSystem"]["name"];
                         var losses = Convert.ToBoolean(Program.Settings.GetSection("killFeed")["losses"]);
+                        var radius = Convert.ToInt16(Program.Settings.GetSection("killFeed")["radius"]);
+                        var radiusSystem = Program.Settings.GetSection("killFeed")["radiusSystem"];
+                        var radiusChannel = Convert.ToUInt64(Program.Settings.GetSection("killFeed")["radiusChannel"]);
 
                         var post = false;
                         var globalBigKill = false;
                         var bigKill = false;
+                        var radiusKill = false;
+                        var jumpsAway = 0;
 
                         foreach (var i in Program.Settings.GetSection("killFeed").GetSection("groupsConfig").GetChildren().ToList())
                         {
@@ -372,6 +377,26 @@ namespace Opux
                             {
                                 channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == bigKillGlobalChan);
                                 globalBigKill = true;
+                            }
+                            else if (radius > 0)
+                            {
+                                channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == radiusChannel);
+                                using (HttpClient webClient = new HttpClient())
+                                using (HttpResponseMessage _radiusSystems = await webclient.GetAsync(
+                                    $"https://trades.eve-price.com/system-distance/{radiusSystem}/{radius}"))
+                                using (HttpContent _radiusSystemsContent = _radiusSystems.Content)
+                                {
+                                    var systemID = (int)killmail["killmail"]["solarSystem"]["id"];
+                                    var systems = JObject.Parse(await _radiusSystemsContent.ReadAsStringAsync());
+                                    var results = systems["results"];
+                                    var gg = results.FirstOrDefault(x => (int)x["solarSystemID"] == systemID);
+                                    if (gg != null && gg.Count() > 0)
+                                    {
+                                        jumpsAway = (int)gg["distance"];
+                                        radiusKill = true;
+                                        post = true;
+                                    }
+                                }
                             }
                             else if (allianceID == 0 && corpID == 0)
                             {
@@ -469,6 +494,10 @@ namespace Opux
                                 if (victimAlliance == null)
                                 {
                                     var message = "";
+                                    if (radiusKill)
+                                    {
+                                        message = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]} ";
+                                    }
                                     if (globalBigKill)
                                     {
                                         message = $"**Global Big Kill**{Environment.NewLine}";
@@ -485,6 +514,10 @@ namespace Opux
                                 else
                                 {
                                     var message = "";
+                                    if (radiusKill)
+                                    {
+                                        message = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]} ";
+                                    }
                                     if (globalBigKill)
                                     {
                                         message = $"**Global Big Kill**{Environment.NewLine}";
@@ -503,6 +536,10 @@ namespace Opux
                             else if (!victimAlliance.IsNullOrEmpty())
                             {
                                 var message = "";
+                                if (radiusKill)
+                                {
+                                    message = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]} ";
+                                }
                                 if (globalBigKill)
                                 {
                                     message = $"**Global Big Kill**{Environment.NewLine}";
@@ -520,6 +557,10 @@ namespace Opux
                             else
                             {
                                 var message = "";
+                                if (radiusKill)
+                                {
+                                    message = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]} ";
+                                }
                                 if (globalBigKill)
                                 {
                                     message = $"**Global Big Kill**{Environment.NewLine}";
@@ -775,8 +816,8 @@ namespace Opux
 
                                     if (notificationType == 121)
                                     {
-                                        var aggressorID = Convert.ToInt64(notificationText["entityID"]);
-                                        var defenderID = Convert.ToInt64(notificationText["defenderID"]);
+                                        var aggressorID = Convert.ToInt64(notificationText["entityID"].AllNodes.ToList()[0].ToString());
+                                        var defenderID = Convert.ToInt64(notificationText["defenderID"].AllNodes.ToList()[0].ToString());
 
                                         var stuff = await Program.EveLib.IDtoName(new List<Int64> { aggressorID, defenderID });
                                         var aggressorName = stuff.FirstOrDefault(x => x.Key == aggressorID).Value;
@@ -785,22 +826,23 @@ namespace Opux
                                     }
                                     else if (notificationType == 100)
                                     {
-                                        var allyID = Convert.ToInt64(notificationText["allyID"]);
-                                        var defenderID = Convert.ToInt64(notificationText["defenderID"]);
+                                        var allyID = Convert.ToInt64(notificationText["allyID"].AllNodes.ToList()[0].ToString());
+                                        var defenderID = Convert.ToInt64(notificationText["defenderID"].AllNodes.ToList()[0].ToString());
 
                                         var stuff = await Program.EveLib.IDtoName(new List<Int64> { allyID, defenderID });
                                         var allyName = stuff.FirstOrDefault(x => x.Key == allyID).Value;
                                         var defenderName = stuff.FirstOrDefault(x => x.Key == defenderID).Value;
-                                        var startTime = DateTime.FromFileTimeUtc(Convert.ToInt64(notificationText["startTime"]));
+                                        var startTime = DateTime.FromFileTimeUtc(Convert.ToInt64(notificationText["startTime"].AllNodes.ToList()[0].ToString()));
                                         await chan.SendMessageAsync($"**{allyName}** will join the war against **{defenderName}** at {startTime} EVE.");
                                     }
                                     else if (notificationType == 5)
                                     {
-                                        var againstID = Convert.ToInt64(notificationText["againstID"]);
-                                        var cost = notificationText["cost"].ToString();
-                                        var declaredByID = Convert.ToInt64(notificationText["declaredByID"]);
-                                        var delayHours = notificationText["delayHours"].ToString();
-                                        var hostileState = notificationText["hostileState"].ToString();
+                                        var test2 = notificationText["againstID"].AllNodes.ToList()[0].ToString();
+                                        var againstID = Convert.ToInt64(notificationText["againstID"].AllNodes.ToList()[0].ToString());
+                                        var cost = notificationText["cost"].AllNodes.ToList()[0];
+                                        var declaredByID = Convert.ToInt64(notificationText["declaredByID"].AllNodes.ToList()[0].ToString());
+                                        var delayHours = notificationText["delayHours"].AllNodes.ToList()[0].ToString();
+                                        var hostileState = notificationText["hostileState"].AllNodes.ToList()[0].ToString();
                                         var names = await Program.EveLib.IDtoName(new List<Int64> { declaredByID, againstID });
                                         var againstName = names.FirstOrDefault(x => x.Key == againstID);
                                         var declaredByName = names.First(x => x.Key == declaredByID);
@@ -810,9 +852,9 @@ namespace Opux
                                     }
                                     else if (notificationType == 161)
                                     {
-                                        var campaignEventType = notificationText["campaignEventType"];
-                                        var constellationID = notificationText["constellationID"];
-                                        var solarSystemID = Convert.ToInt64(((string)notificationText["solarSystemID"]).Remove(0, 1));
+                                        var campaignEventType = notificationText["campaignEventType"].AllNodes.ToList()[0];
+                                        var constellationID = notificationText["constellationID"].AllNodes.ToList()[0];
+                                        var solarSystemID = Convert.ToInt64(notificationText["solarSystemID"].AllNodes.ToList()[0].ToString());
                                         var names = await Program.EveLib.IDtoName(new List<Int64> { solarSystemID });
                                         var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
 
@@ -821,8 +863,8 @@ namespace Opux
                                     }
                                     else if (notificationType == 147)
                                     {
-                                        var solarSystemID = Convert.ToInt64(notificationText["solarSystemID"]);
-                                        var structureTypeID = Convert.ToInt64(notificationText["structureTypeID"]);
+                                        var solarSystemID = Convert.ToInt64(notificationText["solarSystemID"].AllNodes.ToList()[0].ToString());
+                                        var structureTypeID = Convert.ToInt64(notificationText["structureTypeID"].AllNodes.ToList()[0].ToString());
                                         var names = await Program.EveLib.IDtoName(new List<Int64> { solarSystemID });
                                         var typeNames = await Program.EveLib.IDtoTypeName(new List<Int64> { structureTypeID });
                                         var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
@@ -832,9 +874,9 @@ namespace Opux
                                     }
                                     else if (notificationType == 160)
                                     {
-                                        var campaignEventType = notificationText["campaignEventType"].ToString();
-                                        var solarSystemID = Convert.ToInt64((notificationText["solarSystemID"].ToString()).Remove(0, 1));
-                                        var decloakTime = Convert.ToInt64(notificationText["decloakTime"]);
+                                        var campaignEventType = notificationText["campaignEventType"].AllNodes.ToList()[0];
+                                        var solarSystemID = Convert.ToInt64((notificationText["solarSystemID"].AllNodes.ToList()[0].ToString()));
+                                        var decloakTime = Convert.ToInt64(notificationText["decloakTime"].AllNodes.ToList()[0].ToString());
                                         var names = await Program.EveLib.IDtoName(new List<Int64> { solarSystemID });
                                         var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
                                         var decloaktime = DateTime.FromFileTime(decloakTime);
