@@ -394,7 +394,6 @@ namespace Opux
                                     {
                                         jumpsAway = (int)gg["distance"];
                                         radiusKill = true;
-                                        post = true;
                                     }
                                 }
                             }
