@@ -155,7 +155,7 @@ namespace Opux
             {
                 try
                 {
-                    await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Running authCheck @{DateTime.Now}"));
+                    await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Running Auth Check"));
                     //Gather details about corps and alliance's to set roles for
                     var authgroups = Program.Settings.GetSection("auth").GetSection("authgroups").GetChildren().ToList();
                     var corps = new Dictionary<string, string>();
@@ -378,7 +378,7 @@ namespace Opux
                                 channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == bigKillGlobalChan);
                                 globalBigKill = true;
                             }
-                            else if (radius > 0)
+                            if (radius > 0)
                             {
                                 channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == radiusChannel);
                                 using (HttpClient webClient = new HttpClient())
@@ -398,7 +398,7 @@ namespace Opux
                                     }
                                 }
                             }
-                            else if (allianceID == 0 && corpID == 0)
+                            if (allianceID == 0 && corpID == 0)
                             {
                                 if (bigKillValue != 0 && value >= bigKillValue && !globalBigKill)
                                 {
@@ -487,17 +487,22 @@ namespace Opux
                             }
                         }
 
-                        if (post || bigKill || globalBigKill)
+                        if (post || bigKill || globalBigKill || radiusKill)
                         {
                             if (victimCharacter == null)// Kill is probably a structure.
                             {
                                 if (victimAlliance == null)
                                 {
-                                    var message = "";
                                     if (radiusKill)
                                     {
-                                        message = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]} ";
+                                        var _radiusChannel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == radiusChannel);
+                                        var radiusMessage = "";
+                                        radiusMessage = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]}{Environment.NewLine}";
+                                        radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
+                                            $" [{victimCorp["name"]}]** killed in **{sysName}** {Environment.NewLine} https://zkillboard.com/kill/{iD}/";
+                                        await _radiusChannel.SendMessageAsync(radiusMessage);
                                     }
+                                    var message = "";
                                     if (globalBigKill)
                                     {
                                         message = $"**Global Big Kill**{Environment.NewLine}";
@@ -513,11 +518,17 @@ namespace Opux
                                 }
                                 else
                                 {
-                                    var message = "";
                                     if (radiusKill)
                                     {
-                                        message = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]} ";
+                                        var _radiusChannel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == radiusChannel);
+                                        var radiusMessage = "";
+                                        radiusMessage = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]}{Environment.NewLine}";
+                                        radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
+                                        $" {victimCorp["name"]} | [{victimAlliance["name"]}]** killed in **{sysName}** {Environment.NewLine} " +
+                                        $"https://zkillboard.com/kill/{iD}/";
+                                        await _radiusChannel.SendMessageAsync(radiusMessage);
                                     }
+                                    var message = "";
                                     if (globalBigKill)
                                     {
                                         message = $"**Global Big Kill**{Environment.NewLine}";
@@ -535,11 +546,17 @@ namespace Opux
                             }
                             else if (!victimAlliance.IsNullOrEmpty())
                             {
-                                var message = "";
                                 if (radiusKill)
                                 {
-                                    message = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]} ";
+                                    var _radiusChannel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == radiusChannel);
+                                    var radiusMessage = "";
+                                    radiusMessage = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]}{Environment.NewLine}";
+                                    radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
+                                    $"** ISK flown by **{victimCharacter["name"]} |**  **[{victimCorp["name"]}] | <{victimAlliance["name"]}>** killed in **{sysName}** {Environment.NewLine} " +
+                                    $"https://zkillboard.com/kill/{iD}/";
+                                    await _radiusChannel.SendMessageAsync(radiusMessage);
                                 }
+                                var message = "";
                                 if (globalBigKill)
                                 {
                                     message = $"**Global Big Kill**{Environment.NewLine}";
@@ -556,11 +573,17 @@ namespace Opux
                             }
                             else
                             {
-                                var message = "";
                                 if (radiusKill)
                                 {
-                                    message = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]} ";
+                                    var _radiusChannel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == radiusChannel);
+                                    var radiusMessage = "";
+                                    radiusMessage = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]}{Environment.NewLine}";
+                                    radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
+                                    $"** ISK flown by **{victimCharacter["name"]} |** **[{victimCorp["name"]}]** killed in **{sysName}** {Environment.NewLine} " +
+                                    $"https://zkillboard.com/kill/{iD}/";
+                                    await _radiusChannel.SendMessageAsync(radiusMessage);
                                 }
+                                var message = "";
                                 if (globalBigKill)
                                 {
                                     message = $"**Global Big Kill**{Environment.NewLine}";
