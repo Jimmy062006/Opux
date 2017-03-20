@@ -510,10 +510,13 @@ namespace Opux
                                     {
                                         message = $"**Big Kill**{Environment.NewLine}";
                                     }
-                                    message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
-                                        $" [{victimCorp["name"]}]** killed in **{sysName}** {Environment.NewLine} " +
-                                        $"https://zkillboard.com/kill/{iD}/";
-                                    await channel.SendMessageAsync(message);
+                                    if (post)
+                                    {
+                                        message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
+                                            $" [{victimCorp["name"]}]** killed in **{sysName}** {Environment.NewLine} " +
+                                            $"https://zkillboard.com/kill/{iD}/";
+                                        await channel.SendMessageAsync(message);
+                                    }
                                 }
                                 else
                                 {
@@ -536,11 +539,13 @@ namespace Opux
                                     {
                                         message = $"**Big Kill**{Environment.NewLine}";
                                     }
-                                    message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
-                                        $" {victimCorp["name"]} | [{victimAlliance["name"]}]** killed in **{sysName}** {Environment.NewLine} " +
-                                        $"https://zkillboard.com/kill/{iD}/";
-                                    await channel.SendMessageAsync(message);
-
+                                    if (post)
+                                    {
+                                        message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
+                                            $" {victimCorp["name"]} | [{victimAlliance["name"]}]** killed in **{sysName}** {Environment.NewLine} " +
+                                            $"https://zkillboard.com/kill/{iD}/";
+                                        await channel.SendMessageAsync(message);
+                                    }
                                 }
                             }
                             else if (!victimAlliance.IsNullOrEmpty())
@@ -564,11 +569,13 @@ namespace Opux
                                 {
                                     message = $"**Big Kill**{Environment.NewLine}";
                                 }
-                                message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
-                                    $"** ISK flown by **{victimCharacter["name"]} |**  **[{victimCorp["name"]}] | <{victimAlliance["name"]}>** killed in **{sysName}** {Environment.NewLine} " +
-                                    $"https://zkillboard.com/kill/{iD}/";
-                                await channel.SendMessageAsync(message);
-
+                                if (post)
+                                {
+                                    message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
+                                        $"** ISK flown by **{victimCharacter["name"]} |**  **[{victimCorp["name"]}] | <{victimAlliance["name"]}>** killed in **{sysName}** {Environment.NewLine} " +
+                                        $"https://zkillboard.com/kill/{iD}/";
+                                    await channel.SendMessageAsync(message);
+                                }
                             }
                             else
                             {
@@ -591,11 +598,13 @@ namespace Opux
                                 {
                                     message = $"**Big Kill**{Environment.NewLine}";
                                 }
-                                message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
-                                    $"** ISK flown by **{victimCharacter["name"]} |** **[{victimCorp["name"]}]** killed in **{sysName}** {Environment.NewLine} " +
-                                    $"https://zkillboard.com/kill/{iD}/";
-                                await channel.SendMessageAsync(message);
-
+                                if (post)
+                                {
+                                    message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
+                                        $"** ISK flown by **{victimCharacter["name"]} |** **[{victimCorp["name"]}]** killed in **{sysName}** {Environment.NewLine} " +
+                                        $"https://zkillboard.com/kill/{iD}/";
+                                    await channel.SendMessageAsync(message);
+                                }
                             }
                             await Client_Log(new LogMessage(LogSeverity.Info, "killFeed", $"POSTING Kill/Loss ID:{killmail["killmail"]["killID"]} Value:{string.Format("{0:n0}", value)}"));
                         }
