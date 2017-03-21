@@ -1072,59 +1072,6 @@ namespace Opux
         }
         #endregion
 
-        //Fleet UP
-        #region Fleetup
-        internal async static Task<string> FleetUp()
-        {
-            DateTime cachedUntilTimer;
-
-            using (HttpClient webclient = new HttpClient())
-            using (HttpResponseMessage _fleetUpResponce = await webclient.GetAsync($"http://api.fleet-up.com/Api.svc/Ohigwbylcsuz56ue3O6Awlw5e/12294/CaHGNa8eAAR9o8QxuWmibQsBEL39cx/Operations"))
-            using (HttpContent _fleetUpResponceContent = _fleetUpResponce.Content)
-            {
-                if (_fleetUpResponce.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    UInt64 guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
-                    UInt64 logchan = Convert.ToUInt64(Program.Settings.GetSection("auth")["alertChannel"]);
-                    var discordGuild = Program.Client.Guilds.FirstOrDefault(x => x.Id == guildID);
-                    var channelID = Program.Settings.GetSection("fleetup")["channel"];
-                    ITextChannel channel = null;
-
-                    var result = await _fleetUpResponceContent.ReadAsStringAsync();
-                    var jobject = JObject.Parse(result);
-                    if ((bool)jobject["Success"] == true)
-                    {
-                        cachedUntilTimer = DateTime.Parse((string)jobject["CachedUntilString"]);
-                        channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == Convert.ToUInt64(channelID));
-
-                        foreach (var i in jobject["Data"])
-                        {
-                            var duur = await SQLiteDataQuery("cacheData", "data", "fleetUpLastOperation");
-                            if (duur[0] < (int)i["Id"])
-                            {
-                                var Id = (int)i["Id"];
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    await Client_Log(new LogMessage(LogSeverity.Error, "FleetUp", $"API Error {_fleetUpResponce.StatusCode}"));
-                }
-            }
-            await Task.CompletedTask;
-            return "test";
-        }
-        #endregion
-
-        //Discord Stuff
-        #region Discord Modules
-        internal static async Task InstallCommands()
-        {
-            Program.Client.MessageReceived += HandleCommand;
-            await Program.Commands.AddModulesAsync(Assembly.GetEntryAssembly());
-        }
-
         internal static async Task HandleCommand(SocketMessage messageParam)
         {
 
