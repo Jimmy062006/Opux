@@ -69,5 +69,8 @@
       //  "vCode": ""
       //}
     }
+  },
+  "fleetup": {
+    "channel": 0
   }
 }

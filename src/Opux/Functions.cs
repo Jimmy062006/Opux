@@ -12,6 +12,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using Microsoft.Data.Sqlite;
+using System.Data;
 
 namespace Opux
 {
@@ -58,6 +59,7 @@ namespace Opux
                 {
                     await NotificationFeed(null);
                 }
+                await FleetUp();
                 running = false;
             }
             catch (Exception ex)
@@ -322,8 +324,7 @@ namespace Opux
 
                 UInt64 guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
                 UInt64 logchan = Convert.ToUInt64(Program.Settings.GetSection("auth")["alertChannel"]);
-                var tmp = Program.Client.Guilds;
-                var discordGuild = tmp.FirstOrDefault(X => X.Id == guildID);
+                var discordGuild = Program.Client.Guilds.FirstOrDefault(X => X.Id == guildID);
                 var redisQID = Program.Settings.GetSection("killFeed")["reDisqID"].ToString();
                 ITextChannel channel = null;
                 using (HttpClient webclient = new HttpClient())
@@ -373,14 +374,8 @@ namespace Opux
                             var bigKillValue = Convert.ToInt64(i["bigKill"]);
                             var bigKillChannel = Convert.ToUInt64(i["bigKillChannel"]);
 
-                            if (bigKillGlobal != 0 && value >= bigKillGlobal)
-                            {
-                                channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == bigKillGlobalChan);
-                                globalBigKill = true;
-                            }
                             if (radius > 0)
                             {
-                                channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == radiusChannel);
                                 using (HttpClient webClient = new HttpClient())
                                 using (HttpResponseMessage _radiusSystems = await webclient.GetAsync(
                                     $"https://trades.eve-price.com/system-distance/{radiusSystem}/{radius}"))
@@ -397,7 +392,13 @@ namespace Opux
                                     }
                                 }
                             }
-                            if (allianceID == 0 && corpID == 0)
+                            if (bigKillGlobal != 0 && value >= bigKillGlobal)
+                            {
+                                channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == bigKillGlobalChan);
+                                globalBigKill = true;
+                                post = true;
+                            }
+                            else if (allianceID == 0 && corpID == 0)
                             {
                                 if (bigKillValue != 0 && value >= bigKillValue && !globalBigKill)
                                 {
@@ -1071,6 +1072,51 @@ namespace Opux
         }
         #endregion
 
+        //Fleet UP
+        #region Fleetup
+        internal async static Task<string> FleetUp()
+        {
+            DateTime cachedUntilTimer;
+
+            using (HttpClient webclient = new HttpClient())
+            using (HttpResponseMessage _fleetUpResponce = await webclient.GetAsync($"http://api.fleet-up.com/Api.svc/Ohigwbylcsuz56ue3O6Awlw5e/12294/CaHGNa8eAAR9o8QxuWmibQsBEL39cx/Operations"))
+            using (HttpContent _fleetUpResponceContent = _fleetUpResponce.Content)
+            {
+                if (_fleetUpResponce.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    UInt64 guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
+                    UInt64 logchan = Convert.ToUInt64(Program.Settings.GetSection("auth")["alertChannel"]);
+                    var discordGuild = Program.Client.Guilds.FirstOrDefault(x => x.Id == guildID);
+                    var channelID = Program.Settings.GetSection("fleetup")["channel"];
+                    ITextChannel channel = null;
+
+                    var result = await _fleetUpResponceContent.ReadAsStringAsync();
+                    var jobject = JObject.Parse(result);
+                    if ((bool)jobject["Success"] == true)
+                    {
+                        cachedUntilTimer = DateTime.Parse((string)jobject["CachedUntilString"]);
+                        channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == Convert.ToUInt64(channelID));
+
+                        foreach (var i in jobject["Data"])
+                        {
+                            var duur = await SQLiteDataQuery("cacheData", "data", "fleetUpLastOperation");
+                            if (duur[0] < (int)i["Id"])
+                            {
+                                var Id = (int)i["Id"];
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    await Client_Log(new LogMessage(LogSeverity.Error, "FleetUp", $"API Error {_fleetUpResponce.StatusCode}"));
+                }
+            }
+            await Task.CompletedTask;
+            return "test";
+        }
+        #endregion
+
         //Discord Stuff
         #region Discord Modules
         internal static async Task InstallCommands()
@@ -1140,6 +1186,7 @@ namespace Opux
         #endregion
 
         //SQLite Query
+        #region SQLiteQuery
         internal async static Task<string> SQLiteDataQuery(string table, string field, string name)
         {
             using (SqliteConnection con = new SqliteConnection("Data Source = Opux.db;"))
@@ -1162,8 +1209,36 @@ namespace Opux
                 }
             }
         }
+        internal async static Task<List<int>> SQLiteDataQuery(string table)
+        {
+            using (SqliteConnection con = new SqliteConnection("Data Source = Opux.db;"))
+            using (SqliteCommand querySQL = new SqliteCommand($"SELECT * FROM {table}", con))
+            {
+                await con.OpenAsync();
+                try
+                {
+                    using (SqliteDataReader r = await querySQL.ExecuteReaderAsync())
+                    {
+                        var list = new List<int>();
+                        while (await r.ReadAsync())
+                        {
+                            list.Add(Convert.ToInt32(r["Id"]));
+                        }
+
+                        return list;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await Client_Log(new LogMessage(LogSeverity.Error, "SQLite", ex.Message, ex));
+                    return null;
+                }
+            }
+        }
+        #endregion
 
         //SQLite Update
+        #region SQLiteQuery
         internal async static Task SQLiteDataUpdate(string table, string field, string name, string data)
         {
             using (SqliteConnection con = new SqliteConnection("Data Source = Opux.db;"))
@@ -1183,6 +1258,8 @@ namespace Opux
                 }
             }
         }
+        #endregion
+
     }
 
     #region JToken null/empty check
