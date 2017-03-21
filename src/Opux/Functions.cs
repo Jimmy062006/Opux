@@ -59,7 +59,6 @@ namespace Opux
                 {
                     await NotificationFeed(null);
                 }
-                await FleetUp();
                 running = false;
             }
             catch (Exception ex)
@@ -1071,6 +1070,14 @@ namespace Opux
             }
         }
         #endregion
+
+        //Discord Stuff
+        #region Discord Modules
+        internal static async Task InstallCommands()
+        {
+            Program.Client.MessageReceived += HandleCommand;
+            await Program.Commands.AddModulesAsync(Assembly.GetEntryAssembly());
+        }
 
         internal static async Task HandleCommand(SocketMessage messageParam)
         {
