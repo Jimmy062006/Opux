@@ -41,7 +41,7 @@ namespace EveLibCore
             using (HttpClient webRequest = new HttpClient())
             {
                 var document = new XmlDocument();
-                var dictonary = new Dictionary<int, JToken>();
+                var dictionary = new Dictionary<int, JToken>();
 
                 var xml = await webRequest.GetStreamAsync($"https://api.eveonline.com/char/Notifications.xml.aspx?keyID={KeyID}&vCode={VCode}&characterID={CharacterID}");
                 var xmlReader = XmlReader.Create(xml, new XmlReaderSettings { Async = true });
@@ -55,13 +55,19 @@ namespace EveLibCore
 
                 IDictionary<string, JToken> rowList = (JObject)result["eveapi"]["result"]["rowset"];
 
-                foreach (var r in rowList["row"])
+                if (rowList.Count > 0)
                 {
-                    dictonary.Add((int) r["notificationID"], r);
+                    foreach (var r in rowList["row"])
+                    {
+                        dictionary.Add((int)r["notificationID"], r);
+                    }
                 }
-                //var listlistlist = (JArray)listlist["row"];
+                else
+                {
+                    dictionary.Add((int)result["eveapi"]["result"]["rowset"]["notificationID"], result["eveapi"]["result"]["rowset"]);
+                }
 
-                return dictonary;
+                return dictionary;
             }
         }
 
