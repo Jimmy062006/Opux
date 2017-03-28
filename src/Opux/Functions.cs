@@ -872,7 +872,6 @@ namespace Opux
                                     }
                                     else if (notificationType == 5)
                                     {
-                                        var test2 = notificationText["againstID"].AllNodes.ToList()[0].ToString();
                                         var againstID = Convert.ToInt64(notificationText["againstID"].AllNodes.ToList()[0].ToString());
                                         var cost = notificationText["cost"].AllNodes.ToList()[0];
                                         var declaredByID = Convert.ToInt64(notificationText["declaredByID"].AllNodes.ToList()[0].ToString());
@@ -884,6 +883,16 @@ namespace Opux
 
                                         await chan.SendMessageAsync($"War declared by {declaredByName.Value} against {againstName.Value}" +
                                             $" Fighting begins in roughly {delayHours} hours");
+                                    }
+                                    else if (notificationType == 8)
+                                    {
+                                        var againstID = Convert.ToInt64(notificationText["againstID"].AllNodes.ToList()[0].ToString());
+                                        var declaredByID = Convert.ToInt64(notificationText["declaredByID"].AllNodes.ToList()[0].ToString());
+                                        var names = await Program.EveLib.IDtoName(new List<Int64> { declaredByID, againstID });
+                                        var againstName = names.FirstOrDefault(x => x.Key == againstID);
+                                        var declaredByName = names.First(x => x.Key == declaredByID);
+
+                                        await chan.SendMessageAsync($"CONCORD Invalidates war declared by {declaredByName.Value} against {againstName.Value}");
                                     }
                                     else if (notificationType == 161)
                                     {
