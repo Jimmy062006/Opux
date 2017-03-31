@@ -225,77 +225,87 @@ namespace Opux
                             var discordGuild = Program.Client.Guilds.FirstOrDefault(X => X.Id == guildID);
 
                             var discordUser = discordGuild.Users.FirstOrDefault(x => x.Id == Convert.ToUInt64(u["discordID"]));
-                            var rolesToAdd = new List<SocketRole>();
-                            var rolesToTake = new List<SocketRole>();
 
-                            try
+                            if (discordUser == null)
                             {
-                                //Check for Corp roles
-                                if (corps.ContainsKey(corpID))
-                                {
-                                    var cinfo = corps.FirstOrDefault(x => x.Key == corpID);
-                                    var channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
-                                    rolesToAdd.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == cinfo.Value));
-                                    foreach (var r in rolesToAdd)
-                                    {
-                                        if (discordUser.Roles.FirstOrDefault(x => x.Id == r.Id) == null)
-                                        {
-                                            await channel.SendMessageAsync($"Granting Corp Role {cinfo.Value} to {characterDetails["name"]}");
-                                            await discordUser.AddRolesAsync(rolesToAdd);
-                                        }
-                                    }
-                                }
-
-                                //Check for Alliance roles
-                                if (alliance.ContainsKey(allianceID))
-                                {
-                                    var ainfo = alliance.FirstOrDefault(x => x.Key == allianceID);
-                                    var channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
-                                    rolesToAdd.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == ainfo.Value));
-                                    foreach (var r in rolesToAdd)
-                                    {
-                                        if (discordUser.Roles.FirstOrDefault(x => x.Id == r.Id) == null)
-                                        {
-                                            await channel.SendMessageAsync($"Granting Alliance Role {ainfo.Value} to {characterDetails["name"]}");
-                                            await discordUser.AddRolesAsync(rolesToAdd);
-                                        }
-                                    }
-                                }
-                            }
-                            catch
-                            {
-                                await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential ESI Failiure for {u["eveName"]} skipping"));
+                                await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Removing {characterDetails["name"]} from Database as they have left discord"));
                                 continue;
                             }
-
-                            //Check if roles when should not have any
-                            if (!corps.ContainsKey(corporationid.ToString()) && !alliance.ContainsKey(allianceID))
+                            else
                             {
-                                if (discordUser != null)
-                                {
-                                    var exemptRoles = Program.Settings.GetSection("auth").GetSection("exempt").GetChildren().ToList();
+                                var rolesToAdd = new List<SocketRole>();
+                                var rolesToTake = new List<SocketRole>();
 
-                                    rolesToTake.AddRange(discordUser.Roles);
-                                    var exemptCheckRoles = new List<SocketRole>(rolesToTake);
-                                    foreach (var r in exemptCheckRoles)
+                                try
+                                {
+                                    //Check for Corp roles
+                                    if (corps.ContainsKey(corpID))
                                     {
-                                        var name = r.Name;
-                                        if (exemptRoles.FindAll(x => x.Key == name).Count > 0)
+                                        var cinfo = corps.FirstOrDefault(x => x.Key == corpID);
+                                        var channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
+                                        rolesToAdd.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == cinfo.Value));
+                                        foreach (var r in rolesToAdd)
                                         {
-                                            rolesToTake.Remove(rolesToTake.FirstOrDefault(x => x.Name == r.Name));
+                                            if (discordUser.Roles.FirstOrDefault(x => x.Id == r.Id) == null)
+                                            {
+                                                await channel.SendMessageAsync($"Granting Corp Role {cinfo.Value} to {characterDetails["name"]}");
+                                                await discordUser.AddRolesAsync(rolesToAdd);
+                                            }
                                         }
                                     }
-                                    rolesToTake.Remove(rolesToTake.FirstOrDefault(x => x.Name == "@everyone"));
-                                    if (rolesToTake.Count > 0)
+
+                                    //Check for Alliance roles
+                                    if (alliance.ContainsKey(allianceID))
                                     {
+                                        var ainfo = alliance.FirstOrDefault(x => x.Key == allianceID);
                                         var channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
-                                        await channel.SendMessageAsync($"Taking Roles from {characterDetails["name"]}");
-                                        await discordUser.RemoveRolesAsync(rolesToTake);
+                                        rolesToAdd.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == ainfo.Value));
+                                        foreach (var r in rolesToAdd)
+                                        {
+                                            if (discordUser.Roles.FirstOrDefault(x => x.Id == r.Id) == null)
+                                            {
+                                                await channel.SendMessageAsync($"Granting Alliance Role {ainfo.Value} to {characterDetails["name"]}");
+                                                await discordUser.AddRolesAsync(rolesToAdd);
+                                            }
+                                        }
                                     }
                                 }
-                                else
-                                {
 
+                                catch (Exception ex)
+                                {
+                                    await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential ESI Failiure for {u["eveName"]} skipping, Reason: {ex.Message}", ex));
+                                    continue;
+                                }
+
+                                //Check if roles when should not have any
+                                if (!corps.ContainsKey(corporationid.ToString()) && !alliance.ContainsKey(allianceID))
+                                {
+                                    if (discordUser != null)
+                                    {
+                                        var exemptRoles = Program.Settings.GetSection("auth").GetSection("exempt").GetChildren().ToList();
+
+                                        rolesToTake.AddRange(discordUser.Roles);
+                                        var exemptCheckRoles = new List<SocketRole>(rolesToTake);
+                                        foreach (var r in exemptCheckRoles)
+                                        {
+                                            var name = r.Name;
+                                            if (exemptRoles.FindAll(x => x.Key == name).Count > 0)
+                                            {
+                                                rolesToTake.Remove(rolesToTake.FirstOrDefault(x => x.Name == r.Name));
+                                            }
+                                        }
+                                        rolesToTake.Remove(rolesToTake.FirstOrDefault(x => x.Name == "@everyone"));
+                                        if (rolesToTake.Count > 0)
+                                        {
+                                            var channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
+                                            await channel.SendMessageAsync($"Taking Roles from {characterDetails["name"]}");
+                                            await discordUser.RemoveRolesAsync(rolesToTake);
+                                        }
+                                    }
+                                    else
+                                    {
+
+                                    }
                                 }
                             }
                         }
@@ -1214,6 +1224,28 @@ namespace Opux
                 await con.OpenAsync();
                 insertSQL.Parameters.Add(new SqliteParameter("@name", name));
                 insertSQL.Parameters.Add(new SqliteParameter("@data", data));
+                try
+                {
+                    insertSQL.ExecuteNonQuery();
+                    await Task.CompletedTask;
+                }
+                catch (Exception ex)
+                {
+                    await Client_Log(new LogMessage(LogSeverity.Error, "SQLite", ex.Message, ex));
+                }
+            }
+        }
+        #endregion
+
+        //SQLite Update
+        #region SQLiteDelete
+        internal async static Task SQLiteDataDelete(string table, string name)
+        {
+            using (SqliteConnection con = new SqliteConnection("Data Source = Opux.db;"))
+            using (SqliteCommand insertSQL = new SqliteCommand($"REMOVE FROM {table} WHERE name = @name", con))
+            {
+                await con.OpenAsync();
+                insertSQL.Parameters.Add(new SqliteParameter("@name", name));
                 try
                 {
                     insertSQL.ExecuteNonQuery();
