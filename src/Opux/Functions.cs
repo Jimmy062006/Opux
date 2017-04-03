@@ -228,6 +228,8 @@ namespace Opux
 
                             if (discordUser == null)
                             {
+                                string remquery = $"DELETE FROM authUsers WHERE discordID = {u["discordID"]}";
+                                var remresponce = await Functions.MysqlQuery(Program.Settings.GetSection("config")["connstring"], remquery);
                                 await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Removing {characterDetails["name"]} from Database as they have left discord"));
                                 continue;
                             }
