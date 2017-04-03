@@ -13,6 +13,8 @@ using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using Microsoft.Data.Sqlite;
 using System.Data;
+using System.Net;
+using System.Text;
 
 namespace Opux
 {
@@ -24,6 +26,7 @@ namespace Opux
         internal static int lastNotification;
         internal static bool avaliable = false;
         internal static bool running = false;
+        internal static bool authRunning = false;
 
         //Timer is setup here
         #region Timer stuff
@@ -58,6 +61,10 @@ namespace Opux
                 if (Convert.ToBoolean(Program.Settings.GetSection("config")["notificationFeed"]))
                 {
                     await NotificationFeed(null);
+                }
+                if (!authRunning)
+                {
+                    await auth();
                 }
                 running = false;
             }
@@ -147,6 +154,301 @@ namespace Opux
             return Task.CompletedTask;
         }
         #endregion
+
+        //Auth
+        #region Auth
+        internal async static Task auth()
+        {
+            try
+            {
+                var callbackurl = (string)Program.Settings.GetSection("auth")["callbackurl"];
+                var client_id = (string)Program.Settings.GetSection("auth")["client_id"];
+                var secret = (string)Program.Settings.GetSection("auth")["secret"];
+                var url = (string)Program.Settings.GetSection("auth")["url"];
+                var port = Convert.ToInt32(Program.Settings.GetSection("auth")["port"]);
+                HttpListener listener = new HttpListener(IPAddress.Any, port);
+                authRunning = true;
+                listener.Request += async (sender, context) =>
+                {
+                    var request = context.Request;
+                    var response = context.Response;
+                    if (request.Method == HttpMethod.Get.ToString())
+                    {
+                        if (request.RequestUri.LocalPath == "/")
+                        {
+                            await response.WriteContentAsync("<!doctype html>" +
+                                "<html>" +
+                                "<head>" +
+                                "    <title>Discord Authenticator</title>" +
+                                "    <meta name=\"viewport\" content=\"width=device-width\">" +
+                                "    <link rel=\"stylesheet\" href=\"https://djyhxgczejc94.cloudfront.net/frameworks/bootstrap/3.0.0/themes/cirrus/bootstrap.min.css\">" +
+                                "    <script type=\"text/javascript\" src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js\"></script>" +
+                                "    <script type=\"text/javascript\" src=\"https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js\"></script>" +
+                                "    <style type=\"text/css\">" +
+                                "        /* Space out content a bit */" +
+                                "        body {" +
+                                "            padding-top: 20px;" +
+                                "            padding-bottom: 20px;" +
+                                "        }" +
+                                "        /* Everything but the jumbotron gets side spacing for mobile first views */" +
+                                "        .header, .marketing, .footer {" +
+                                "            padding-left: 15px;" +
+                                "            padding-right: 15px;" +
+                                "        }" +
+                                "       /* Custom page header */" +
+                                "        .header {" +
+                                "            border-bottom: 1px solid #e5e5e5;" +
+                                "        }" +
+                                "        /* Make the masthead heading the same height as the navigation */" +
+                                "        .header h3 {" +
+                                "            margin-top: 0;" +
+                                "            margin-bottom: 0;" +
+                                "            line-height: 40px;" +
+                                "            padding-bottom: 19px;" +
+                                "        }" +
+                                "        /* Custom page footer */" +
+                                "        .footer {" +
+                                "            padding-top: 19px;" +
+                                "            color: #777;" +
+                                "            border-top: 1px solid #e5e5e5;" +
+                                "        }" +
+                                "        /* Customize container */" +
+                                "        @media(min-width: 768px) {" +
+                                "            .container {" +
+                                "                max-width: 730px;" +
+                                "            }" +
+                                "        }" +
+                                "        .container-narrow > hr {" +
+                                "            margin: 30px 0;" +
+                                "        }" +
+                                "        /* Main marketing message and sign up button */" +
+                                "        .jumbotron {" +
+                                "            text-align: center;" +
+                                "            border-bottom: 1px solid #e5e5e5;" +
+                                "        }" +
+                                "        .jumbotron .btn {" +
+                                "            font-size: 21px;" +
+                                "            padding: 14px 24px;" +
+                                "            color: #0D191D;" +
+                                "        }" +
+                                "        /* Supporting marketing content */" +
+                                "        .marketing {" +
+                                "            margin: 40px 0;" +
+                                "        }" +
+                                "        .marketing p + h4 {" +
+                                "            margin-top: 28px;" +
+                                "        }" +
+                                "        /* Responsive: Portrait tablets and up */" +
+                                "        @media screen and(min-width: 768px) {" +
+                                "            /* Remove the padding we set earlier */" +
+                                "            .header, .marketing, .footer {" +
+                                "                padding-left: 0;" +
+                                "                padding-right: 0;" +
+                                "            }" +
+                                "            /* Space out the masthead */" +
+                                "            .header {" +
+                                "                margin-bottom: 30px;" +
+                                "            }" +
+                                "            /* Remove the bottom border on the jumbotron for visual effect */" +
+                                "            .jumbotron {" +
+                                "                border-bottom: 0;" +
+                                "            }" +
+                                "        }" +
+                                "    </style>" +
+                                "</head>" +
+                                "" +
+                                "<body background=\"img/background.jpg\">" +
+                                "<div class=\"container\">" +
+                                "    <div class=\"header\">" +
+                                "        <ul class=\"nav nav-pills pull-right\"></ul>" +
+                                "    </div>" +
+                                "    <div class=\"jumbotron\">" +
+                                "        <h1>Discord</h1>" +
+                                "        <p class=\"lead\">Click the button below to login with your EVE Online account.</p>" +
+                                "        <p><a href=\"https://login.eveonline.com/oauth/authorize?response_type=code&amp;redirect_uri=" + callbackurl + "&amp;client_id=" + client_id + "\"><img src=\"https://images.contentful.com/idjq7aai9ylm/4fSjj56uD6CYwYyus4KmES/4f6385c91e6de56274d99496e6adebab/EVE_SSO_Login_Buttons_Large_Black.png\"/></a></p>" +
+                                "    </div>" +
+                                "</div>" +
+                                "<!-- /container -->" +
+                                "</body>" +
+                                "</html>");
+                        }
+                        else if (request.RequestUri.LocalPath == "/callback.php")
+                        {
+                            var assembly = Assembly.GetEntryAssembly();
+                            var temp = assembly.GetManifestResourceNames();
+                            var resource = assembly.GetManifestResourceStream("Opux.Discord-01.png");
+                            var buffer = new byte[resource.Length];
+                            resource.Read(buffer, 0, Convert.ToInt32(resource.Length));
+                            var image = Convert.ToBase64String(buffer);
+                            string accessToken = "";
+                            string responseString;
+                            string verifyString;
+                            var uid = GetUniqID();
+                            var code = "";
+
+                            if (!String.IsNullOrWhiteSpace(request.RequestUri.Query))
+                            {
+                                code = request.RequestUri.Query.TrimStart('?').Split('=')[1];
+
+                                using (HttpClient tokenclient = new HttpClient())
+                                {
+                                    var values = new Dictionary<string, string>
+                                    {
+                                        { "grant_type", "authorization_code" },
+                                        { "code", $"{code}"}
+                                    };
+                                    tokenclient.DefaultRequestHeaders.Add("Authorization", $"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes(client_id + ":" + secret))}");
+                                    var content = new FormUrlEncodedContent(values);
+                                    var tokenresponse = await tokenclient.PostAsync("https://login.eveonline.com/oauth/token", content);
+                                    responseString = await tokenresponse.Content.ReadAsStringAsync();
+                                    accessToken = (string)JObject.Parse(responseString)["access_token"];
+                                }
+                                using (HttpClient verifyclient = new HttpClient())
+                                {
+                                    verifyclient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
+                                    var tokenresponse = await verifyclient.GetAsync("https://login.eveonline.com/oauth/verify");
+                                    verifyString = await tokenresponse.Content.ReadAsStringAsync();
+                                }
+                                if ((string)JObject.Parse(responseString)["error"] != "invalid_request" && (string)JObject.Parse(verifyString)["error"] != "invalid_token")
+                                {
+                                    await response.WriteContentAsync("<!doctype html>" +
+                                        "<html>" +
+                                        "<head>" +
+                                        "    <title>Discord Authenticator</title>" +
+                                        "    <meta name=\"viewport\" content=\"width=device-width\">" +
+                                        "    <link rel=\"stylesheet\" href=\"https://djyhxgczejc94.cloudfront.net/frameworks/bootstrap/3.0.0/themes/cirrus/bootstrap.min.css\">" +
+                                        "    <script type=\"text/javascript\" src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js\"></script>" +
+                                        "    <script type=\"text/javascript\" src=\"https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js\"></script>" +
+                                        "    <style type=\"text/css\">" +
+                                        "        /* Space out content a bit */" +
+                                        "        body {" +
+                                        "            padding-top: 20px;" +
+                                        "            padding-bottom: 20px;" +
+                                        "        }" +
+                                        "        /* Everything but the jumbotron gets side spacing for mobile first views */" +
+                                        "        .header, .marketing, .footer {" +
+                                        "            padding-left: 15px;" +
+                                        "            padding-right: 15px;" +
+                                        "        }" +
+                                        "        /* Custom page header */" +
+                                        "        .header {" +
+                                        "            border-bottom: 1px solid #e5e5e5;" +
+                                        "        }" +
+                                        "        /* Make the masthead heading the same height as the navigation */" +
+                                        "        .header h3 {" +
+                                        "            margin-top: 0;" +
+                                        "            margin-bottom: 0;" +
+                                        "            line-height: 40px;" +
+                                        "            padding-bottom: 19px;" +
+                                        "        }" +
+                                        "        /* Custom page footer */" +
+                                        "        .footer {" +
+                                        "            padding-top: 19px;" +
+                                        "            color: #777;" +
+                                        "            border-top: 1px solid #e5e5e5;" +
+                                        "        }" +
+                                        "        /* Customize container */" +
+                                        "        @media(min-width: 768px) {" +
+                                        "            .container {" +
+                                        "                max-width: 730px;" +
+                                        "            }" +
+                                        "        }" +
+                                        "        .container-narrow > hr {" +
+                                        "            margin: 30px 0;" +
+                                        "        }" +
+                                        "        /* Main marketing message and sign up button */" +
+                                        "        .jumbotron {" +
+                                        "            text-align: center;" +
+                                        "            border-bottom: 1px solid #e5e5e5;" +
+                                        "            color: #0D191D;" +
+                                        "        }" +
+                                        "        .jumbotron .btn {" +
+                                        "            font-size: 21px;" +
+                                        "            padding: 14px 24px;" +
+                                        "        }" +
+                                        "        /* Supporting marketing content */" +
+                                        "        .marketing {" +
+                                        "            margin: 40px 0;" +
+                                        "        }" +
+                                        "        .marketing p + h4 {" +
+                                        "            margin-top: 28px;" +
+                                        "        }" +
+                                        "        /* Responsive: Portrait tablets and up */" +
+                                        "        @media screen and(min-width: 768px) {" +
+                                        "            /* Remove the padding we set earlier */" +
+                                        "            .header, .marketing, .footer {" +
+                                        "                padding-left: 0;" +
+                                        "                padding-right: 0;" +
+                                        "            }" +
+                                        "            /* Space out the masthead */" +
+                                        "            .header {" +
+                                        "                margin-bottom: 30px;" +
+                                        "            }" +
+                                        "            /* Remove the bottom border on the jumbotron for visual effect */" +
+                                        "            .jumbotron {" +
+                                        "                border-bottom: 0;" +
+                                        "            }" +
+                                        "        }" +
+                                        "    </style>" +
+                                        "</head>" +
+                                        "<body>" +
+                                        "<div class=\"container\">" +
+                                        "    <div class=\"header\">" +
+                                        "        <ul class=\"nav nav-pills pull-right\"></ul>" +
+                                        "    </div>" +
+                                        "    <div class=\"jumbotron\">" +
+                                        "        <h1>Discord</h1>" +
+                                        "        <p class=\"lead\">Sign in complete.</p>" +
+                                        "        <p>If you're not already signed into the server use the link below to get invited. (or right click and copy-link for the Windows/OSX Client)</p>" +
+                                        "        <p><a href=\"" + url + "\" target=\"_blank\"><img src=\"data:image/png;base64," + image + "\" width=\"350px\"/></a></p>" +
+                                        "        <p>Once you're in chat copy and paste the entire line below to have the bot add you to the correct roles.</p>" +
+                                        "        <p><b>!auth " + uid + "</b></p>" +
+                                        "    </div>" +
+                                        "</div>" +
+                                        "<!-- /container -->" +
+                                        "</body>" +
+                                        "</html>" + verifyString);
+                                }
+                                else
+                                {
+                                    await response.WriteContentAsync($"{(string)JObject.Parse(responseString)["error"]} {(string)JObject.Parse(verifyString)["error"]}");
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        response.MethodNotAllowed();
+                    }
+                    // Close the HttpResponse to send it back to the client.
+                    response.Close();
+                };
+                listener.Start();
+                await Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        private static string GetUniqID()
+        {
+            var ts = (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0));
+            double t = ts.TotalMilliseconds / 1000;
+
+            int a = (int)Math.Floor(t);
+            int b = (int)((t - Math.Floor(t)) * 1000000);
+
+            return a.ToString("x8") + b.ToString("x5");
+        }
+        #endregion
+
+        //AuthUser
+        internal static Task AuthUser(CommandContext context)
+        {
+            throw new NotImplementedException();
+        }
 
         //Needs Corp and Standings added
         #region AuthCheck

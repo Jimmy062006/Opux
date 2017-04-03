@@ -38,7 +38,11 @@
     }
   },
   "auth": {
-    "url": "",
+    "url": "https://discord.gg/XXXXXX",  //Discord Invite URL
+    "port": 80, //Port for WebServer
+    "callbackurl": "http://DOMAIN/IP/callback.php", //Callback URL for EVE Dev App
+    "client_id": "", //Client ID from EVE Dev App
+    "secret": "", //Secret From EVE Dev App
     "exempt": {
       "Role1": null,
       "Role2": null
