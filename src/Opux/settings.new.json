@@ -39,6 +39,9 @@
   },
   "auth": {
     "url": "",
+    "client_id": "0",
+    "secret": "",
+    "discordinvite": "",
     "exempt": {
       "Role1": null,
       "Role2": null

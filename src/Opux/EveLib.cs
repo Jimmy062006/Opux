@@ -55,7 +55,11 @@ namespace EveLibCore
 
                 IDictionary<string, JToken> rowList = (JObject)result["eveapi"]["result"]["rowset"];
 
-                if (rowList.Count > 0)
+                if (rowList["row"].IsNullOrEmpty())
+                {
+
+                }
+                else if(rowList.Count > 0)
                 {
                     foreach (var r in rowList["row"])
                     {
