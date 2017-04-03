@@ -176,7 +176,7 @@ namespace Opux
                         {
                             corps.Add(corpID, corpMemberRole);
                         }
-                        else if (Convert.ToInt32(allianceID) != 0)
+                        if (Convert.ToInt32(allianceID) != 0)
                         {
                             alliance.Add(allianceID, allianceMemberRole);
                         }
@@ -242,31 +242,23 @@ namespace Opux
                                     if (corps.ContainsKey(corpID))
                                     {
                                         var cinfo = corps.FirstOrDefault(x => x.Key == corpID);
-                                        var channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
                                         rolesToAdd.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == cinfo.Value));
-                                        foreach (var r in rolesToAdd)
-                                        {
-                                            if (discordUser.Roles.FirstOrDefault(x => x.Id == r.Id) == null)
-                                            {
-                                                await channel.SendMessageAsync($"Granting Corp Role {cinfo.Value} to {characterDetails["name"]}");
-                                                await discordUser.AddRolesAsync(rolesToAdd);
-                                            }
-                                        }
                                     }
 
                                     //Check for Alliance roles
                                     if (alliance.ContainsKey(allianceID))
                                     {
                                         var ainfo = alliance.FirstOrDefault(x => x.Key == allianceID);
-                                        var channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
                                         rolesToAdd.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == ainfo.Value));
-                                        foreach (var r in rolesToAdd)
+                                    }
+
+                                    foreach (var r in rolesToAdd)
+                                    {
+                                        if (discordUser.Roles.FirstOrDefault(x => x.Id == r.Id) == null)
                                         {
-                                            if (discordUser.Roles.FirstOrDefault(x => x.Id == r.Id) == null)
-                                            {
-                                                await channel.SendMessageAsync($"Granting Alliance Role {ainfo.Value} to {characterDetails["name"]}");
-                                                await discordUser.AddRolesAsync(rolesToAdd);
-                                            }
+                                            var channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
+                                            await channel.SendMessageAsync($"Granting Roles to {characterDetails["name"]}");
+                                            await discordUser.AddRolesAsync(rolesToAdd);
                                         }
                                     }
                                 }
