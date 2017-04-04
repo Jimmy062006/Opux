@@ -134,7 +134,7 @@ namespace Opux
         /// <returns></returns>
         [Command("reauth"), Summary("Reauth all users")]
         [CheckForRole]
-        public async Task Testsql()
+        public async Task Reauth()
         {
             try
             {
@@ -152,18 +152,47 @@ namespace Opux
         /// 
         /// </summary>
         /// <returns></returns>
-        //[Command("killmail", RunMode = RunMode.Async), Summary("Killmail Test")]
-        //public async Task Killmail()
-        //{
-        //    try
-        //    {
-        //        await Task.CompletedTask;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine(ex.Message);
-        //    }
-        //}
+        [Command("auth"), Summary("Auth User")]
+        public async Task Auth()
+        {
+            if (Convert.ToBoolean(Program.Settings.GetSection("config")["authWeb"]))
+            {
+                try
+                {
+                    await ReplyAsync($"{Context.Message.Author.Mention} To Auth please vist {(string)Program.Settings.GetSection("auth")["authurl"]} and Login with your main");
+                }
+                catch (Exception ex)
+                {
+                    await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
+                    await Task.FromException(ex);
+                }
+            }
+            else
+            {
+                await ReplyAsync($"{Context.Message.Author.Mention}, Auth is disabled on this server");
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [Command("auth"), Summary("Auth User")]
+        public async Task Auth([Remainder] string x)
+        {
+            if (Convert.ToBoolean(Program.Settings.GetSection("config")["authWeb"]))
+            {
+                try
+                {
+                    await Functions.AuthUser(Context, x);
+                }
+                catch (Exception ex)
+                {
+                    await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
+                    await Task.FromException(ex);
+                }
+            }
+        }
     }
 
 }
