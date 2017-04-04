@@ -172,12 +172,11 @@ namespace Opux
         /// </summary>
         /// <returns></returns>
         [Command("auth"), Summary("Auth User")]
-        [CheckForRole]
         public async Task Auth([Remainder] string x)
         {
             try
             {
-                await Functions.AuthUser(Context);
+                await Functions.AuthUser(Context, x);
             }
             catch (Exception ex)
             {
