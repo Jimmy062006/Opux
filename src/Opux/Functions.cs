@@ -1474,128 +1474,131 @@ namespace Opux
                             var notifications = await Program.EveLib.GetNotifications();
                             var notificationsSort = notifications.OrderBy(x => x.Key);
 
-                            var notiIDs = new List<int>();
-
-                            foreach (var l in notifications)
+                            if (notifications.Count > 0)
                             {
-                                notiIDs.Add((int)l.Key);
-                            }
+                                var notiIDs = new List<int>();
 
-                            var notificationsText = await Program.EveLib.GetNotificationText(notiIDs);
-
-                            foreach (var notification in notificationsSort)
-                            {
-                                if ((int)notification.Value["notificationID"] > lastNotification)
+                                foreach (var l in notifications)
                                 {
-                                    var notificationText = notificationsText.FirstOrDefault(x => x.Key == notification.Key).Value;
-                                    var notificationType = (int)notification.Value["typeID"];
+                                    notiIDs.Add((int)l.Key);
+                                }
 
-                                    if (notificationType == 121)
+                                var notificationsText = await Program.EveLib.GetNotificationText(notiIDs);
+
+                                foreach (var notification in notificationsSort)
+                                {
+                                    if ((int)notification.Value["notificationID"] > lastNotification)
                                     {
-                                        var aggressorID = Convert.ToInt64(notificationText["entityID"].AllNodes.ToList()[0].ToString());
-                                        var defenderID = Convert.ToInt64(notificationText["defenderID"].AllNodes.ToList()[0].ToString());
+                                        var notificationText = notificationsText.FirstOrDefault(x => x.Key == notification.Key).Value;
+                                        var notificationType = (int)notification.Value["typeID"];
 
-                                        var stuff = await Program.EveLib.IDtoName(new List<Int64> { aggressorID, defenderID });
-                                        var aggressorName = stuff.FirstOrDefault(x => x.Key == aggressorID).Value;
-                                        var defenderName = stuff.FirstOrDefault(x => x.Key == defenderID).Value;
-                                        await chan.SendMessageAsync($"War declared by **{aggressorName}** against **{defenderName}**. Fighting begins in roughly 24 hours.");
-                                    }
-                                    else if (notificationType == 100)
-                                    {
-                                        var allyID = Convert.ToInt64(notificationText["allyID"].AllNodes.ToList()[0].ToString());
-                                        var defenderID = Convert.ToInt64(notificationText["defenderID"].AllNodes.ToList()[0].ToString());
+                                        if (notificationType == 121)
+                                        {
+                                            var aggressorID = Convert.ToInt64(notificationText["entityID"].AllNodes.ToList()[0].ToString());
+                                            var defenderID = Convert.ToInt64(notificationText["defenderID"].AllNodes.ToList()[0].ToString());
 
-                                        var stuff = await Program.EveLib.IDtoName(new List<Int64> { allyID, defenderID });
-                                        var allyName = stuff.FirstOrDefault(x => x.Key == allyID).Value;
-                                        var defenderName = stuff.FirstOrDefault(x => x.Key == defenderID).Value;
-                                        var startTime = DateTime.FromFileTimeUtc(Convert.ToInt64(notificationText["startTime"].AllNodes.ToList()[0].ToString()));
-                                        await chan.SendMessageAsync($"**{allyName}** will join the war against **{defenderName}** at {startTime} EVE.");
-                                    }
-                                    else if (notificationType == 5)
-                                    {
-                                        var againstID = Convert.ToInt64(notificationText["againstID"].AllNodes.ToList()[0].ToString());
-                                        var cost = notificationText["cost"].AllNodes.ToList()[0];
-                                        var declaredByID = Convert.ToInt64(notificationText["declaredByID"].AllNodes.ToList()[0].ToString());
-                                        var delayHours = notificationText["delayHours"].AllNodes.ToList()[0].ToString();
-                                        var hostileState = notificationText["hostileState"].AllNodes.ToList()[0].ToString();
-                                        var names = await Program.EveLib.IDtoName(new List<Int64> { declaredByID, againstID });
-                                        var againstName = names.FirstOrDefault(x => x.Key == againstID);
-                                        var declaredByName = names.First(x => x.Key == declaredByID);
+                                            var stuff = await Program.EveLib.IDtoName(new List<Int64> { aggressorID, defenderID });
+                                            var aggressorName = stuff.FirstOrDefault(x => x.Key == aggressorID).Value;
+                                            var defenderName = stuff.FirstOrDefault(x => x.Key == defenderID).Value;
+                                            await chan.SendMessageAsync($"War declared by **{aggressorName}** against **{defenderName}**. Fighting begins in roughly 24 hours.");
+                                        }
+                                        else if (notificationType == 100)
+                                        {
+                                            var allyID = Convert.ToInt64(notificationText["allyID"].AllNodes.ToList()[0].ToString());
+                                            var defenderID = Convert.ToInt64(notificationText["defenderID"].AllNodes.ToList()[0].ToString());
 
-                                        await chan.SendMessageAsync($"War declared by {declaredByName.Value} against {againstName.Value}" +
-                                            $" Fighting begins in roughly {delayHours} hours");
-                                    }
-                                    else if (notificationType == 8)
-                                    {
-                                        var againstID = Convert.ToInt64(notificationText["againstID"].AllNodes.ToList()[0].ToString());
-                                        var declaredByID = Convert.ToInt64(notificationText["declaredByID"].AllNodes.ToList()[0].ToString());
-                                        var names = await Program.EveLib.IDtoName(new List<Int64> { declaredByID, againstID });
-                                        var againstName = names.FirstOrDefault(x => x.Key == againstID);
-                                        var declaredByName = names.First(x => x.Key == declaredByID);
+                                            var stuff = await Program.EveLib.IDtoName(new List<Int64> { allyID, defenderID });
+                                            var allyName = stuff.FirstOrDefault(x => x.Key == allyID).Value;
+                                            var defenderName = stuff.FirstOrDefault(x => x.Key == defenderID).Value;
+                                            var startTime = DateTime.FromFileTimeUtc(Convert.ToInt64(notificationText["startTime"].AllNodes.ToList()[0].ToString()));
+                                            await chan.SendMessageAsync($"**{allyName}** will join the war against **{defenderName}** at {startTime} EVE.");
+                                        }
+                                        else if (notificationType == 5)
+                                        {
+                                            var againstID = Convert.ToInt64(notificationText["againstID"].AllNodes.ToList()[0].ToString());
+                                            var cost = notificationText["cost"].AllNodes.ToList()[0];
+                                            var declaredByID = Convert.ToInt64(notificationText["declaredByID"].AllNodes.ToList()[0].ToString());
+                                            var delayHours = notificationText["delayHours"].AllNodes.ToList()[0].ToString();
+                                            var hostileState = notificationText["hostileState"].AllNodes.ToList()[0].ToString();
+                                            var names = await Program.EveLib.IDtoName(new List<Int64> { declaredByID, againstID });
+                                            var againstName = names.FirstOrDefault(x => x.Key == againstID);
+                                            var declaredByName = names.First(x => x.Key == declaredByID);
 
-                                        await chan.SendMessageAsync($"CONCORD Invalidates war declared by {declaredByName.Value} against {againstName.Value}");
-                                    }
-                                    else if (notificationType == 161)
-                                    {
-                                        var campaignEventType = notificationText["campaignEventType"].AllNodes.ToList()[0];
-                                        var constellationID = notificationText["constellationID"].AllNodes.ToList()[0];
-                                        var solarSystemID = Convert.ToInt64(notificationText["solarSystemID"].AllNodes.ToList()[0].ToString());
-                                        var names = await Program.EveLib.IDtoName(new List<Int64> { solarSystemID });
-                                        var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
+                                            await chan.SendMessageAsync($"War declared by {declaredByName.Value} against {againstName.Value}" +
+                                                $" Fighting begins in roughly {delayHours} hours");
+                                        }
+                                        else if (notificationType == 8)
+                                        {
+                                            var againstID = Convert.ToInt64(notificationText["againstID"].AllNodes.ToList()[0].ToString());
+                                            var declaredByID = Convert.ToInt64(notificationText["declaredByID"].AllNodes.ToList()[0].ToString());
+                                            var names = await Program.EveLib.IDtoName(new List<Int64> { declaredByID, againstID });
+                                            var againstName = names.FirstOrDefault(x => x.Key == againstID);
+                                            var declaredByName = names.First(x => x.Key == declaredByID);
 
-                                        await chan.SendMessageAsync($"Command nodes decloaking for {solarSystemName.Value}");
+                                            await chan.SendMessageAsync($"CONCORD Invalidates war declared by {declaredByName.Value} against {againstName.Value}");
+                                        }
+                                        else if (notificationType == 161)
+                                        {
+                                            var campaignEventType = notificationText["campaignEventType"].AllNodes.ToList()[0];
+                                            var constellationID = notificationText["constellationID"].AllNodes.ToList()[0];
+                                            var solarSystemID = Convert.ToInt64(notificationText["solarSystemID"].AllNodes.ToList()[0].ToString());
+                                            var names = await Program.EveLib.IDtoName(new List<Int64> { solarSystemID });
+                                            var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
 
-                                    }
-                                    else if (notificationType == 147)
-                                    {
-                                        var solarSystemID = Convert.ToInt64(notificationText["solarSystemID"].AllNodes.ToList()[0].ToString());
-                                        var structureTypeID = Convert.ToInt64(notificationText["structureTypeID"].AllNodes.ToList()[0].ToString());
-                                        var names = await Program.EveLib.IDtoName(new List<Int64> { solarSystemID });
-                                        var typeNames = await Program.EveLib.IDtoTypeName(new List<Int64> { structureTypeID });
-                                        var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
-                                        var structureTypeName = typeNames.FirstOrDefault(x => x.Key == structureTypeID);
+                                            await chan.SendMessageAsync($"Command nodes decloaking for {solarSystemName.Value}");
 
-                                        await chan.SendMessageAsync($"Entosis Link started in {solarSystemName.Value} on {structureTypeName.Value}");
-                                    }
-                                    else if (notificationType == 160)
-                                    {
-                                        var campaignEventType = notificationText["campaignEventType"].AllNodes.ToList()[0];
-                                        var solarSystemID = Convert.ToInt64((notificationText["solarSystemID"].AllNodes.ToList()[0].ToString()));
-                                        var decloakTime = Convert.ToInt64(notificationText["decloakTime"].AllNodes.ToList()[0].ToString());
-                                        var names = await Program.EveLib.IDtoName(new List<Int64> { solarSystemID });
-                                        var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
-                                        var decloaktime = DateTime.FromFileTime(decloakTime);
+                                        }
+                                        else if (notificationType == 147)
+                                        {
+                                            var solarSystemID = Convert.ToInt64(notificationText["solarSystemID"].AllNodes.ToList()[0].ToString());
+                                            var structureTypeID = Convert.ToInt64(notificationText["structureTypeID"].AllNodes.ToList()[0].ToString());
+                                            var names = await Program.EveLib.IDtoName(new List<Int64> { solarSystemID });
+                                            var typeNames = await Program.EveLib.IDtoTypeName(new List<Int64> { structureTypeID });
+                                            var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
+                                            var structureTypeName = typeNames.FirstOrDefault(x => x.Key == structureTypeID);
 
-                                        await chan.SendMessageAsync($"Sovereignty structure reinforced in {solarSystemName.Value} nodes will spawn @{decloaktime}");
+                                            await chan.SendMessageAsync($"Entosis Link started in {solarSystemName.Value} on {structureTypeName.Value}");
+                                        }
+                                        else if (notificationType == 160)
+                                        {
+                                            var campaignEventType = notificationText["campaignEventType"].AllNodes.ToList()[0];
+                                            var solarSystemID = Convert.ToInt64((notificationText["solarSystemID"].AllNodes.ToList()[0].ToString()));
+                                            var decloakTime = Convert.ToInt64(notificationText["decloakTime"].AllNodes.ToList()[0].ToString());
+                                            var names = await Program.EveLib.IDtoName(new List<Int64> { solarSystemID });
+                                            var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
+                                            var decloaktime = DateTime.FromFileTime(decloakTime);
+
+                                            await chan.SendMessageAsync($"Sovereignty structure reinforced in {solarSystemName.Value} nodes will spawn @{decloaktime}");
+                                        }
+                                        else
+                                        {
+                                            await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Skipping Notification TypeID: {notificationType} " +
+                                                $"Type: {types[notificationType]} {Environment.NewLine} Text: {notificationText}"));
+                                        }
+                                        lastNotification = (int)notification.Value["notificationID"];
+                                        await SQLiteDataUpdate("cacheData", "data", "lastNotificationID", lastNotification.ToString());
                                     }
-                                    else
-                                    {
-                                        await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Skipping Notification TypeID: {notificationType} " +
-                                            $"Type: {types[notificationType]} {Environment.NewLine} Text: {notificationText}"));
-                                    }
-                                    lastNotification = (int)notification.Value["notificationID"];
-                                    await SQLiteDataUpdate("cacheData", "data", "lastNotificationID", lastNotification.ToString());
+                                }
+                                if (keyCount > 1 && keyCount != index + 1)
+                                {
+                                    await SQLiteDataUpdate("notifications", "data", "nextKey", keys.ToList()[index + 1].Key);
+                                }
+                                else if (keyCount == index + 1)
+                                {
+                                    await SQLiteDataUpdate("notifications", "data", "nextKey", keys.ToList()[0].Key);
+                                }
+                                else
+                                {
+                                    await SQLiteDataUpdate("notifications", "data", "nextKey", key.Key);
                                 }
                             }
-                            if (keyCount > 1 && keyCount != index+1)
-                            {
-                                await SQLiteDataUpdate("notifications", "data", "nextKey", keys.ToList()[index + 1].Key);
-                            }
-                            else if (keyCount == index+1)
-                            {
-                                await SQLiteDataUpdate("notifications", "data", "nextKey", keys.ToList()[0].Key);
-                            }
-                            else
-                            {
-                                await SQLiteDataUpdate("notifications", "data", "nextKey", key.Key);
-                            }
+                            index++;
                         }
-                        index++;
+                        var interval = 30 / keys.Count();
+                        await SQLiteDataUpdate("cacheData", "data", "nextNotificationCheck", DateTime.Now.AddMinutes(interval).ToString());
+                        nextNotificationCheck = DateTime.Now.AddMinutes(interval);
+                        await Task.CompletedTask;
                     }
-                    var interval = 30 / keys.Count();
-                    await SQLiteDataUpdate("cacheData", "data", "nextNotificationCheck", DateTime.Now.AddMinutes(interval).ToString());
-                    nextNotificationCheck = DateTime.Now.AddMinutes(interval);
-                    await Task.CompletedTask;
                 }
             }
             catch (Exception ex)
