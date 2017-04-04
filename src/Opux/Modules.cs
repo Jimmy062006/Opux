@@ -154,6 +154,25 @@ namespace Opux
         /// <returns></returns>
         [Command("auth"), Summary("Auth User")]
         [CheckForRole]
+        public async Task Auth()
+        {
+            try
+            {
+                await ReplyAsync($"To Auth please vist {(string)Program.Settings.GetSection("auth")["url"]} and Login with your main");
+            }
+            catch (Exception ex)
+            {
+                await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
+                await Task.FromException(ex);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [Command("auth"), Summary("Auth User")]
+        [CheckForRole]
         public async Task Auth([Remainder] string x)
         {
             try
