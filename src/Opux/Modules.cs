@@ -158,7 +158,7 @@ namespace Opux
         {
             try
             {
-                await ReplyAsync($"To Auth please vist {(string)Program.Settings.GetSection("auth")["url"]} and Login with your main");
+                await ReplyAsync($"To Auth please vist {(string)Program.Settings.GetSection("auth")["authurl"]} and Login with your main");
             }
             catch (Exception ex)
             {
