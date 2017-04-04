@@ -153,7 +153,6 @@ namespace Opux
         /// </summary>
         /// <returns></returns>
         [Command("auth"), Summary("Auth User")]
-        [CheckForRole]
         public async Task Auth()
         {
             try
