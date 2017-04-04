@@ -44,10 +44,6 @@
     "callbackurl": "http://DOMAIN/IP/callback.php", //Callback URL for EVE Dev App
     "client_id": "", //Client ID from EVE Dev App
     "secret": "", //Secret From EVE Dev App
-    "url": "",
-    "client_id": "0",
-    "secret": "",
-    "discordinvite": "",
     "exempt": {
       "Role1": null,
       "Role2": null
