@@ -60,7 +60,7 @@ namespace Opux
                 {
                     await NotificationFeed(null);
                 }
-                if (!authRunning)
+                if (!authRunning && Convert.ToBoolean(Program.Settings.GetSection("config")["authWeb"]))
                 {
                     await Auth();
                 }

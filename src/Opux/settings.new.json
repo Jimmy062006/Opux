@@ -9,6 +9,7 @@
     "guildId": "0",
     "loglevel": "Info", //Critical/Warning/Info/Verbose/Debug DEFAULT = Info
     "authCheck": false,
+    "authWeb": false,
     "killFeed": false,
     "notificationFeed": false,
     "authInterval": "30", //In Minuets
