@@ -383,7 +383,8 @@ namespace Opux
                                         var dateCreated = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
                                         var query = "INSERT INTO pendingUsers(characterID, corporationID, allianceID, authString, groups, active, dateCreated) " +
-                                        $"VALUES (\"{characterID}\", \"{corporationid}\", \"{allianceid}\", \"{authString}\", \"[]\", \"{active}\", \"{dateCreated}\")";
+                                        $"VALUES (\"{characterID}\", \"{corporationid}\", \"{allianceid}\", \"{authString}\", \"[]\", \"{active}\", \"{dateCreated}\" ON DUPLICATE KEY UPDATE" +
+                                        $"corporationID = \"{corporationid}\", allianceID = \"{allianceid}\", authString = \"{authString}\", groups = \"[]\", active = \"{active}\", dateCreated = \"{dateCreated}\")";
                                         var responce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query);
                                         await response.WriteContentAsync("<!doctype html>" +
                                             "<html>" +
@@ -749,7 +750,8 @@ namespace Opux
                             var addedOn = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
                             query2 = "INSERT INTO authUsers(eveName, characterID, discordID, role, active, addedOn) " +
-                            $"VALUES (\"{eveName}\", \"{characterID}\", \"{discordID}\", \"[]\", \"{active}\", \"{addedOn}\")";
+                            $"VALUES (\"{eveName}\", \"{characterID}\", \"{discordID}\", \"[]\", \"{active}\", \"{addedOn}\" ON DUPLICATE KEY UPDATE" +
+                            $"eveName = \"{eveName}\", discordID = \"{discordID}\", role = \"[]\", active = \"{active}\", addedOn = \"{addedOn}\")";
 
                             responce2 = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query2);
 
