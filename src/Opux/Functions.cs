@@ -751,7 +751,7 @@ namespace Opux
 
                             query2 = "INSERT INTO authUsers(eveName, characterID, discordID, role, active, addedOn) " +
                             $"VALUES (\"{eveName}\", \"{characterID}\", \"{discordID}\", \"[]\", \"{active}\", \"{addedOn}\") ON DUPLICATE KEY UPDATE " +
-                            $"eveName = \"{eveName}\", discordID = \"{discordID}\", role = \"[]\", active = \"{active}\", addedOn = \"{addedOn}\")";
+                            $"eveName = \"{eveName}\", discordID = \"{discordID}\", role = \"[]\", active = \"{active}\", addedOn = \"{addedOn}\"";
 
                             responce2 = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query2);
 
