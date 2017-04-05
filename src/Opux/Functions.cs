@@ -1790,7 +1790,7 @@ namespace Opux
                 }
                 catch (MySqlException ex)
                 {
-                    await Client_Log(new LogMessage(LogSeverity.Error, "mySQL", ex.Message, ex));
+                    await Client_Log(new LogMessage(LogSeverity.Error, "mySQL", query  + " " + ex.Message, ex));
                 }
                 await Task.Yield();
                 return list;
