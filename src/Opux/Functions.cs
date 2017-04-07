@@ -172,10 +172,10 @@ namespace Opux
         #endregion
 
         //Auth
-        #region authWeb
+        #region AuthWeb
         internal async static Task AuthWeb()
         {
-            await Client_Log(new LogMessage(LogSeverity.Error, "AuthWeb", "Starting AuthWeb Server"));
+            await Client_Log(new LogMessage(LogSeverity.Info, "AuthWeb", "Starting AuthWeb Server"));
             authRunning = true;
             var callbackurl = (string)Program.Settings.GetSection("auth")["callbackurl"];
             var client_id = (string)Program.Settings.GetSection("auth")["client_id"];
