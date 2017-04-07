@@ -71,8 +71,8 @@ namespace Opux
                         var port = Convert.ToInt32(Program.Settings.GetSection("auth")["port"]);
                         using (HttpClient client = new HttpClient())
                         {
-                            var responce = client.GetAsync($"http://localhost:{port}");
-                            if (!responce.Result.IsSuccessStatusCode)
+                            var responce = await client.GetAsync($"http://localhost:{port}");
+                            if (!responce.IsSuccessStatusCode)
                             {
                                 authRunning = false;
                             }
