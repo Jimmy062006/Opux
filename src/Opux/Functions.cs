@@ -642,7 +642,7 @@ namespace Opux
 
         //AuthUser
         #region AuthUser
-        internal async static Task AuthUser(CommandContext context, string remainder)
+        internal async static Task AuthUser(ICommandContext context, string remainder)
         {
             var query = $"SELECT * FROM pendingUsers WHERE authString=\"{remainder}\"";
             var responce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query);
@@ -811,7 +811,7 @@ namespace Opux
 
         //Needs Corp and Standings added
         #region AuthCheck
-        internal async static Task AuthCheck(CommandContext Context)
+        internal async static Task AuthCheck(ICommandContext Context)
         {
             //Check inactive users are correct
             if (DateTime.Now > lastAuthCheck.AddMilliseconds(Convert.ToInt32(Program.Settings.GetSection("config")["authInterval"]) * 1000 * 60) || Context != null)
@@ -1634,7 +1634,7 @@ namespace Opux
 
         //Complete
         #region Pricecheck
-        internal async static Task PriceCheck(CommandContext context, string String, string system)
+        internal async static Task PriceCheck(ICommandContext context, string String, string system)
         {
             var NametoId = "https://www.fuzzwork.co.uk/api/typeid.php?typename=";
 
