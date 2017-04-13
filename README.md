@@ -6,6 +6,7 @@ This bot is currently under development and needs to run with dotnet SDK/Runtime
 # Features
 * Price check tool
 * Auth
+* Admin Reauth
 * Killmail posting
 * Radius Killmails
 
