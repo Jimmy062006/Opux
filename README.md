@@ -3,6 +3,13 @@ Opux is a Discord bot for EVEOnline
 
 This bot is currently under development and needs to run with dotnet SDK/Runtime. The following guide is a very short setup description. Complete documentation following soon™.
 
+# Features
+* Price check tool
+* Auth
+* Killmail posting
+* Radius Killmails
+
+
 For downloading and installing dotnet core, follow the guide below and make sure you use the SDK:
 https://www.microsoft.com/net/core
 
