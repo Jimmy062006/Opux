@@ -191,9 +191,9 @@ namespace Opux
                     {
                         var request = context.Request;
                         var response = context.Response;
-                        if (request.Method == HttpMethod.Get.ToString())
+                        if (request.HttpMethod == HttpMethod.Get.ToString())
                         {
-                            if (request.RequestUri.LocalPath == "/")
+                            if (request.Url.LocalPath == "/")
                             {
                                 await response.WriteContentAsync("<!doctype html>" +
                                     "<html>" +
@@ -291,7 +291,7 @@ namespace Opux
                                     "</body>" +
                                     "</html>");
                             }
-                            else if (request.RequestUri.LocalPath == "/callback.php")
+                            else if (request.Url.LocalPath == "/callback.php")
                             {
                                 var assembly = Assembly.GetEntryAssembly();
                                 var temp = assembly.GetManifestResourceNames();
@@ -306,9 +306,9 @@ namespace Opux
                                 var code = "";
                                 var add = false;
 
-                                if (!String.IsNullOrWhiteSpace(request.RequestUri.Query))
+                                if (!String.IsNullOrWhiteSpace(request.Url.Query))
                                 {
-                                    code = request.RequestUri.Query.TrimStart('?').Split('=')[1];
+                                    code = request.Url.Query.TrimStart('?').Split('=')[1];
 
                                     using (HttpClient tokenclient = new HttpClient())
                                     {
