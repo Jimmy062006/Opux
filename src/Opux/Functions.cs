@@ -48,6 +48,14 @@ namespace Opux
         {
             try
             {
+                if (Convert.ToBoolean(Program.Settings.GetSection("config")["authWeb"]))
+                {
+                    if (!authRunning)
+                    {
+                        await AuthWeb();
+                        await Task.Delay(1000);
+                    }
+                }
                 if (Convert.ToBoolean(Program.Settings.GetSection("config")["authCheck"]))
                 {
                     await AuthCheck(null);
@@ -59,25 +67,6 @@ namespace Opux
                 if (Convert.ToBoolean(Program.Settings.GetSection("config")["notificationFeed"]))
                 {
                     await NotificationFeed(null);
-                }
-                if (Convert.ToBoolean(Program.Settings.GetSection("config")["authWeb"]))
-                {
-                    if (!authRunning)
-                    {
-                        await AuthWeb();
-                    }
-                    else if (authRunning)
-                    {
-                        var port = Convert.ToInt32(Program.Settings.GetSection("auth")["port"]);
-                        using (HttpClient client = new HttpClient())
-                        {
-                            var responce = await client.GetAsync($"http://localhost:{port}");
-                            if (!responce.IsSuccessStatusCode)
-                            {
-                                authRunning = false;
-                            }
-                        }
-                    }
                 }
 
                 running = false;
