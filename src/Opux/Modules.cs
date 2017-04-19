@@ -1,5 +1,7 @@
 ﻿using Discord.Commands;
 using System;
+using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Opux
@@ -185,6 +187,27 @@ namespace Opux
                 try
                 {
                     await Functions.AuthUser(Context, x);
+                }
+                catch (Exception ex)
+                {
+                    await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
+                    await Task.FromException(ex);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [Command("evetime"), Summary("EVE TQ Time")]
+        public async Task EveTime()
+        {
+            if (Convert.ToBoolean(Program.Settings.GetSection("config")["time"]))
+            {
+                try
+                {
+                    await Functions.EveTime(Context);
                 }
                 catch (Exception ex)
                 {

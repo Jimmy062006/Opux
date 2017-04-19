@@ -11,6 +11,7 @@
     "authCheck": false,
     "authWeb": false,
     "killFeed": false,
+    "time": true,
     "notificationFeed": false,
     "authInterval": "30", //In Minuets
     "adminRoles": {

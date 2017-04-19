@@ -1741,6 +1741,22 @@ namespace Opux
         }
         #endregion
 
+        //Time
+        #region Time
+        internal async static Task EveTime(ICommandContext context)
+        {
+            try
+            {
+                var utcTime = DateTime.UtcNow;
+                await context.Message.Channel.SendMessageAsync($"{context.Message.Author.Mention} Current EVE Time is {utcTime}");
+            }
+            catch (Exception ex)
+            {
+                await Client_Log(new LogMessage(LogSeverity.Error, "EveTime", ex.Message, ex));
+            }
+        }
+        #endregion
+
         //Discord Stuff
         #region Discord Modules
         internal static async Task InstallCommands()
