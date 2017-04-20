@@ -1757,6 +1757,57 @@ namespace Opux
         }
         #endregion
 
+        //MOTD
+        #region MOTD
+        internal async static Task MOTD(IcommandContext context)
+        {
+            try
+            {
+                var keyID = Program.Settings.GetSection("notifications")["keyID"];
+                var vCode = Program.Settings.GetSection("notifications")["vCode"];
+                var characterID = Program.Settings.GetSection("notifications")["characterID"];
+                var chanName = Program.Settings.GetSection("config")["MOTDChan"];
+
+                var document = new XmlDocument();
+
+                using (HttpClient webRequest = new HttpClient())
+                {
+                    var xml = await webRequest.GetStreamAsync($"https://api.eveonline.com/char/ChatChannels.xml.aspx?keyID={keyID}&vCode={vCode}&characterID={characterID}");
+                    var xmlReader = XmlReader.Create(xml, new XmlReaderSettings { Async = true });
+                    var complete = await xmlReader.ReadAsync();
+                    var result = new JObject();
+                    if (complete)
+                    {
+                        document.Load(xmlReader);
+                        var tmp = JSON.XmlToJSON(document);
+                        result = JObject.Parse(tmp);
+                    }
+
+                    var rowlist = result["eveapi"]["result"]["rowset"]["row"].ToList();
+                    foreach (var r in rowlist)
+                    {
+                        var ChName = r["displayName"];
+                        if (ChName = chanName)
+                        {
+                            var comment = r["motd"];
+                            var comments = comment.Replace("<br>", "<u>", "<b>", "<i>").Replace("\n", "__", "**", "*");
+                            await context.Message.Channel.SendMessageAsync($"{context.Message.Author.Mention}{Environment.NewLine}{comments}");
+                        }
+                        else 
+                        {
+                            await context.Message.Channel.SendMessageAsync($"{context.Message.Author.Mention} Error, no channel named {chanName}");
+                        }
+                    }
+            }
+
+            }
+            catch (Exception ex)
+            {
+                await Client_Log(new LogMessage(LogSeverity.Error, "MOTD", ex.Message, ex));
+            }
+        }
+        #endregion
+
         //Discord Stuff
         #region Discord Modules
         internal static async Task InstallCommands()
