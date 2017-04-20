@@ -1796,7 +1796,7 @@ namespace Opux
                         {
                             var comments = r["motd"];
                             string com = comments.ToString();
-                            com = com.Replace("<br>", "\n").Replace("<BR>", "\n")
+                            com = com.Replace("<br>", "{Environment.NewLine}").Replace("<BR>", "{Environment.NewLine}")
                                 .Replace("<u>", "__").Replace("</u>", "__")
                                 .Replace("<b>", "**").Replace("</b>", "**")
                                 .Replace("<i>", "*").Replace("</i>", "*")
