@@ -1795,9 +1795,15 @@ namespace Opux
                         {
                             var comments = r["motd"];
                             string com = comments.ToString();
-                            com = com.Replace("<br>", "\n").Replace("<u>", "__");
+                            com = com.Replace("<br>", "\n").Replace("<BR>", "\n")
+                                .Replace("<u>", "__").Replace("</u>", "__")
+                                .Replace("<b>", "**").Replace("</b>", "**")
+                                .Replace("<i>", "*").Replace("</i>", "*")
+                                .Replace("&amp", "&");
 
-                            await context.Message.Channel.SendMessageAsync($"{context.Message.Author.Mention}{Environment.NewLine}{com}");
+                            string noHTML = Regex.Replace(com, @"<[^>]+>|&nbsp;", "").Trim();
+                            string comm = Regex.Replace(noHTML, @"\s{2,}", " ");
+                            await context.Message.Channel.SendMessageAsync($"{context.Message.Author.Mention}{Environment.NewLine}{comm}");
                         }
                     }
             }
