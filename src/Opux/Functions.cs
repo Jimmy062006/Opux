@@ -1794,8 +1794,7 @@ namespace Opux
                         if (Channel == ChannelName)
                         {
                             var comments = r["motd"];
-                            StringBuilder comment = new StringBuilder(comments);
-                            comment.Replace("<br>", "\n");
+                            comments.Replace("<br>", "\n");
                             var com = comment.ToString();
                             await context.Message.Channel.SendMessageAsync($"{context.Message.Author.Mention}{Environment.NewLine}{com}");
                         }
