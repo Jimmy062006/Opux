@@ -1789,7 +1789,7 @@ namespace Opux
                     foreach (var r in rowlist)
                     {
                         var ChName = r["displayName"];
-                        if (ChName = chanName)
+                        if (ChName == chanName)
                         {
                             var comments = r["motd"];
                             //var comments = comment.Replace("<br>", "<u>").Replace("\n", "__");
