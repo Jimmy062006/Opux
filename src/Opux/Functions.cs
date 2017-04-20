@@ -1788,7 +1788,7 @@ namespace Opux
                     var rowlist = result["eveapi"]["result"]["rowset"]["row"].ToList();
                     foreach (var r in rowlist)
                     {
-                        var ChNames = r["displayName"];
+                        var ChName = r["displayName"];
                         string Channel = ChName.ToString();
                         if (ChName = chanName)
                         {
