@@ -1794,12 +1794,10 @@ namespace Opux
                         if (Channel == ChannelName)
                         {
                             var comments = r["motd"];
-                            //var comments = comment.Replace("<br>", "<u>").Replace("\n", "__");
-                            await context.Message.Channel.SendMessageAsync($"{context.Message.Author.Mention}{Environment.NewLine}{comments}");
-                        }
-                        else 
-                        {
-                            await context.Message.Channel.SendMessageAsync($"{context.Message.Author.Mention} Error, no channel named {chanName}");
+                            StringBuilder comment = new StringBuilder(comments);
+                            comment.Replace("<br>", "\n");
+                            var com = comment.ToString();
+                            await context.Message.Channel.SendMessageAsync($"{context.Message.Author.Mention}{Environment.NewLine}{com}");
                         }
                     }
             }
