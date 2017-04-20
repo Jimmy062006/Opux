@@ -1806,7 +1806,7 @@ namespace Opux
                                 .Replace("<fontsize=14>", "").Replace("</fontsize>", "")
                                 .Replace("<loc>", "").Replace("</loc>", "")
                                 .Replace("<url=", "").Replace("</url>", "")
-                                .Replace("showinfo:5//30002906>", "").Replace(">", "")
+                                .Replace("showinfo:5//30002906>", "").Replace(">", " ")
                                 .Replace("&lt;", "<").Replace("&gt;", ">");
 
                             //string noHTML = Regex.Replace(com, @"<[^>]+>|&nbsp;", "").Trim();
