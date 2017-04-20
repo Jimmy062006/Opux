@@ -1802,12 +1802,13 @@ namespace Opux
                                 .Replace("<i>", "*").Replace("</i>", "*")
                                 .Replace("&amp", "&").Replace("<color=0xffffffff>", "")
                                 .Replace("<color=0xff007fff>", "").Replace("<color=0xffff00ff>", "")
-                                .Replace("<color=0xffff0000>", "");
+                                .Replace("<color=0xffff0000>", "")
+                                .Replace("&lt;", "<").Replace("&gt;", ">");
 
-                            string noHTML = Regex.Replace(com, @"<[^>]+>|&nbsp;", "").Trim();
-                            string comm = Regex.Replace(noHTML, @"\s{2,}", " ");
-                            comm = comm.Replace("&lt;", "<").Replace("&gt;", ">");
-                            await context.Message.Channel.SendMessageAsync($"{context.Message.Author.Mention}{Environment.NewLine}{comm}");
+                            //string noHTML = Regex.Replace(com, @"<[^>]+>|&nbsp;", "").Trim();
+                            //string comm = Regex.Replace(noHTML, @"\s{2,}", " ");
+                            //comm = comm.Replace("&lt;", "<").Replace("&gt;", ">");
+                            await context.Message.Channel.SendMessageAsync($"{context.Message.Author.Mention}{Environment.NewLine}{com}");
                         }
                     }
             }
