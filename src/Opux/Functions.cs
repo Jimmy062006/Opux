@@ -1788,8 +1788,9 @@ namespace Opux
                     var rowlist = result["eveapi"]["result"]["rowset"]["row"].ToList();
                     foreach (var r in rowlist)
                     {
-                        var ChName = r["displayName"];
-                        if (ChName == chanName)
+                        var ChNames = r["displayName"];
+                        string Channel = ChName.ToString();
+                        if (ChName = chanName)
                         {
                             var comments = r["motd"];
                             //var comments = comment.Replace("<br>", "<u>").Replace("\n", "__");
