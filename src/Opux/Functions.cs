@@ -1803,6 +1803,10 @@ namespace Opux
                                 .Replace("&amp", "&").Replace("<color=0xffffffff>", "")
                                 .Replace("<color=0xff007fff>", "").Replace("<color=0xffff00ff>", "")
                                 .Replace("<color=0xffff0000>", "").Replace("</color>", "")
+                                .Replace("<fontsize=14>", "").Replace("</fontsize>", "")
+                                .Replace("<loc>", "").Replace("</loc>", "")
+                                .Replace("<url=", "").Replace("</url>", "")
+                                .Replace("showinfo:5//30002906>", "").Replace(">", "")
                                 .Replace("&lt;", "<").Replace("&gt;", ">");
 
                             //string noHTML = Regex.Replace(com, @"<[^>]+>|&nbsp;", "").Trim();
