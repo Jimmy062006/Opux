@@ -13,6 +13,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Xml;
+using JSONStuff;
 using System.Threading.Tasks;
 
 namespace Opux
@@ -1790,8 +1791,8 @@ namespace Opux
                         var ChName = r["displayName"];
                         if (ChName = chanName)
                         {
-                            var comment = r["motd"];
-                            var comments = comment.Replace("<br>", "<u>").Replace("\n", "__");
+                            var comments = r["motd"];
+                            //var comments = comment.Replace("<br>", "<u>").Replace("\n", "__");
                             await context.Message.Channel.SendMessageAsync($"{context.Message.Author.Mention}{Environment.NewLine}{comments}");
                         }
                         else 
