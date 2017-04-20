@@ -1800,7 +1800,7 @@ namespace Opux
                                 .Replace("<u>", "__").Replace("</u>", "__")
                                 .Replace("<b>", "**").Replace("</b>", "**")
                                 .Replace("<i>", "*").Replace("</i>", "*")
-                                .Replace("&amp", "&");
+                                .Replace("&amp", "&").Replace("&lt;", "<").Replace("&gt;", ">");
 
                             string noHTML = Regex.Replace(com, @"<[^>]+>|&nbsp;", "").Trim();
                             string comm = Regex.Replace(noHTML, @"\s{2,}", " ");
