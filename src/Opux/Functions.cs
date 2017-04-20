@@ -1765,8 +1765,8 @@ namespace Opux
         {
             try
             {
-                var keyID = Program.Settings.GetSection("notifications")["keyID"];
-                var vCode = Program.Settings.GetSection("notifications")["vCode"];
+                var keyID = Program.Settings.GetSection("notifications").GetSection("keys")["keyID"];
+                var vCode = Program.Settings.GetSection("notifications").GetSection("keys")["vCode"];
                 var characterID = Program.Settings.GetSection("notifications")["characterID"];
                 var chanName = Program.Settings.GetSection("config")["MOTDChan"];
 
