@@ -1790,7 +1790,8 @@ namespace Opux
                     {
                         var ChName = r["displayName"];
                         string Channel = ChName.ToString();
-                        if (Channel = chanName)
+                        string ChannelName = chanName.ToString();
+                        if (Channel = ChannelName)
                         {
                             var comments = r["motd"];
                             //var comments = comment.Replace("<br>", "<u>").Replace("\n", "__");
