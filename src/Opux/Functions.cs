@@ -1759,7 +1759,7 @@ namespace Opux
 
         //MOTD
         #region MOTD
-        internal async static Task MOTD(IcommandContext context)
+        internal async static Task MOTD(ICommandContext context)
         {
             try
             {
