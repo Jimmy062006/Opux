@@ -1803,7 +1803,7 @@ namespace Opux
                                 .Replace("&amp", "&")
                                 .Replace("&lt;", "<").Replace("&gt;", ">");
 
-                            com = HtmlRemoval.StripTagsCharArray(com);
+                            com = StripTagsCharArray(com);
                             await context.Message.Channel.SendMessageAsync($"{context.Message.Author.Mention}{Environment.NewLine}{com}");
                         }
                     }
