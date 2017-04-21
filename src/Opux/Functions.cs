@@ -1800,10 +1800,10 @@ namespace Opux
                                 .Replace("<u>", "__").Replace("</u>", "__")
                                 .Replace("<b>", "**").Replace("</b>", "**")
                                 .Replace("<i>", "*").Replace("</i>", "*")
-                                .Replace("&amp", "&")
-                                .Replace("&lt;", "<").Replace("&gt;", ">");
+                                .Replace("&amp", "&");
 
                             com = StripTagsCharArray(com);
+                            com = com.Replace("&lt;", "<").Replace("&gt;", ">");
                             await context.Message.Channel.SendMessageAsync($"{context.Message.Author.Mention}{Environment.NewLine}{com}");
                         }
                     }
