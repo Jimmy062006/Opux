@@ -216,6 +216,26 @@ namespace Opux
                 }
             }
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [Command("MOTD"), Summary("Shows MOTD")]
+        public async Task MOTD()
+        {
+            if (Convert.ToBoolean(Program.Settings.GetSection("config")["MOTD"]))
+            {
+                try
+                {
+                    await Functions.MOTD(Context);
+                }
+                catch (Exception ex)
+                {
+                    await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
+                    await Task.FromException(ex);
+                }
+            }
+        }
     }
 
 }
