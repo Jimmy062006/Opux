@@ -12,6 +12,7 @@
     "authWeb": false,
     "killFeed": false,
     "time": true,
+	"timeformat": "yyyy/MM/dd/ HH:mm:ss",
     "MOTD": false,
     "MOTDChan": "", //CaSe SenSiTive
     "notificationFeed": false,

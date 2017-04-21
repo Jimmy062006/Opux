@@ -1745,12 +1745,13 @@ namespace Opux
         #endregion
 
         //Time
-        #region Time
+		#region Time
         internal async static Task EveTime(ICommandContext context)
         {
             try
             {
-                var utcTime = DateTime.UtcNow;
+                var format = Program.Settings.GetSection("config")["timeformat"];
+                var utcTime = DateTime.UtcNow.ToString(format);
                 await context.Message.Channel.SendMessageAsync($"{context.Message.Author.Mention} Current EVE Time is {utcTime}");
             }
             catch (Exception ex)
