@@ -16,6 +16,7 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using JSONStuff;
 using System.Threading.Tasks;
+using EveLibCore;
 
 namespace Opux
 {
@@ -1486,8 +1487,8 @@ namespace Opux
                             keyID = key["keyID"];
                             vCode = key["vCode"];
 
-                            await Program.EveLib.SetApiKey(keyID, vCode, characterID);
-                            var notifications = await Program.EveLib.GetNotifications();
+                            await EveLib.SetApiKey(keyID, vCode, characterID);
+                            var notifications = await EveLib.GetNotifications();
                             var notificationsSort = notifications.OrderBy(x => x.Key);
 
                             if (notifications.Count > 0)
@@ -1499,7 +1500,7 @@ namespace Opux
                                     notiIDs.Add((int)l.Key);
                                 }
 
-                                var notificationsText = await Program.EveLib.GetNotificationText(notiIDs);
+                                var notificationsText = await EveLib.GetNotificationText(notiIDs);
 
                                 foreach (var notification in notificationsSort)
                                 {
@@ -1513,7 +1514,7 @@ namespace Opux
                                             var aggressorID = Convert.ToInt64(notificationText["entityID"].AllNodes.ToList()[0].ToString());
                                             var defenderID = Convert.ToInt64(notificationText["defenderID"].AllNodes.ToList()[0].ToString());
 
-                                            var stuff = await Program.EveLib.IDtoName(new List<Int64> { aggressorID, defenderID });
+                                            var stuff = await EveLib.IDtoName(new List<Int64> { aggressorID, defenderID });
                                             var aggressorName = stuff.FirstOrDefault(x => x.Key == aggressorID).Value;
                                             var defenderName = stuff.FirstOrDefault(x => x.Key == defenderID).Value;
                                             await chan.SendMessageAsync($"War declared by **{aggressorName}** against **{defenderName}**. Fighting begins in roughly 24 hours.");
@@ -1523,7 +1524,7 @@ namespace Opux
                                             var allyID = Convert.ToInt64(notificationText["allyID"].AllNodes.ToList()[0].ToString());
                                             var defenderID = Convert.ToInt64(notificationText["defenderID"].AllNodes.ToList()[0].ToString());
 
-                                            var stuff = await Program.EveLib.IDtoName(new List<Int64> { allyID, defenderID });
+                                            var stuff = await EveLib.IDtoName(new List<Int64> { allyID, defenderID });
                                             var allyName = stuff.FirstOrDefault(x => x.Key == allyID).Value;
                                             var defenderName = stuff.FirstOrDefault(x => x.Key == defenderID).Value;
                                             var startTime = DateTime.FromFileTimeUtc(Convert.ToInt64(notificationText["startTime"].AllNodes.ToList()[0].ToString()));
@@ -1536,7 +1537,7 @@ namespace Opux
                                             var declaredByID = Convert.ToInt64(notificationText["declaredByID"].AllNodes.ToList()[0].ToString());
                                             var delayHours = notificationText["delayHours"].AllNodes.ToList()[0].ToString();
                                             var hostileState = notificationText["hostileState"].AllNodes.ToList()[0].ToString();
-                                            var names = await Program.EveLib.IDtoName(new List<Int64> { declaredByID, againstID });
+                                            var names = await EveLib.IDtoName(new List<Int64> { declaredByID, againstID });
                                             var againstName = names.FirstOrDefault(x => x.Key == againstID);
                                             var declaredByName = names.First(x => x.Key == declaredByID);
 
@@ -1547,7 +1548,7 @@ namespace Opux
                                         {
                                             var againstID = Convert.ToInt64(notificationText["againstID"].AllNodes.ToList()[0].ToString());
                                             var declaredByID = Convert.ToInt64(notificationText["declaredByID"].AllNodes.ToList()[0].ToString());
-                                            var names = await Program.EveLib.IDtoName(new List<Int64> { declaredByID, againstID });
+                                            var names = await EveLib.IDtoName(new List<Int64> { declaredByID, againstID });
                                             var againstName = names.FirstOrDefault(x => x.Key == againstID);
                                             var declaredByName = names.First(x => x.Key == declaredByID);
 
@@ -1558,7 +1559,7 @@ namespace Opux
                                             var campaignEventType = notificationText["campaignEventType"].AllNodes.ToList()[0];
                                             var constellationID = notificationText["constellationID"].AllNodes.ToList()[0];
                                             var solarSystemID = Convert.ToInt64(notificationText["solarSystemID"].AllNodes.ToList()[0].ToString());
-                                            var names = await Program.EveLib.IDtoName(new List<Int64> { solarSystemID });
+                                            var names = await EveLib.IDtoName(new List<Int64> { solarSystemID });
                                             var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
 
                                             await chan.SendMessageAsync($"Command nodes decloaking for {solarSystemName.Value}");
@@ -1568,8 +1569,8 @@ namespace Opux
                                         {
                                             var solarSystemID = Convert.ToInt64(notificationText["solarSystemID"].AllNodes.ToList()[0].ToString());
                                             var structureTypeID = Convert.ToInt64(notificationText["structureTypeID"].AllNodes.ToList()[0].ToString());
-                                            var names = await Program.EveLib.IDtoName(new List<Int64> { solarSystemID });
-                                            var typeNames = await Program.EveLib.IDtoTypeName(new List<Int64> { structureTypeID });
+                                            var names = await EveLib.IDtoName(new List<Int64> { solarSystemID });
+                                            var typeNames = await EveLib.IDtoTypeName(new List<Int64> { structureTypeID });
                                             var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
                                             var structureTypeName = typeNames.FirstOrDefault(x => x.Key == structureTypeID);
 
@@ -1580,7 +1581,7 @@ namespace Opux
                                             var campaignEventType = notificationText["campaignEventType"].AllNodes.ToList()[0];
                                             var solarSystemID = Convert.ToInt64((notificationText["solarSystemID"].AllNodes.ToList()[0].ToString()));
                                             var decloakTime = Convert.ToInt64(notificationText["decloakTime"].AllNodes.ToList()[0].ToString());
-                                            var names = await Program.EveLib.IDtoName(new List<Int64> { solarSystemID });
+                                            var names = await EveLib.IDtoName(new List<Int64> { solarSystemID });
                                             var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
                                             var decloaktime = DateTime.FromFileTime(decloakTime);
 
@@ -1767,49 +1768,30 @@ namespace Opux
         {
             try
             {
-                var keyID = Program.Settings.GetSection("notifications").GetSection("chankey")["keyID"];
-                var vCode = Program.Settings.GetSection("notifications").GetSection("chankey")["vCode"];
-                var characterID = Program.Settings.GetSection("notifications")["characterID"];
                 var chanName = Program.Settings.GetSection("config")["MOTDChan"];
 
-                var document = new XmlDocument();
 
-                using (HttpClient webRequest = new HttpClient())
+                var rowlist = await EveLib.GetChatChannels();
+                foreach (var r in rowlist)
                 {
-                    var xml = await webRequest.GetStreamAsync($"https://api.eveonline.com/char/ChatChannels.xml.aspx?keyID={keyID}&vCode={vCode}&characterID={characterID}");
-                    var xmlReader = XmlReader.Create(xml, new XmlReaderSettings { Async = true });
-                    var complete = await xmlReader.ReadAsync();
-                    var result = new JObject();
-                    if (complete)
+                    var ChName = r["displayName"];
+                    string Channel = ChName.ToString();
+                    string ChannelName = chanName.ToString();
+                    if (Channel == ChannelName)
                     {
-                        document.Load(xmlReader);
-                        var tmp = JSON.XmlToJSON(document);
-                        result = JObject.Parse(tmp);
+                        var comments = r["motd"];
+                        string com = comments.ToString();
+                        com = com.Replace("<br>", " \n ")
+                            .Replace("<u>", "__").Replace("</u>", "__")
+                            .Replace("<b>", "**").Replace("</b>", "**")
+                            .Replace("<i>", "*").Replace("</i>", "*")
+                            .Replace("&amp", "&");
+
+                        com = StripTagsCharArray(com);
+                        com = com.Replace("&lt;", "<").Replace("&gt;", ">");
+                        await context.Message.Channel.SendMessageAsync($"{context.Message.Author.Mention}{Environment.NewLine}{com}");
                     }
-
-                    var rowlist = result["eveapi"]["result"]["rowset"]["row"].ToList();
-                    foreach (var r in rowlist)
-                    {
-                        var ChName = r["displayName"];
-                        string Channel = ChName.ToString();
-                        string ChannelName = chanName.ToString();
-                        if (Channel == ChannelName)
-                        {
-                            var comments = r["motd"];
-                            string com = comments.ToString();
-                            com = com.Replace("<br>", " \n ")
-                                .Replace("<u>", "__").Replace("</u>", "__")
-                                .Replace("<b>", "**").Replace("</b>", "**")
-                                .Replace("<i>", "*").Replace("</i>", "*")
-                                .Replace("&amp", "&");
-
-                            com = StripTagsCharArray(com);
-                            com = com.Replace("&lt;", "<").Replace("&gt;", ">");
-                            await context.Message.Channel.SendMessageAsync($"{context.Message.Author.Mention}{Environment.NewLine}{com}");
-                        }
-                    }
-            }
-
+                }
             }
             catch (Exception ex)
             {
@@ -1983,59 +1965,60 @@ namespace Opux
         }
         #endregion
 
-        	#region StripHTML
-    /// <summary>
-    /// Remove HTML from string with Regex.
-    /// </summary>
-    public static string StripTagsRegex(string source)
-    {
-        return Regex.Replace(source, "<.*?>", string.Empty);
-    }
-
-    /// <summary>
-    /// Compiled regular expression for performance.
-    /// </summary>
-    static Regex _htmlRegex = new Regex("<.*?>", RegexOptions.Compiled);
-
-    /// <summary>
-    /// Remove HTML from string with compiled Regex.
-    /// </summary>
-    public static string StripTagsRegexCompiled(string source)
-    {
-        return _htmlRegex.Replace(source, string.Empty);
-    }
-
-    /// <summary>
-    /// Remove HTML tags from string using char array.
-    /// </summary>
-    public static string StripTagsCharArray(string source)
-    {
-        char[] array = new char[source.Length];
-        int arrayIndex = 0;
-        bool inside = false;
-
-        for (int i = 0; i < source.Length; i++)
+        //StripHTML Tags From string
+        #region StripHTML
+        /// <summary>
+        /// Remove HTML from string with Regex.
+        /// </summary>
+        public static string StripTagsRegex(string source)
         {
-            char let = source[i];
-            if (let == '<')
-            {
-                inside = true;
-                continue;
-            }
-            if (let == '>')
-            {
-                inside = false;
-                continue;
-            }
-            if (!inside)
-            {
-                array[arrayIndex] = let;
-                arrayIndex++;
-            }
+            return Regex.Replace(source, "<.*?>", string.Empty);
         }
-        return new string(array, 0, arrayIndex);
-    }
-	#endregion
+
+        /// <summary>
+        /// Compiled regular expression for performance.
+        /// </summary>
+        static Regex _htmlRegex = new Regex("<.*?>", RegexOptions.Compiled);
+
+        /// <summary>
+        /// Remove HTML from string with compiled Regex.
+        /// </summary>
+        public static string StripTagsRegexCompiled(string source)
+        {
+            return _htmlRegex.Replace(source, string.Empty);
+        }
+
+        /// <summary>
+        /// Remove HTML tags from string using char array.
+        /// </summary>
+        public static string StripTagsCharArray(string source)
+        {
+            char[] array = new char[source.Length];
+            int arrayIndex = 0;
+            bool inside = false;
+
+            for (int i = 0; i < source.Length; i++)
+            {
+                char let = source[i];
+                if (let == '<')
+                {
+                    inside = true;
+                    continue;
+                }
+                if (let == '>')
+                {
+                    inside = false;
+                    continue;
+                }
+                if (!inside)
+                {
+                    array[arrayIndex] = let;
+                    arrayIndex++;
+                }
+            }
+            return new string(array, 0, arrayIndex);
+        }
+        #endregion
 
     }
 

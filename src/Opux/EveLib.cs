@@ -14,7 +14,7 @@ namespace EveLibCore
 {
     public class EveLib
     {
-        
+
         public EveLib()
         {
 
@@ -24,7 +24,7 @@ namespace EveLibCore
         public static string KeyID { get; private set; }
         public static string CharacterID { get; private set; }
 
-        public async Task<bool> SetApiKey(string keyid, string vcode, string characterid)
+        public async static Task<bool> SetApiKey(string keyid, string vcode, string characterid)
         {
             KeyID = keyid;
             VCode = vcode;
@@ -33,7 +33,7 @@ namespace EveLibCore
             return true;
         }
 
-        public async Task<Dictionary<int, JToken>> GetNotifications()
+        public async static Task<Dictionary<int, JToken>> GetNotifications()
         {
             using (HttpClient webRequest = new HttpClient())
             {
@@ -56,7 +56,7 @@ namespace EveLibCore
                 {
 
                 }
-                else if(rowList.Count > 0)
+                else if (rowList.Count > 0)
                 {
                     foreach (var r in rowList["row"])
                     {
@@ -72,7 +72,7 @@ namespace EveLibCore
             }
         }
 
-        public async Task<Dictionary<int, YamlNode>> GetNotificationText(List<int> notificationID)
+        public async static Task<Dictionary<int, YamlNode>> GetNotificationText(List<int> notificationID)
         {
             var document = new XmlDocument();
             var dictionary = new Dictionary<int, YamlNode>();
@@ -139,7 +139,7 @@ namespace EveLibCore
             }
         }
 
-        public async Task<Dictionary<Int64, string>> IDtoName(List<Int64> ids)
+        public async static Task<Dictionary<Int64, string>> IDtoName(List<Int64> ids)
         {
             using (HttpClient webRequest = new HttpClient())
             {
@@ -174,7 +174,7 @@ namespace EveLibCore
             }
         }
 
-        public async Task<Dictionary<Int64, string>> IDtoTypeName(List<Int64> ids)
+        public async static Task<Dictionary<Int64, string>> IDtoTypeName(List<Int64> ids)
         {
             using (HttpClient webRequest = new HttpClient())
             {
@@ -205,6 +205,31 @@ namespace EveLibCore
                 }
 
                 return dictonary;
+            }
+        }
+
+        public async static Task<List<JToken>> GetChatChannels()
+        {
+            var chanName = Program.Settings.GetSection("config")["MOTDChan"];
+
+            var document = new XmlDocument();
+
+            using (HttpClient webRequest = new HttpClient())
+            {
+                var xml = await webRequest.GetStreamAsync($"https://api.eveonline.com/char/ChatChannels.xml.aspx?keyID={KeyID}&vCode={VCode}&characterID={CharacterID}");
+                var xmlReader = XmlReader.Create(xml, new XmlReaderSettings { Async = true });
+                var complete = await xmlReader.ReadAsync();
+                var result = new JObject();
+                if (complete)
+                {
+                    document.Load(xmlReader);
+                    var tmp = JSON.XmlToJSON(document);
+                    result = JObject.Parse(tmp);
+                }
+
+                var rowlist = result["eveapi"]["result"]["rowset"]["row"].ToList();
+
+                return rowlist;
             }
         }
     }

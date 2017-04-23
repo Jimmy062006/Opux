@@ -12,7 +12,7 @@
     "authWeb": false,
     "killFeed": false,
     "time": true,
-	"timeformat": "yyyy/MM/dd/ HH:mm:ss",
+    "timeformat": "yyyy/MM/dd/ HH:mm:ss",
     "MOTD": false,
     "MOTDChan": "", //CaSe SenSiTive
     "notificationFeed": false,
@@ -68,11 +68,6 @@
   "notifications": {
     "characterID": "",
     "channelID": 0,
-    "allianceOnly": true,
-    "chankey": { // Seperate because in many cases the char with Mod access is not the same as the char with notification access.
-      "keyID": "", // This API must have MODERATOR access to the channel and be a char key with "channels" mask.
-      "vCode": ""
-    },
     "keys": {
       "key1": { //make sure the name is unique
         "keyID": "",
