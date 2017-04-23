@@ -1768,12 +1768,13 @@ namespace Opux
         {
             try
             {
-                var keyID = Program.Settings.GetSection("notifications")["motdkeyID"];
-                var vCode = Program.Settings.GetSection("notifications")["motdvCode"];
-                await EveLib.SetMOTDKey(keyID, vCode);
-                var chanName = Program.Settings.GetSection("config")["MOTDChan"];
+                var keyID = Program.Settings.GetSection("motd")["motdkeyID"];
+                var vCode = Program.Settings.GetSection("motd")["motdvCode"];
+                var CharID = Program.Settings.GetSection("motd")["motdcharid"];
+                await EveLib.SetMOTDKey(keyID, vCode, CharID);
 
-
+                var chanName = Program.Settings.GetSection("motd")["MOTDChan"];
+                
                 var rowlist = await EveLib.GetChatChannels();
                 foreach (var r in rowlist)
                 {

@@ -14,7 +14,6 @@
     "time": true,
     "timeformat": "yyyy/MM/dd/ HH:mm:ss",
     "MOTD": false,
-    "MOTDChan": "", //CaSe SenSiTive
     "notificationFeed": false,
     "authInterval": "30", //In Minuets
     "adminRoles": {
@@ -68,8 +67,6 @@
   "notifications": {
     "characterID": "",
     "channelID": 0,
-    "motdkeyID": "",
-    "motdvCode": "",
     "keys": {
       "key1": { //make sure the name is unique
         "keyID": "",
@@ -80,6 +77,12 @@
       //  "vCode": ""
       //}
     }
+  },
+  "motd": {
+    "motdkeyID": "",
+    "motdvCode": "",
+    "motdcharid": "",
+    "MOTDChan": "" //CaSe SenSiTive
   },
   "fleetup": {
     "channel": 0

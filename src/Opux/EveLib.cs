@@ -26,6 +26,7 @@ namespace EveLibCore
 
         public static string MotdVCode { get; private set; }
         public static string MotdKeyID { get; private set; }
+        public static string MotdCharID { get; private set; }
 
         public async static Task<bool> SetApiKey(string keyid, string vcode, string characterid)
         {
@@ -36,10 +37,11 @@ namespace EveLibCore
             return true;
         }
 
-        public async static Task<bool> SetMOTDKey(string keyid, string vcode)
+        public async static Task<bool> SetMOTDKey(string keyid, string vcode, string characterid)
         {
             MotdVCode = vcode;
             MotdKeyID = keyid;
+            MotdCharID = characterid;
             await Task.CompletedTask;
             return true;
         }
@@ -227,7 +229,8 @@ namespace EveLibCore
 
             using (HttpClient webRequest = new HttpClient())
             {
-                var xml = await webRequest.GetStreamAsync($"https://api.eveonline.com/char/ChatChannels.xml.aspx?keyID={MotdKeyID}&vCode={MotdVCode}");
+                var xml = await webRequest.GetStreamAsync($"https://api.eveonline.com/char/ChatChannels.xml.aspx?keyID={MotdKeyID}&vCode={MotdVCode}" +
+                    $"&characterID={MotdCharID}&characterID={MotdCharID}");
                 var xmlReader = XmlReader.Create(xml, new XmlReaderSettings { Async = true });
                 var complete = await xmlReader.ReadAsync();
                 var result = new JObject();
