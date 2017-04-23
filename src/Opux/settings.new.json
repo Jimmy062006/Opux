@@ -68,6 +68,8 @@
   "notifications": {
     "characterID": "",
     "channelID": 0,
+    "motdkeyID": "",
+    "motdvCode": "",
     "keys": {
       "key1": { //make sure the name is unique
         "keyID": "",
