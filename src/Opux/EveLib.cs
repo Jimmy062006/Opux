@@ -229,8 +229,8 @@ namespace EveLibCore
 
             using (HttpClient webRequest = new HttpClient())
             {
-                var xml = await webRequest.GetStreamAsync($"https://api.eveonline.com/char/ChatChannels.xml.aspx?keyID={MotdKeyID}&vCode={MotdVCode}" +
-                    $"&characterID={MotdCharID}&characterID={MotdCharID}");
+                var xml = await webRequest.GetStreamAsync($"https://api.eveonline.com/char/ChatChannels.xml.aspx?" +
+                    $"keyID={MotdKeyID}&vCode={MotdVCode}&characterID={MotdCharID}");
                 var xmlReader = XmlReader.Create(xml, new XmlReaderSettings { Async = true });
                 var complete = await xmlReader.ReadAsync();
                 var result = new JObject();
