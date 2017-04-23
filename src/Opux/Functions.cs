@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using EveLibCore;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 using MySql.Data.MySqlClient;
@@ -13,10 +14,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Xml;
-using JSONStuff;
 using System.Threading.Tasks;
-using EveLibCore;
 
 namespace Opux
 {
