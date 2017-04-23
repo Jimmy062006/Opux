@@ -1768,6 +1768,9 @@ namespace Opux
         {
             try
             {
+                var keyID = Program.Settings.GetSection("notifications")["motdkeyID"];
+                var vCode = Program.Settings.GetSection("notifications")["motdvCode"];
+                await EveLib.SetMOTDKey(keyID, vCode);
                 var chanName = Program.Settings.GetSection("config")["MOTDChan"];
 
 
