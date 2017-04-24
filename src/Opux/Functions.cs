@@ -13,8 +13,6 @@ using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Xml;
-using JSONStuff;
 using System.Threading.Tasks;
 using EveLibCore;
 
@@ -25,7 +23,9 @@ namespace Opux
         internal static DateTime lastAuthCheck = DateTime.Now;
         internal static DateTime lastFeedCheck = DateTime.Now;
         internal static DateTime nextNotificationCheck = DateTime.FromFileTime(0);
+        internal static DateTime lastTopicCheck = DateTime.Now;
         internal static int lastNotification;
+        internal static string motdtopic;
         internal static bool avaliable = false;
         internal static bool running = false;
         internal static bool authRunning = false;
@@ -71,6 +71,10 @@ namespace Opux
                 if (Convert.ToBoolean(Program.Settings.GetSection("config")["notificationFeed"]))
                 {
                     await NotificationFeed(null);
+                }
+                if (Convert.ToBoolean(Program.Settings.GetSection("config")["updatetopic"]))
+                {
+                    await TopicMOTD(null);
                 }
 
                 running = false;
@@ -1467,13 +1471,13 @@ namespace Opux
                 if (DateTime.Now > nextNotificationCheck)
                 {
                     await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", "Running Notification Check"));
-                    lastNotification = Convert.ToInt32(await SQLiteDataQuery("cacheData","data","lastNotificationID"));
+                    lastNotification = Convert.ToInt32(await SQLiteDataQuery("cacheData", "data", "lastNotificationID"));
                     var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
                     var test = Program.Settings.GetSection("notifications")["characterId"];
                     var channelId = Convert.ToUInt64(Program.Settings.GetSection("notifications")["channelId"]);
                     var chan = (ITextChannel)Program.Client.GetGuild(guildID).GetChannel(channelId);
                     var keyID = "";//= Program.Settings.GetSection("notifications")["keyID"];
-                    var vCode= "";//= Program.Settings.GetSection("notifications")["vCode"];
+                    var vCode = "";//= Program.Settings.GetSection("notifications")["vCode"];
                     var characterID = Program.Settings.GetSection("notifications")["characterID"];
                     var keys = Program.Settings.GetSection("notifications").GetSection("keys").GetChildren();
                     var keyCount = keys.Count();
@@ -1746,7 +1750,7 @@ namespace Opux
         #endregion
 
         //Time
-		#region Time
+        #region Time
         internal async static Task EveTime(ICommandContext context)
         {
             try
@@ -1774,7 +1778,7 @@ namespace Opux
                 await EveLib.SetMOTDKey(keyID, vCode, CharID);
 
                 var chanName = Program.Settings.GetSection("motd")["MOTDChan"];
-                
+
                 var rowlist = await EveLib.GetChatChannels();
                 foreach (var r in rowlist)
                 {
@@ -1793,13 +1797,85 @@ namespace Opux
 
                         com = StripTagsCharArray(com);
                         com = com.Replace("&lt;", "<").Replace("&gt;", ">");
-                        await context.Message.Channel.SendMessageAsync($"{context.Message.Author.Mention}{Environment.NewLine}{com}");
+
+                        var restricted = Convert.ToInt64(Program.Settings.GetSection("config")["restricted"]);
+                        var channel = Convert.ToInt64(context.Channel.Id);
+                        if (channel == restricted)
+                        {
+                            await context.Message.Channel.SendMessageAsync($" {context.Message.Author.Mention} I cant do that *here.*");
+                        }
+                        else
+                        {
+                            await context.Message.Channel.SendMessageAsync($"{context.Message.Author.Mention}{Environment.NewLine}{com}");
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
                 await Client_Log(new LogMessage(LogSeverity.Error, "MOTD", ex.Message, ex));
+            }
+        }
+        #endregion
+
+        //Update Topic
+        #region Update Topic
+        internal async static Task TopicMOTD(ICommandContext context)
+        {
+            try
+            {
+                if (DateTime.Now > lastTopicCheck.AddMilliseconds(1 * 1000 * 60))
+                {
+                    await Client_Log(new LogMessage(LogSeverity.Info, "CheckTopic", "Running Topic Check"));
+                    motdtopic = Convert.ToString(await SQLiteDataQuery("cacheData", "data", "motd"));
+                    {
+                        var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
+                        var channelId = Convert.ToUInt64(Program.Settings.GetSection("motd")["motdtopicchan"]);
+                        var chan1 = (ITextChannel)Program.Client.GetGuild(guildID).GetChannel(channelId);
+                        var keyID = Program.Settings.GetSection("motd")["motdkeyID"];
+                        var vCode = Program.Settings.GetSection("motd")["motdvCode"];
+                        var CharID = Program.Settings.GetSection("motd")["motdcharid"];
+                        await EveLib.SetMOTDKey(keyID, vCode, CharID);
+
+                        var chanName = Program.Settings.GetSection("motd")["MOTDChan"];
+
+                        var rowlist = await EveLib.GetChatChannels();
+                        foreach (var r in rowlist)
+                        {
+                            var ChName = r["displayName"];
+                            string Channel = ChName.ToString();
+                            string ChannelName = chanName.ToString();
+                            if (Channel == ChannelName)
+                            {
+                                var comments = r["motd"];
+                                string com = comments.ToString();
+                                com = com.Replace("<br>", " \n ")
+                                    .Replace("<u>", "__").Replace("</u>", "__")
+                                    .Replace("<b>", "**").Replace("</b>", "**")
+                                    .Replace("<i>", "*").Replace("</i>", "*")
+                                    .Replace("&amp", "&");
+
+                                com = StripTagsCharArray(com);
+                                com = com.Replace("&lt;", "<").Replace("&gt;", ">");
+
+                                if (com != motdtopic)
+                                {
+                                    var chanid = Convert.ToUInt64(Program.Settings.GetSection("motd")["motdtopicchan"]);
+                                    var chan = (ITextChannel)Program.Client.Guilds.FirstOrDefault().Channels.FirstOrDefault(x => x.Id == chanid); ;
+
+                                    await SQLiteDataUpdate("cacheData", "data", "motd", com.ToString());
+                                    await chan.ModifyAsync(x => x.Topic = com);
+                                    await chan1.SendMessageAsync($"@ everyone Channel topic has been updated.");
+                                }
+                            }
+                        }
+                    }
+                    lastTopicCheck = DateTime.Now;
+                }
+            }
+            catch (Exception ex)
+            {
+                await Client_Log(new LogMessage(LogSeverity.Error, "MOTDTopic", ex.Message, ex));
             }
         }
         #endregion
@@ -1864,7 +1940,7 @@ namespace Opux
                 }
                 catch (MySqlException ex)
                 {
-                    await Client_Log(new LogMessage(LogSeverity.Error, "mySQL", query  + " " + ex.Message, ex));
+                    await Client_Log(new LogMessage(LogSeverity.Error, "mySQL", query + " " + ex.Message, ex));
                 }
                 await Task.Yield();
                 return list;
