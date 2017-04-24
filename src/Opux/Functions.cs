@@ -1824,7 +1824,7 @@ namespace Opux
         {
             try
             {
-                if (DateTime.Now > lastTopicCheck.AddMilliseconds(1 * 1000 * 60))
+                if (DateTime.Now > lastTopicCheck.AddMilliseconds(60 * 1000 * 60))
                 {
                     await Client_Log(new LogMessage(LogSeverity.Info, "CheckTopic", "Running Topic Check"));
                     motdtopic = Convert.ToString(await SQLiteDataQuery("cacheData", "data", "motd"));
