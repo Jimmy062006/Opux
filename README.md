@@ -7,9 +7,10 @@ This bot is currently under development and needs to run with dotnet SDK/Runtime
 * Price check tool
 * Auth
 * Admin Reauth
-* Killmail posting
 * Radius Killmails
-
+* Fleetup Operations Post
+* MOTD Pulling to channel
+* EVE Time Mod
 
 For downloading and installing dotnet core, follow the guide below and make sure you use the SDK:
 https://www.microsoft.com/net/core
