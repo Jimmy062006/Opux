@@ -12,7 +12,7 @@
     "authCheck": false,
     "authWeb": false,
     "killFeed": false,
-    "time": flase,
+    "time": false,
     "fleetup":  false,
     "timeformat": "yyyy/MM/dd/ HH:mm:ss",
     "MOTD": false,
