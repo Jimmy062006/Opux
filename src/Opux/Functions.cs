@@ -1899,7 +1899,7 @@ namespace Opux
                     var APICode = Program.Settings.GetSection("fleetup")["APICode"];
                     var GroupID = Program.Settings.GetSection("fleetup")["GroupID"];
                     var channelid = Convert.ToUInt64(Program.Settings.GetSection("fleetup")["channel"]);
-                    var guildid = Convert.ToUInt64(Program.Settings.GetSection("config")["guildid"]);
+                    var guildId = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
                     var lastopid = await SQLiteDataQuery("cacheData", "data", "fleetUpLastPostedOperation");
 
                     var Json = await webRequest.GetStringAsync($"http://api.fleet-up.com/Api.svc/Ohigwbylcsuz56ue3O6Awlw5e/{UserId}/{APICode}/Operations/{GroupID}");
@@ -1914,7 +1914,7 @@ namespace Opux
                             var destination = operation["Location"];
                             var details = operation["Details"];
 
-                            var channel = (ITextChannel)Program.Client.GetGuild(guildid).GetChannel(channelid);
+                            var channel = (ITextChannel)Program.Client.GetGuild(guildId).GetChannel(channelid);
 
                             var message = $"**New Operation Posted** {Environment.NewLine}{Environment.NewLine}" +
                                 $"```Title - {name} {Environment.NewLine}" +

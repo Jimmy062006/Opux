@@ -3,11 +3,10 @@
     "name": "Opux",
     "game": "Status",
     "token": "",
-    "guildid": 0,
     "connstring": "datasource=localhost;port=3306;username=discord;password=password;database=discord;",
     "commandprefix": "!", //Single Character only
-    "logchan": "0",
-    "guildId": "0",
+    "logchan": 0,
+    "guildId": 0,
     "loglevel": "Info", //Critical/Warning/Info/Verbose/Debug DEFAULT = Info
     "authCheck": false,
     "authWeb": false,
