@@ -1,6 +1,8 @@
 ﻿using Discord;
+using Discord.Addons.EmojiTools;
 using Discord.Commands;
 using Discord.WebSocket;
+using EveLibCore;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 using MySql.Data.MySqlClient;
@@ -14,7 +16,6 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using EveLibCore;
 
 namespace Opux
 {
@@ -23,9 +24,7 @@ namespace Opux
         internal static DateTime lastAuthCheck = DateTime.Now;
         internal static DateTime lastFeedCheck = DateTime.Now;
         internal static DateTime nextNotificationCheck = DateTime.FromFileTime(0);
-        internal static DateTime lastTopicCheck = DateTime.Now;
         internal static int lastNotification;
-        internal static string motdtopic;
         internal static bool avaliable = false;
         internal static bool running = false;
         internal static bool authRunning = false;
@@ -57,7 +56,6 @@ namespace Opux
                     if (!authRunning)
                     {
                         await AuthWeb();
-                        await Task.Delay(1000);
                     }
                 }
                 if (Convert.ToBoolean(Program.Settings.GetSection("config")["authCheck"]))
@@ -72,9 +70,9 @@ namespace Opux
                 {
                     await NotificationFeed(null);
                 }
-                if (Convert.ToBoolean(Program.Settings.GetSection("config")["updatetopic"]))
+                if (Convert.ToBoolean(Program.Settings.GetSection("config")["fleetup"]))
                 {
-                    await TopicMOTD(null);
+                    await FleetUp();
                 }
 
                 running = false;
@@ -121,27 +119,27 @@ namespace Opux
 
         //Events are attached here
         #region EVENTS
-        internal static Task Event_GuildAvaliable(SocketGuild arg)
+        internal async static Task Event_GuildAvaliable(SocketGuild arg)
         {
             avaliable = true;
-            arg.CurrentUser.ModifyAsync(x => x.Nickname = Program.Settings.GetSection("config")["name"]);
-            return Task.CompletedTask;
+            await arg.CurrentUser.ModifyAsync(x => x.Nickname = Program.Settings.GetSection("config")["name"]);
+            await Task.CompletedTask;
         }
 
-        internal static Task Event_UserJoined(SocketGuildUser arg)
+        internal async static Task Event_UserJoined(SocketGuildUser arg)
         {
             var channel = (ITextChannel)arg.Guild.DefaultChannel;
             var authurl = Program.Settings.GetSection("auth")["authurl"];
             if (!String.IsNullOrWhiteSpace(authurl))
             {
-                channel.SendMessageAsync($"Welcome {arg.Mention} to the server, To gain access please auth at {authurl} ");
+                await channel.SendMessageAsync($"Welcome {arg.Mention} to the server, To gain access please auth at {authurl} ");
             }
             else
             {
-                channel.SendMessageAsync($"Welcome {arg.Mention} to the server");
+                await channel.SendMessageAsync($"Welcome {arg.Mention} to the server");
             }
 
-            return Task.CompletedTask;
+            await Task.CompletedTask;
         }
 
         internal static Task Event_Disconnected(Exception arg)
@@ -157,7 +155,6 @@ namespace Opux
 
         internal static Task Event_LoggedIn()
         {
-            avaliable = true;
             return Task.CompletedTask;
         }
 
@@ -1471,13 +1468,13 @@ namespace Opux
                 if (DateTime.Now > nextNotificationCheck)
                 {
                     await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", "Running Notification Check"));
-                    lastNotification = Convert.ToInt32(await SQLiteDataQuery("cacheData", "data", "lastNotificationID"));
+                    lastNotification = Convert.ToInt32(await SQLiteDataQuery("cacheData","data","lastNotificationID"));
                     var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
                     var test = Program.Settings.GetSection("notifications")["characterId"];
                     var channelId = Convert.ToUInt64(Program.Settings.GetSection("notifications")["channelId"]);
                     var chan = (ITextChannel)Program.Client.GetGuild(guildID).GetChannel(channelId);
-                    var keyID = "";//= Program.Settings.GetSection("notifications")["keyID"];
-                    var vCode = "";//= Program.Settings.GetSection("notifications")["vCode"];
+                    var keyID = "";
+                    var vCode= "";
                     var characterID = Program.Settings.GetSection("notifications")["characterID"];
                     var keys = Program.Settings.GetSection("notifications").GetSection("keys").GetChildren();
                     var keyCount = keys.Count();
@@ -1750,7 +1747,7 @@ namespace Opux
         #endregion
 
         //Time
-        #region Time
+		#region Time
         internal async static Task EveTime(ICommandContext context)
         {
             try
@@ -1778,7 +1775,7 @@ namespace Opux
                 await EveLib.SetMOTDKey(keyID, vCode, CharID);
 
                 var chanName = Program.Settings.GetSection("motd")["MOTDChan"];
-
+                
                 var rowlist = await EveLib.GetChatChannels();
                 foreach (var r in rowlist)
                 {
@@ -1797,17 +1794,7 @@ namespace Opux
 
                         com = StripTagsCharArray(com);
                         com = com.Replace("&lt;", "<").Replace("&gt;", ">");
-
-                        var restricted = Convert.ToInt64(Program.Settings.GetSection("config")["restricted"]);
-                        var channel = Convert.ToInt64(context.Channel.Id);
-                        if (channel == restricted)
-                        {
-                            await context.Message.Channel.SendMessageAsync($" {context.Message.Author.Mention} I cant do that *here.*");
-                        }
-                        else
-                        {
-                            await context.Message.Channel.SendMessageAsync($"{context.Message.Author.Mention}{Environment.NewLine}{com}");
-                        }
+                        await context.Message.Channel.SendMessageAsync($"{context.Message.Author.Mention}{Environment.NewLine}{com}");
                     }
                 }
             }
@@ -1818,65 +1805,59 @@ namespace Opux
         }
         #endregion
 
-        //Update Topic
-        #region Update Topic
-        internal async static Task TopicMOTD(ICommandContext context)
+        //FleetUp Baby
+        #region FleetUp
+        internal static async Task FleetUp()
         {
-            try
+            //Check Fleetup Operations
+            var lastChecked = await SQLiteDataQuery("cacheData", "data", "fleetUpLastChecked");
+
+            if (DateTime.Now > DateTime.Parse(lastChecked).AddMinutes(1))
             {
-                if (DateTime.Now > lastTopicCheck.AddMilliseconds(60 * 1000 * 60))
+                using (HttpClient webRequest = new HttpClient())
                 {
-                    await Client_Log(new LogMessage(LogSeverity.Info, "CheckTopic", "Running Topic Check"));
-                    motdtopic = Convert.ToString(await SQLiteDataQuery("cacheData", "data", "motd"));
+                    var UserId = Program.Settings.GetSection("fleetup")["UserId"];
+                    var APICode = Program.Settings.GetSection("fleetup")["APICode"];
+                    var GroupID = Program.Settings.GetSection("fleetup")["GroupID"];
+                    var channelid = Convert.ToUInt64(Program.Settings.GetSection("fleetup")["channel"]);
+                    var guildid = Convert.ToUInt64(Program.Settings.GetSection("config")["guildid"]);
+                    var lastopid = await SQLiteDataQuery("cacheData", "data", "fleetUpLastPostedOperation");
+
+                    var Json = await webRequest.GetStringAsync($"http://api.fleet-up.com/Api.svc/Ohigwbylcsuz56ue3O6Awlw5e/{UserId}/{APICode}/Operations/{GroupID}");
+                    var result = JObject.Parse(Json);
+                    foreach (var operation in result["Data"])
                     {
-                        var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
-                        var channelId = Convert.ToUInt64(Program.Settings.GetSection("motd")["motdtopicchan"]);
-                        var chan1 = (ITextChannel)Program.Client.GetGuild(guildID).GetChannel(channelId);
-                        var keyID = Program.Settings.GetSection("motd")["motdkeyID"];
-                        var vCode = Program.Settings.GetSection("motd")["motdvCode"];
-                        var CharID = Program.Settings.GetSection("motd")["motdcharid"];
-                        await EveLib.SetMOTDKey(keyID, vCode, CharID);
-
-                        var chanName = Program.Settings.GetSection("motd")["MOTDChan"];
-
-                        var rowlist = await EveLib.GetChatChannels();
-                        foreach (var r in rowlist)
+                        if ((int)operation["OperationId"] > Convert.ToInt32(lastopid))
                         {
-                            var ChName = r["displayName"];
-                            string Channel = ChName.ToString();
-                            string ChannelName = chanName.ToString();
-                            if (Channel == ChannelName)
-                            {
-                                var comments = r["motd"];
-                                string com = comments.ToString();
-                                com = com.Replace("<br>", " \n ")
-                                    .Replace("<u>", "__").Replace("</u>", "__")
-                                    .Replace("<b>", "**").Replace("</b>", "**")
-                                    .Replace("<i>", "*").Replace("</i>", "*")
-                                    .Replace("&amp", "&");
+                            var name = operation["Subject"];
+                            var startTime = operation["StartString"];
+                            var formUp = operation["LocationInfo"];
+                            var destination = operation["Location"];
+                            var details = operation["Details"];
 
-                                com = StripTagsCharArray(com);
-                                com = com.Replace("&lt;", "<").Replace("&gt;", ">");
+                            var channel = (ITextChannel)Program.Client.GetGuild(guildid).GetChannel(channelid);
 
-                                if (com != motdtopic)
-                                {
-                                    var chanid = Convert.ToUInt64(Program.Settings.GetSection("motd")["motdtopicchan"]);
-                                    var chan = (ITextChannel)Program.Client.Guilds.FirstOrDefault().Channels.FirstOrDefault(x => x.Id == chanid); ;
+                            var message = $"**New Operation Posted** {Environment.NewLine}{Environment.NewLine}" +
+                                $"```Title - {name} {Environment.NewLine}" +
+                                $"Form Up Time - {startTime} {Environment.NewLine}" +
+                                $"Form Up System - {formUp} {Environment.NewLine}" +
+                                $"Target System - {destination} {Environment.NewLine}" +
+                                $"Details - {details}```";
 
-                                    await SQLiteDataUpdate("cacheData", "data", "motd", com.ToString());
-                                    await chan.ModifyAsync(x => x.Topic = com);
-                                    await chan1.SendMessageAsync($"@everyone Channel topic has been updated..");
-                                }
-                            }
+                            var sendres = await channel.SendMessageAsync(message);
+
+                            await sendres.AddReactionAsync(UnicodeEmoji.FromText(":white_check_mark:"));
+                            await sendres.AddReactionAsync(UnicodeEmoji.FromText(":grey_question:"));
+                            await sendres.AddReactionAsync(UnicodeEmoji.FromText(":x:"));
+
+                            await SQLiteDataUpdate("cacheData", "data", "fleetUpLastPostedOperation", operation["OperationId"].ToString());
                         }
                     }
-                    lastTopicCheck = DateTime.Now;
+                    await SQLiteDataUpdate("cacheData", "data", "fleetUpLastChecked", DateTime.Now.ToString());
                 }
             }
-            catch (Exception ex)
-            {
-                await Client_Log(new LogMessage(LogSeverity.Error, "MOTDTopic", ex.Message, ex));
-            }
+
+            await Task.CompletedTask;
         }
         #endregion
 
@@ -1940,7 +1921,7 @@ namespace Opux
                 }
                 catch (MySqlException ex)
                 {
-                    await Client_Log(new LogMessage(LogSeverity.Error, "mySQL", query + " " + ex.Message, ex));
+                    await Client_Log(new LogMessage(LogSeverity.Error, "mySQL", query  + " " + ex.Message, ex));
                 }
                 await Task.Yield();
                 return list;
