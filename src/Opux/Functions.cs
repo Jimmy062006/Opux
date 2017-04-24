@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Discord.Addons.EmojiTools;
 using Discord.Commands;
 using Discord.WebSocket;
 using EveLibCore;
@@ -55,7 +56,6 @@ namespace Opux
                     if (!authRunning)
                     {
                         await AuthWeb();
-                        await Task.Delay(1000);
                     }
                 }
                 if (Convert.ToBoolean(Program.Settings.GetSection("config")["authCheck"]))
@@ -69,6 +69,10 @@ namespace Opux
                 if (Convert.ToBoolean(Program.Settings.GetSection("config")["notificationFeed"]))
                 {
                     await NotificationFeed(null);
+                }
+                if (Convert.ToBoolean(Program.Settings.GetSection("config")["fleetup"]))
+                {
+                    await FleetUp();
                 }
 
                 running = false;
@@ -115,27 +119,27 @@ namespace Opux
 
         //Events are attached here
         #region EVENTS
-        internal static Task Event_GuildAvaliable(SocketGuild arg)
+        internal async static Task Event_GuildAvaliable(SocketGuild arg)
         {
             avaliable = true;
-            arg.CurrentUser.ModifyAsync(x => x.Nickname = Program.Settings.GetSection("config")["name"]);
-            return Task.CompletedTask;
+            await arg.CurrentUser.ModifyAsync(x => x.Nickname = Program.Settings.GetSection("config")["name"]);
+            await Task.CompletedTask;
         }
 
-        internal static Task Event_UserJoined(SocketGuildUser arg)
+        internal async static Task Event_UserJoined(SocketGuildUser arg)
         {
             var channel = (ITextChannel)arg.Guild.DefaultChannel;
             var authurl = Program.Settings.GetSection("auth")["authurl"];
             if (!String.IsNullOrWhiteSpace(authurl))
             {
-                channel.SendMessageAsync($"Welcome {arg.Mention} to the server, To gain access please auth at {authurl} ");
+                await channel.SendMessageAsync($"Welcome {arg.Mention} to the server, To gain access please auth at {authurl} ");
             }
             else
             {
-                channel.SendMessageAsync($"Welcome {arg.Mention} to the server");
+                await channel.SendMessageAsync($"Welcome {arg.Mention} to the server");
             }
 
-            return Task.CompletedTask;
+            await Task.CompletedTask;
         }
 
         internal static Task Event_Disconnected(Exception arg)
@@ -151,7 +155,6 @@ namespace Opux
 
         internal static Task Event_LoggedIn()
         {
-            avaliable = true;
             return Task.CompletedTask;
         }
 
@@ -1470,8 +1473,8 @@ namespace Opux
                     var test = Program.Settings.GetSection("notifications")["characterId"];
                     var channelId = Convert.ToUInt64(Program.Settings.GetSection("notifications")["channelId"]);
                     var chan = (ITextChannel)Program.Client.GetGuild(guildID).GetChannel(channelId);
-                    var keyID = "";//= Program.Settings.GetSection("notifications")["keyID"];
-                    var vCode= "";//= Program.Settings.GetSection("notifications")["vCode"];
+                    var keyID = "";
+                    var vCode= "";
                     var characterID = Program.Settings.GetSection("notifications")["characterID"];
                     var keys = Program.Settings.GetSection("notifications").GetSection("keys").GetChildren();
                     var keyCount = keys.Count();
@@ -1799,6 +1802,62 @@ namespace Opux
             {
                 await Client_Log(new LogMessage(LogSeverity.Error, "MOTD", ex.Message, ex));
             }
+        }
+        #endregion
+
+        //FleetUp Baby
+        #region FleetUp
+        internal static async Task FleetUp()
+        {
+            //Check Fleetup Operations
+            var lastChecked = await SQLiteDataQuery("cacheData", "data", "fleetUpLastChecked");
+
+            if (DateTime.Now > DateTime.Parse(lastChecked).AddMinutes(1))
+            {
+                using (HttpClient webRequest = new HttpClient())
+                {
+                    var UserId = Program.Settings.GetSection("fleetup")["UserId"];
+                    var APICode = Program.Settings.GetSection("fleetup")["APICode"];
+                    var GroupID = Program.Settings.GetSection("fleetup")["GroupID"];
+                    var channelid = Convert.ToUInt64(Program.Settings.GetSection("fleetup")["channel"]);
+                    var guildid = Convert.ToUInt64(Program.Settings.GetSection("config")["guildid"]);
+                    var lastopid = await SQLiteDataQuery("cacheData", "data", "fleetUpLastPostedOperation");
+
+                    var Json = await webRequest.GetStringAsync($"http://api.fleet-up.com/Api.svc/Ohigwbylcsuz56ue3O6Awlw5e/{UserId}/{APICode}/Operations/{GroupID}");
+                    var result = JObject.Parse(Json);
+                    foreach (var operation in result["Data"])
+                    {
+                        if ((int)operation["OperationId"] > Convert.ToInt32(lastopid))
+                        {
+                            var name = operation["Subject"];
+                            var startTime = operation["StartString"];
+                            var formUp = operation["LocationInfo"];
+                            var destination = operation["Location"];
+                            var details = operation["Details"];
+
+                            var channel = (ITextChannel)Program.Client.GetGuild(guildid).GetChannel(channelid);
+
+                            var message = $"**New Operation Posted** {Environment.NewLine}{Environment.NewLine}" +
+                                $"```Title - {name} {Environment.NewLine}" +
+                                $"Form Up Time - {startTime} {Environment.NewLine}" +
+                                $"Form Up System - {formUp} {Environment.NewLine}" +
+                                $"Target System - {destination} {Environment.NewLine}" +
+                                $"Details - {details}```";
+
+                            var sendres = await channel.SendMessageAsync(message);
+
+                            await sendres.AddReactionAsync(UnicodeEmoji.FromText(":white_check_mark:"));
+                            await sendres.AddReactionAsync(UnicodeEmoji.FromText(":grey_question:"));
+                            await sendres.AddReactionAsync(UnicodeEmoji.FromText(":x:"));
+
+                            await SQLiteDataUpdate("cacheData", "data", "fleetUpLastPostedOperation", operation["OperationId"].ToString());
+                        }
+                    }
+                    await SQLiteDataUpdate("cacheData", "data", "fleetUpLastChecked", DateTime.Now.ToString());
+                }
+            }
+
+            await Task.CompletedTask;
         }
         #endregion
 

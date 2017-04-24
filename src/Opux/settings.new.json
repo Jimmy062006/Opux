@@ -3,6 +3,7 @@
     "name": "Opux",
     "game": "Status",
     "token": "",
+    "guildid": 0,
     "connstring": "datasource=localhost;port=3306;username=discord;password=password;database=discord;",
     "commandprefix": "!", //Single Character only
     "logchan": "0",
@@ -11,7 +12,8 @@
     "authCheck": false,
     "authWeb": false,
     "killFeed": false,
-    "time": true,
+    "time": flase,
+    "fleetup":  false,
     "timeformat": "yyyy/MM/dd/ HH:mm:ss",
     "MOTD": false,
     "notificationFeed": false,
@@ -85,6 +87,9 @@
     "MOTDChan": "" //CaSe SenSiTive
   },
   "fleetup": {
+    "UserId": "",
+    "APICode": "",
+    "GroupID": "",
     "channel": 0
   }
 }
