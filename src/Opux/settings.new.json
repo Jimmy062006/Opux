@@ -12,10 +12,12 @@
     "authCheck": false,
     "authWeb": false,
     "killFeed": false,
-    "time": flase,
+    "time": false,
     "fleetup":  false,
     "timeformat": "yyyy/MM/dd/ HH:mm:ss",
     "MOTD": false,
+    "updatetopic": false, // MOTD must also be enabled, updated a selected channel's topic with MOTD.
+    "restricted": 0, //Channel the bot will not be allowed to post MOTD and other opsec information.
     "notificationFeed": false,
     "authInterval": "30", //In Minuets
     "adminRoles": {
@@ -84,7 +86,9 @@
     "motdkeyID": "",
     "motdvCode": "",
     "motdcharid": "",
-    "MOTDChan": "" //CaSe SenSiTive
+    "motdtopicchan": 0,
+    "topicInterval": "30", //In Minutes
+    "MOTDChan": "" //CaSe SenSiTive.
   },
   "fleetup": {
     "UserId": "",
