@@ -1865,7 +1865,7 @@ namespace Opux
 
                                     await SQLiteDataUpdate("cacheData", "data", "motd", com.ToString());
                                     await chan.ModifyAsync(x => x.Topic = com);
-                                    await chan1.SendMessageAsync($"@everyone Channel topic has been updated.");
+                                    await chan1.SendMessageAsync($"@everyone Channel topic has been updated..");
                                 }
                             }
                         }

@@ -85,7 +85,7 @@
     "motdvCode": "",
     "motdcharid": "",
     "motdtopicchan": 0,
-    "MOTDChan": "" //CaSe SenSiTive
+    "MOTDChan": "" //CaSe SenSiTive.
   },
   "fleetup": {
     "channel": 0
