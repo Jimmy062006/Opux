@@ -1801,8 +1801,8 @@ namespace Opux
                         com = StripTagsCharArray(com);
                         com = com.Replace("&lt;", "<").Replace("&gt;", ">");
 
-                        var restricted = Convert.ToInt64(Program.Settings.GetSection("config")["restricted"]);
-                        var channel = Convert.ToInt64(context.Channel.Id);
+                        var restricted = Convert.ToUInt64(Program.Settings.GetSection("config")["restricted"]);
+                        var channel = Convert.ToUInt64(context.Channel.Id);
                         if (channel == restricted)
                         {
                             await context.Message.Channel.SendMessageAsync($" {context.Message.Author.Mention} I cant do that *here.*");
@@ -1827,7 +1827,7 @@ namespace Opux
         {
             try
             {
-                if (DateTime.Now > lastTopicCheck.AddMilliseconds(60 * 1000 * 60))
+                if (DateTime.Now > lastTopicCheck.AddMilliseconds(Convert.ToInt32(Program.Settings.GetSection("motd")["topicInterval"]) * 1000 * 60))
                 {
                     await Client_Log(new LogMessage(LogSeverity.Info, "CheckTopic", "Running Topic Check"));
                     motdtopic = Convert.ToString(await SQLiteDataQuery("cacheData", "data", "motd"));

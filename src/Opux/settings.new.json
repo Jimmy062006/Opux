@@ -87,6 +87,7 @@
     "motdvCode": "",
     "motdcharid": "",
     "motdtopicchan": 0,
+    "topicInterval": "30", //In Minutes
     "MOTDChan": "" //CaSe SenSiTive.
   },
   "fleetup": {
