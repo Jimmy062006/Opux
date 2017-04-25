@@ -1020,6 +1020,7 @@ namespace Opux
                             var victimAlliance = killmail["killmail"]["victim"]["alliance"] ?? null;
                             var attackers = killmail["killmail"]["attackers"] ?? null;
                             var sysName = (string)killmail["killmail"]["solarSystem"]["name"];
+                            var systemId = (string)killmail["killmail"]["solarSystem"]["id"];
                             var losses = Convert.ToBoolean(Program.Settings.GetSection("killFeed")["losses"]);
                             var radius = Convert.ToInt16(Program.Settings.GetSection("killFeed")["radius"]);
                             var radiusSystem = Program.Settings.GetSection("killFeed")["radiusSystem"];
@@ -1040,21 +1041,32 @@ namespace Opux
                                 var channelGroup = Convert.ToUInt64(i["channel"]);
                                 var bigKillValue = Convert.ToInt64(i["bigKill"]);
                                 var bigKillChannel = Convert.ToUInt64(i["bigKillChannel"]);
+                                var SystemID = "0";
 
                                 if (radius > 0)
                                 {
-                                    using (HttpClient webClient = new HttpClient())
-                                    using (HttpResponseMessage _radiusSystems = await webclient.GetAsync(
-                                        $"https://trades.eve-price.com/system-distance/{radiusSystem}/{radius}"))
+                                    using (HttpClient webClient1 = new HttpClient())
+                                    using (HttpResponseMessage SystemName = await webClient1.GetAsync(
+                                        $"https://esi.tech.ccp.is/latest/search/?categories=solarsystem&datasource=tranquility" +
+                                        $"&language=en-us&search={radiusSystem}&strict=false"))
+                                    using (HttpContent SystemNameContent = SystemName.Content)
+
+                                    {
+                                        SystemID = JObject.Parse(await SystemNameContent.ReadAsStringAsync())["solarsystem"][0].ToString();
+                                        //SystemID = SystemID.Replace("\n", "").Replace("\r", "").Replace(" ", "");
+                                    }
+                                    using (HttpClient webClient2 = new HttpClient())
+                                    using (HttpResponseMessage _radiusSystems = await webClient2.GetAsync(
+                                        $"https://esi.tech.ccp.is/latest/route/{SystemID}/{systemId}/?datasource=tranquility&flag=shortest"))
                                     using (HttpContent _radiusSystemsContent = _radiusSystems.Content)
                                     {
                                         var systemID = (int)killmail["killmail"]["solarSystem"]["id"];
-                                        var systems = JObject.Parse(await _radiusSystemsContent.ReadAsStringAsync());
-                                        var results = systems["results"];
-                                        var gg = results.FirstOrDefault(x => (int)x["solarSystemID"] == systemID);
-                                        if (gg != null && gg.Count() > 0)
+                                        var data = await _radiusSystemsContent.ReadAsStringAsync();
+                                        var systems = JToken.Parse(data);
+                                        var gg = systems.Count();
+                                        if (gg < radius)
                                         {
-                                            jumpsAway = (int)gg["distance"];
+                                            jumpsAway = gg;
                                             radiusKill = true;
                                         }
                                     }
