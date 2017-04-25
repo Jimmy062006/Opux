@@ -9,6 +9,7 @@ using MySql.Data.MySqlClient;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -1052,22 +1053,29 @@ namespace Opux
                                     using (HttpContent SystemNameContent = SystemName.Content)
 
                                     {
-                                        SystemID = JObject.Parse(await SystemNameContent.ReadAsStringAsync())["solarsystem"][0].ToString();
-                                        //SystemID = SystemID.Replace("\n", "").Replace("\r", "").Replace(" ", "");
-                                    }
-                                    using (HttpClient webClient2 = new HttpClient())
-                                    using (HttpResponseMessage _radiusSystems = await webClient2.GetAsync(
-                                        $"https://esi.tech.ccp.is/latest/route/{SystemID}/{systemId}/?datasource=tranquility&flag=shortest"))
-                                    using (HttpContent _radiusSystemsContent = _radiusSystems.Content)
-                                    {
-                                        var systemID = (int)killmail["killmail"]["solarSystem"]["id"];
-                                        var data = await _radiusSystemsContent.ReadAsStringAsync();
-                                        var systems = JToken.Parse(data);
-                                        var gg = systems.Count();
-                                        if (gg < radius)
+                                        var httpresult = JObject.Parse(await SystemNameContent.ReadAsStringAsync());
+                                        if (httpresult["error"] == null)
                                         {
-                                            jumpsAway = gg;
-                                            radiusKill = true;
+                                            SystemID = httpresult["solarsystem"][0].ToString();
+
+                                            using (HttpClient webClient2 = new HttpClient())
+                                            using (HttpResponseMessage _radiusSystems = await webClient2.GetAsync(
+                                                $"https://esi.tech.ccp.is/latest/route/{SystemID}/{systemId}/?datasource=tranquility&flag=shortest"))
+                                            using (HttpContent _radiusSystemsContent = _radiusSystems.Content)
+                                            {
+                                                var systemID = (int)killmail["killmail"]["solarSystem"]["id"];
+                                                var data = JToken.Parse(await _radiusSystemsContent.ReadAsStringAsync());
+                                                if (data.Type == JTokenType.Array)
+                                                {
+                                                    var systems = data;
+                                                    var gg = systems.Count() - 1;
+                                                    if (gg < radius)
+                                                    {
+                                                        jumpsAway = gg;
+                                                        radiusKill = true;
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
