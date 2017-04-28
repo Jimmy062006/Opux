@@ -1930,8 +1930,8 @@ namespace Opux
                         {
                             var name = operation["Subject"];
                             var startTime = operation["StartString"];
-                            var formUp = operation["LocationInfo"];
-                            var destination = operation["Location"];
+                            var locationinfo = operation["LocationInfo"];
+                            var location = operation["Location"];
                             var details = operation["Details"];
 
                             var channel = (ITextChannel)Program.Client.GetGuild(guildId).GetChannel(channelid);
@@ -1939,8 +1939,7 @@ namespace Opux
                             var message = $"**New Operation Posted** {Environment.NewLine}{Environment.NewLine}" +
                                 $"```Title - {name} {Environment.NewLine}" +
                                 $"Form Up Time - {startTime} {Environment.NewLine}" +
-                                $"Form Up System - {formUp} {Environment.NewLine}" +
-                                $"Target System - {destination} {Environment.NewLine}" +
+                                $"Form Up System - {location} - {locationinfo} {Environment.NewLine}" +
                                 $"Details - {details}```";
 
                             var sendres = await channel.SendMessageAsync(message);
