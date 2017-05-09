@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,7 +11,7 @@ namespace Opux
     public class CheckForRoleAttribute : PreconditionAttribute
     {
         // Override the CheckPermissions method
-        public async override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IDependencyMap map)
+        public async override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
         {
             var roles = new List<IRole>(context.Guild.Roles);
             var userRoleIDs = context.Guild.GetUserAsync(context.User.Id).Result.RoleIds;

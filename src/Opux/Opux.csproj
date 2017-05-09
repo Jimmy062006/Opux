@@ -19,14 +19,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Discord.Addons.EmojiTools" Version="1.2.1" />
-    <PackageReference Include="Discord.Net" Version="1.0.0-rc2-00705" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="1.1.0" />
+    <PackageReference Include="Discord.Addons.EmojiTools" Version="2.0.0" />
+    <PackageReference Include="Discord.Net" Version="1.0.0-rc2-00737" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="1.1.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="1.1.1" />
     <PackageReference Include="MySql.Data" Version="7.0.7-m61" />
     <PackageReference Include="NETStandard.HttpListener" Version="1.0.2" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.2" />
     <PackageReference Include="System.Xml.XmlDocument" Version="4.3.0" />
     <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
+    <PackageReference Include="WS4NetCore" Version="1.0.0-a" />
     <PackageReference Include="YamlDotNet.NetCore" Version="1.0.0" />
   </ItemGroup>
 

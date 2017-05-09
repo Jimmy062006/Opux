@@ -11,7 +11,7 @@ namespace Opux
         /// 
         /// </summary>
         /// <returns></returns>
-        [Command("help"), Summary("Reports help text.")]
+        [Command("help", RunMode = RunMode.Async), Summary("Reports help text.")]
         public async Task Help()
         {
             var userInfo = Context.Message.Author;
@@ -132,7 +132,7 @@ namespace Opux
         /// 
         /// </summary>
         /// <returns></returns>
-        [Command("reauth"), Summary("Reauth all users")]
+        [Command("reauth", RunMode = RunMode.Async), Summary("Reauth all users")]
         [CheckForRole]
         public async Task Reauth()
         {
@@ -152,7 +152,7 @@ namespace Opux
         /// 
         /// </summary>
         /// <returns></returns>
-        [Command("auth"), Summary("Auth User")]
+        [Command("auth", RunMode = RunMode.Async), Summary("Auth User")]
         public async Task Auth()
         {
             if (Convert.ToBoolean(Program.Settings.GetSection("config")["authWeb"]))
@@ -177,7 +177,7 @@ namespace Opux
         /// 
         /// </summary>
         /// <returns></returns>
-        [Command("auth"), Summary("Auth User")]
+        [Command("auth", RunMode = RunMode.Async), Summary("Auth User")]
         public async Task Auth([Remainder] string x)
         {
             if (Convert.ToBoolean(Program.Settings.GetSection("config")["authWeb"]))
@@ -198,7 +198,7 @@ namespace Opux
         /// 
         /// </summary>
         /// <returns></returns>
-        [Command("evetime"), Summary("EVE TQ Time")]
+        [Command("evetime", RunMode = RunMode.Async), Summary("EVE TQ Time")]
         public async Task EveTime()
         {
             if (Convert.ToBoolean(Program.Settings.GetSection("config")["time"]))
@@ -218,7 +218,7 @@ namespace Opux
         /// 
         /// </summary>
         /// <returns></returns>
-        [Command("MOTD"), Summary("Shows MOTD")]
+        [Command("MOTD", RunMode = RunMode.Async), Summary("Shows MOTD")]
         public async Task MOTD()
         {
             if (Convert.ToBoolean(Program.Settings.GetSection("config")["MOTD"]))

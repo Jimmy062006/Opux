@@ -9,6 +9,7 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using WS4NetCore;
 
 namespace Opux
 {
@@ -16,9 +17,9 @@ namespace Opux
     {
         public static DiscordSocketClient Client { get; private set; }
         public static CommandService Commands { get; private set; }
-        public static DependencyMap Map { get; private set; }
         public static EveLib EveLib { get; private set; }
-        public static string ApplicationBase { get; private set; }
+        public static String ApplicationBase { get; private set; }
+        public static IServiceProvider ServiceCollection { get; private set; }
         public static IConfigurationRoot Settings { get; private set; }
 
         static AutoResetEvent autoEvent = new AutoResetEvent(true);
@@ -32,9 +33,8 @@ namespace Opux
                 ApplicationBase = Path.GetDirectoryName(new Uri(Assembly.GetEntryAssembly().CodeBase).LocalPath);
                 if (!File.Exists(ApplicationBase + "/Opux.db"))
                     File.Copy(ApplicationBase + "/Opux.def.db", ApplicationBase + "/Opux.db");
-                Client = new DiscordSocketClient();
+                Client = new DiscordSocketClient(new DiscordSocketConfig() { WebSocketProvider = WS4NetProvider.Instance });
                 Commands = new CommandService();
-                Map = new DependencyMap();
                 EveLib = new EveLib();
                 UpdateSettings();
                 MainAsync(args).GetAwaiter().GetResult();
@@ -80,7 +80,7 @@ namespace Opux
         public static Task UpdateSettings()
         {
             Settings = new ConfigurationBuilder()
-            .SetBasePath(Program.ApplicationBase)
+            .SetBasePath(ApplicationBase)
             .AddJsonFile("settings.json", optional: true, reloadOnChange: true).Build();
             Functions.nextNotificationCheck = DateTime.Parse(Functions.SQLiteDataQuery("cacheData", "data", "nextNotificationCheck").GetAwaiter().GetResult());
             return Task.CompletedTask;

@@ -9,7 +9,6 @@ using MySql.Data.MySqlClient;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -1945,9 +1944,9 @@ namespace Opux
 
                             var sendres = await channel.SendMessageAsync(message);
 
-                            await sendres.AddReactionAsync(UnicodeEmoji.FromText(":white_check_mark:"));
-                            await sendres.AddReactionAsync(UnicodeEmoji.FromText(":grey_question:"));
-                            await sendres.AddReactionAsync(UnicodeEmoji.FromText(":x:"));
+                            await sendres.AddReactionAsync(EmojiExtensions.FromText(":white_check_mark:"));
+                            await sendres.AddReactionAsync(EmojiExtensions.FromText(":grey_question:"));
+                            await sendres.AddReactionAsync(EmojiExtensions.FromText(":x:"));
 
                             await SQLiteDataUpdate("cacheData", "data", "fleetUpLastPostedOperation", operation["OperationId"].ToString());
                         }
@@ -1981,8 +1980,8 @@ namespace Opux
 
             var context = new CommandContext(Program.Client, message);
 
-            var result = await Program.Commands.ExecuteAsync(context, argPos, Program.Map);
-            if (!result.IsSuccess && result.ErrorReason != "Unknown command.")
+            var result = await Program.Commands.ExecuteAsync(context, argPos, Program.ServiceCollection);
+            if (!result.IsSuccess && result.ErrorReason == "Unknown command.")
                 await context.Channel.SendMessageAsync(result.ErrorReason);
         }
         #endregion
