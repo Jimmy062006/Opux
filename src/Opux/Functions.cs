@@ -1537,6 +1537,8 @@ namespace Opux
 
                                         if (notificationType == 121)
                                         {
+                                            await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
+                                                $"Type: {types[notificationType]}"));
                                             var aggressorID = Convert.ToInt64(notificationText["entityID"].AllNodes.ToList()[0].ToString());
                                             var defenderID = Convert.ToInt64(notificationText["defenderID"].AllNodes.ToList()[0].ToString());
 
@@ -1547,6 +1549,8 @@ namespace Opux
                                         }
                                         else if (notificationType == 100)
                                         {
+                                            await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
+                                                $"Type: {types[notificationType]}"));
                                             var allyID = Convert.ToInt64(notificationText["allyID"].AllNodes.ToList()[0].ToString());
                                             var defenderID = Convert.ToInt64(notificationText["defenderID"].AllNodes.ToList()[0].ToString());
 
@@ -1558,6 +1562,8 @@ namespace Opux
                                         }
                                         else if (notificationType == 5)
                                         {
+                                            await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
+                                                $"Type: {types[notificationType]}"));
                                             var againstID = Convert.ToInt64(notificationText["againstID"].AllNodes.ToList()[0].ToString());
                                             var cost = notificationText["cost"].AllNodes.ToList()[0];
                                             var declaredByID = Convert.ToInt64(notificationText["declaredByID"].AllNodes.ToList()[0].ToString());
@@ -1572,6 +1578,8 @@ namespace Opux
                                         }
                                         else if (notificationType == 8)
                                         {
+                                            await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
+                                                $"Type: {types[notificationType]}"));
                                             var againstID = Convert.ToInt64(notificationText["againstID"].AllNodes.ToList()[0].ToString());
                                             var declaredByID = Convert.ToInt64(notificationText["declaredByID"].AllNodes.ToList()[0].ToString());
                                             var names = await EveLib.IDtoName(new List<Int64> { declaredByID, againstID });
@@ -1582,6 +1590,8 @@ namespace Opux
                                         }
                                         else if (notificationType == 161)
                                         {
+                                            await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
+                                                $"Type: {types[notificationType]}"));
                                             var campaignEventType = notificationText["campaignEventType"].AllNodes.ToList()[0];
                                             var constellationID = notificationText["constellationID"].AllNodes.ToList()[0];
                                             var solarSystemID = Convert.ToInt64(notificationText["solarSystemID"].AllNodes.ToList()[0].ToString());
@@ -1593,6 +1603,8 @@ namespace Opux
                                         }
                                         else if (notificationType == 147)
                                         {
+                                            await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
+                                                $"Type: {types[notificationType]}"));
                                             var solarSystemID = Convert.ToInt64(notificationText["solarSystemID"].AllNodes.ToList()[0].ToString());
                                             var structureTypeID = Convert.ToInt64(notificationText["structureTypeID"].AllNodes.ToList()[0].ToString());
                                             var names = await EveLib.IDtoName(new List<Int64> { solarSystemID });
@@ -1604,6 +1616,8 @@ namespace Opux
                                         }
                                         else if (notificationType == 160)
                                         {
+                                            await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
+                                                $"Type: {types[notificationType]}"));
                                             var campaignEventType = notificationText["campaignEventType"].AllNodes.ToList()[0];
                                             var solarSystemID = Convert.ToInt64((notificationText["solarSystemID"].AllNodes.ToList()[0].ToString()));
                                             var decloakTime = Convert.ToInt64(notificationText["decloakTime"].AllNodes.ToList()[0].ToString());
@@ -1901,7 +1915,6 @@ namespace Opux
             }
         }
         #endregion
-
 
         //FleetUp Baby
         #region FleetUp
