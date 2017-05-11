@@ -28,6 +28,8 @@ namespace EveLibCore
         public static string MotdKeyID { get; private set; }
         public static string MotdCharID { get; private set; }
 
+        private static string XMLUrl = "https://api.eveonline.com/";
+
         public async static Task<bool> SetApiKey(string keyid, string vcode, string characterid)
         {
             KeyID = keyid;
@@ -53,7 +55,7 @@ namespace EveLibCore
                 var document = new XmlDocument();
                 var dictionary = new Dictionary<int, JToken>();
 
-                var xml = await webRequest.GetStreamAsync($"https://api.eveonline.com/char/Notifications.xml.aspx?keyID={KeyID}&vCode={VCode}&characterID={CharacterID}");
+                var xml = await webRequest.GetStreamAsync($"{XMLUrl}char/Notifications.xml.aspx?keyID={KeyID}&vCode={VCode}&characterID={CharacterID}");
                 var xmlReader = XmlReader.Create(xml, new XmlReaderSettings { Async = true });
                 var complete = await xmlReader.ReadAsync();
                 var result = new JObject();
@@ -69,7 +71,11 @@ namespace EveLibCore
                 {
 
                 }
-                else if (rowList.Count > 0)
+                else if (rowList["row"].Type != JTokenType.Array)
+                {
+                    dictionary.Add((int)rowList["row"]["notificationID"], rowList["row"]);
+                }
+                else if (rowList["row"].Type == JTokenType.Array)
                 {
                     foreach (var r in rowList["row"])
                     {
@@ -96,7 +102,7 @@ namespace EveLibCore
                 {
                     var commaseperated = string.Join(",", notificationID);
 
-                    var xml2 = await webRequest.GetStreamAsync($"https://api.eveonline.com/char/NotificationTexts.xml.aspx?keyID={KeyID}&vCode={VCode}&characterID={CharacterID}&IDs={commaseperated}");
+                    var xml2 = await webRequest.GetStreamAsync($"{XMLUrl}char/NotificationTexts.xml.aspx?keyID={KeyID}&vCode={VCode}&characterID={CharacterID}&IDs={commaseperated}");
                     var xmlReader2 = XmlReader.Create(xml2, new XmlReaderSettings { Async = true });
                     var complete2 = await xmlReader2.ReadAsync();
                     var result = new JObject();
@@ -108,41 +114,31 @@ namespace EveLibCore
                     }
 
                     var rowlist = result["eveapi"]["result"]["rowset"]["row"].ToList();
-                    foreach (var r in rowlist)
+                    if (rowlist[0].Children().Count() == 0)
                     {
-                        var value = r["#cdata-section"].ToString();
-                        // Setup the input
+                        var row = result["eveapi"]["result"]["rowset"]["row"];
+                        var value = row["#cdata-section"].ToString();
                         var input = new StringReader(value);
-
-                        // Load the stream
                         var yaml = new YamlStream();
                         yaml.Load(input);
 
-                        dictionary.Add((int)r["notificationID"], yaml.Documents[0].RootNode);
+                        dictionary.Add((int)row["notificationID"], yaml.Documents[0].RootNode);
+                    }
+                    else
+                    {
+                        foreach (var r in rowlist)
+                        {
+                            var value = r["#cdata-section"].ToString();
+                            var input = new StringReader(value);
+                            var yaml = new YamlStream();
+                            yaml.Load(input);
 
+                            dictionary.Add((int)r["notificationID"], yaml.Documents[0].RootNode);
+
+                        }
                     }
 
                     return dictionary;
-
-
-                    //// Examine the stream
-                    //var mapping = (YamlMappingNode)yaml.Documents[0].RootNode;
-
-                    //foreach (var entry in mapping.Children)
-                    //{
-                    //    Console.WriteLine(((YamlScalarNode)entry.Key).Value);
-                    //}
-
-                    //// List all the items
-                    //var items = (YamlSequenceNode)mapping.Children[new YamlScalarNode("items")];
-                    //foreach (YamlMappingNode item in items)
-                    //{
-                    //    Console.WriteLine(
-                    //        "{0}\t{1}",
-                    //        item.Children[new YamlScalarNode("part_no")],
-                    //        item.Children[new YamlScalarNode("descrip")]
-                    //    );
-                    //}
                 }
                 catch (Exception ex)
                 {
@@ -160,7 +156,7 @@ namespace EveLibCore
                 var document = new XmlDocument();
                 var dictonary = new Dictionary<Int64, string>();
 
-                var xml = await webRequest.GetStreamAsync($"https://api.eveonline.com//eve/CharacterName.xml.aspx?ids={commaseperated}");
+                var xml = await webRequest.GetStreamAsync($"{XMLUrl}/eve/CharacterName.xml.aspx?ids={commaseperated}");
                 var xmlReader = XmlReader.Create(xml, new XmlReaderSettings { Async = true });
                 var complete = await xmlReader.ReadAsync();
                 var result = new JObject();
@@ -195,7 +191,7 @@ namespace EveLibCore
                 var document = new XmlDocument();
                 var dictonary = new Dictionary<Int64, string>();
 
-                var xml = await webRequest.GetStreamAsync($"https://api.eveonline.com//eve/TypeName.xml.aspx?ids={commaseperated}");
+                var xml = await webRequest.GetStreamAsync($"{XMLUrl}/eve/TypeName.xml.aspx?ids={commaseperated}");
                 var xmlReader = XmlReader.Create(xml, new XmlReaderSettings { Async = true });
                 var complete = await xmlReader.ReadAsync();
                 var result = new JObject();
@@ -229,7 +225,7 @@ namespace EveLibCore
 
             using (HttpClient webRequest = new HttpClient())
             {
-                var xml = await webRequest.GetStreamAsync($"https://api.eveonline.com/char/ChatChannels.xml.aspx?" +
+                var xml = await webRequest.GetStreamAsync($"{XMLUrl}char/ChatChannels.xml.aspx?" +
                     $"keyID={MotdKeyID}&vCode={MotdVCode}&characterID={MotdCharID}");
                 var xmlReader = XmlReader.Create(xml, new XmlReaderSettings { Async = true });
                 var complete = await xmlReader.ReadAsync();

@@ -1535,32 +1535,7 @@ namespace Opux
                                         var notificationText = notificationsText.FirstOrDefault(x => x.Key == notification.Key).Value;
                                         var notificationType = (int)notification.Value["typeID"];
 
-                                        if (notificationType == 121)
-                                        {
-                                            await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
-                                                $"Type: {types[notificationType]}"));
-                                            var aggressorID = Convert.ToInt64(notificationText["entityID"].AllNodes.ToList()[0].ToString());
-                                            var defenderID = Convert.ToInt64(notificationText["defenderID"].AllNodes.ToList()[0].ToString());
-
-                                            var stuff = await EveLib.IDtoName(new List<Int64> { aggressorID, defenderID });
-                                            var aggressorName = stuff.FirstOrDefault(x => x.Key == aggressorID).Value;
-                                            var defenderName = stuff.FirstOrDefault(x => x.Key == defenderID).Value;
-                                            await chan.SendMessageAsync($"War declared by **{aggressorName}** against **{defenderName}**. Fighting begins in roughly 24 hours.");
-                                        }
-                                        else if (notificationType == 100)
-                                        {
-                                            await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
-                                                $"Type: {types[notificationType]}"));
-                                            var allyID = Convert.ToInt64(notificationText["allyID"].AllNodes.ToList()[0].ToString());
-                                            var defenderID = Convert.ToInt64(notificationText["defenderID"].AllNodes.ToList()[0].ToString());
-
-                                            var stuff = await EveLib.IDtoName(new List<Int64> { allyID, defenderID });
-                                            var allyName = stuff.FirstOrDefault(x => x.Key == allyID).Value;
-                                            var defenderName = stuff.FirstOrDefault(x => x.Key == defenderID).Value;
-                                            var startTime = DateTime.FromFileTimeUtc(Convert.ToInt64(notificationText["startTime"].AllNodes.ToList()[0].ToString()));
-                                            await chan.SendMessageAsync($"**{allyName}** will join the war against **{defenderName}** at {startTime} EVE.");
-                                        }
-                                        else if (notificationType == 5)
+                                        if (notificationType == 5)
                                         {
                                             await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
                                                 $"Type: {types[notificationType]}"));
@@ -1573,33 +1548,103 @@ namespace Opux
                                             var againstName = names.FirstOrDefault(x => x.Key == againstID);
                                             var declaredByName = names.First(x => x.Key == declaredByID);
 
-                                            await chan.SendMessageAsync($"War declared by {declaredByName.Value} against {againstName.Value}" +
+                                            await chan.SendMessageAsync($"@everyone {Environment.NewLine}War declared by {declaredByName.Value} against {againstName.Value}" +
                                                 $" Fighting begins in roughly {delayHours} hours");
                                         }
-                                        else if (notificationType == 8)
+                                        else if (notificationType == 7)
                                         {
                                             await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
                                                 $"Type: {types[notificationType]}"));
                                             var againstID = Convert.ToInt64(notificationText["againstID"].AllNodes.ToList()[0].ToString());
                                             var declaredByID = Convert.ToInt64(notificationText["declaredByID"].AllNodes.ToList()[0].ToString());
+
+                                            var stuff = await EveLib.IDtoName(new List<Int64> { againstID, declaredByID });
+                                            var againstName = stuff.FirstOrDefault(x => x.Key == againstID).Value;
+                                            var declaredByName = stuff.FirstOrDefault(x => x.Key == declaredByID).Value;
+
+                                            await chan.SendMessageAsync($"@everyone {Environment.NewLine}{declaredByName} Retracts War Against {againstName}");
+                                        }
+                                        else if (notificationType == 27)
+                                        {
+                                            await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
+                                                $"Type: {types[notificationType]}"));
+                                            var againstID = Convert.ToInt64(notificationText["againstID"].AllNodes.ToList()[0].ToString());
+                                            var cost = notificationText["cost"].AllNodes.ToList()[0];
+                                            var declaredByID = Convert.ToInt64(notificationText["declaredByID"].AllNodes.ToList()[0].ToString());
                                             var names = await EveLib.IDtoName(new List<Int64> { declaredByID, againstID });
                                             var againstName = names.FirstOrDefault(x => x.Key == againstID);
                                             var declaredByName = names.First(x => x.Key == declaredByID);
 
-                                            await chan.SendMessageAsync($"CONCORD Invalidates war declared by {declaredByName.Value} against {againstName.Value}");
+                                            await chan.SendMessageAsync($"@everyone {Environment.NewLine}War declared by {declaredByName.Value} against {againstName.Value}");
                                         }
-                                        else if (notificationType == 161)
+                                        else if (notificationType == 30)
                                         {
                                             await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
                                                 $"Type: {types[notificationType]}"));
-                                            var campaignEventType = notificationText["campaignEventType"].AllNodes.ToList()[0];
-                                            var constellationID = notificationText["constellationID"].AllNodes.ToList()[0];
+                                            var againstID = Convert.ToInt64(notificationText["againstID"].AllNodes.ToList()[0].ToString());
+                                            var cost = notificationText["cost"].AllNodes.ToList()[0];
+                                            var declaredByID = Convert.ToInt64(notificationText["declaredByID"].AllNodes.ToList()[0].ToString());
+                                            var names = await EveLib.IDtoName(new List<Int64> { declaredByID, againstID });
+                                            var againstName = names.FirstOrDefault(x => x.Key == againstID);
+                                            var declaredByName = names.First(x => x.Key == declaredByID);
+
+                                            await chan.SendMessageAsync($"@everyone {Environment.NewLine}{declaredByName.Value} Retracts War Against {againstName.Value}");
+                                        }
+                                        else if (notificationType == 75)
+                                        {
+                                            await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
+                                                $"Type: {types[notificationType]}"));
+                                            var aggressorAllianceID = Convert.ToInt64(notificationText["aggressorAllianceID"].AllNodes.ToList()[0].ToString());
+                                            var aggressorCorpID = Convert.ToInt64(notificationText["aggressorCorpID"].AllNodes.ToList()[0].ToString());
+                                            var aggressorID = Convert.ToInt64(notificationText["aggressorID"].AllNodes.ToList()[0].ToString());
+                                            var typeID = Convert.ToInt64(notificationText["typeID"].AllNodes.ToList()[0].ToString());
+                                            var moonID = Convert.ToInt64(notificationText["moonID"].AllNodes.ToList()[0].ToString());
                                             var solarSystemID = Convert.ToInt64(notificationText["solarSystemID"].AllNodes.ToList()[0].ToString());
-                                            var names = await EveLib.IDtoName(new List<Int64> { solarSystemID });
-                                            var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
+                                            var armorValue = string.Format("{0:P2}", Convert.ToDouble(notificationText["armorValue"].AllNodes.ToList()[0].ToString()));
+                                            var shieldValue = string.Format("{0:P2}", Convert.ToDouble(notificationText["shieldValue"].AllNodes.ToList()[0].ToString()));
+                                            var hullValue = string.Format("{0:P2}", Convert.ToDouble(notificationText["hullValue"].AllNodes.ToList()[0].ToString()));
+                                            var names = await EveLib.IDtoName(new List<Int64> { aggressorAllianceID, aggressorCorpID, aggressorID, moonID, solarSystemID });
+                                            var aggressorAlliance = names.FirstOrDefault(x => x.Key == aggressorAllianceID).Value;
+                                            var aggressorCorpName = names.First(x => x.Key == aggressorCorpID).Value;
+                                            var aggressorName = names.First(x => x.Key == aggressorID).Value;
+                                            var moonName = names.First(x => x.Key == moonID).Value;
+                                            var solarSystemName = names.First(x => x.Key == solarSystemID).Value;
+                                            var allyLine = aggressorAllianceID != 0 ? $"{Environment.NewLine}Aggressing Alliance: {aggressorAlliance}" : "";
+                                            var TypeName = await EveLib.IDtoTypeName(new List<Int64> { typeID });
 
-                                            await chan.SendMessageAsync($"Command nodes decloaking for {solarSystemName.Value}");
+                                            await chan.SendMessageAsync($"@everyone {Environment.NewLine}Starbase is under attack{Environment.NewLine}{Environment.NewLine}" +
+                                                $"Details{Environment.NewLine}```{Environment.NewLine}System: {moonName}{Environment.NewLine}" +
+                                                $"Type: {TypeName.First(x => x.Key == typeID).Value}{Environment.NewLine}{Environment.NewLine}" +
+                                                $"Current Shield Level: {shieldValue}{Environment.NewLine}Current Armor Level: {armorValue}{Environment.NewLine}" +
+                                                $"Current Hull Level: {hullValue}{Environment.NewLine}{Environment.NewLine}" +
+                                                $"Aggressing Pilot: {aggressorName}{Environment.NewLine}Aggressing Corporation: {aggressorCorpName}{allyLine}```");
+                                        }
+                                        else if (notificationType == 100)
+                                        {
+                                            await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
+                                                $"Type: {types[notificationType]}"));
+                                            var allyID = Convert.ToInt64(notificationText["allyID"].AllNodes.ToList()[0].ToString());
+                                            var defenderID = Convert.ToInt64(notificationText["defenderID"].AllNodes.ToList()[0].ToString());
 
+                                            var stuff = await EveLib.IDtoName(new List<Int64> { allyID, defenderID });
+                                            var allyName = stuff.FirstOrDefault(x => x.Key == allyID).Value;
+                                            var defenderName = stuff.FirstOrDefault(x => x.Key == defenderID).Value;
+                                            var startTime = DateTime.FromFileTimeUtc(Convert.ToInt64(notificationText["startTime"].AllNodes.ToList()[0].ToString()));
+
+                                            await chan.SendMessageAsync($"@everyone {Environment.NewLine}{allyName} will join the war against {defenderName} at {startTime} EVE.");
+                                        }
+                                        else if (notificationType == 121)
+                                        {
+                                            await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
+                                                $"Type: {types[notificationType]}"));
+                                            var aggressorID = Convert.ToInt64(notificationText["entityID"].AllNodes.ToList()[0].ToString());
+                                            var defenderID = Convert.ToInt64(notificationText["defenderID"].AllNodes.ToList()[0].ToString());
+
+                                            var stuff = await EveLib.IDtoName(new List<Int64> { aggressorID, defenderID });
+                                            var aggressorName = stuff.FirstOrDefault(x => x.Key == aggressorID).Value;
+                                            var defenderName = stuff.FirstOrDefault(x => x.Key == defenderID).Value;
+
+                                            await chan.SendMessageAsync($"@everyone {Environment.NewLine}War declared by {aggressorName} against {defenderName}. Fighting begins in roughly 24 hours.");
                                         }
                                         else if (notificationType == 147)
                                         {
@@ -1612,7 +1657,7 @@ namespace Opux
                                             var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
                                             var structureTypeName = typeNames.FirstOrDefault(x => x.Key == structureTypeID);
 
-                                            await chan.SendMessageAsync($"Entosis Link started in {solarSystemName.Value} on {structureTypeName.Value}");
+                                            await chan.SendMessageAsync($"@everyone {Environment.NewLine}Entosis Link started in {solarSystemName.Value} on {structureTypeName.Value}");
                                         }
                                         else if (notificationType == 160)
                                         {
@@ -1625,7 +1670,20 @@ namespace Opux
                                             var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
                                             var decloaktime = DateTime.FromFileTime(decloakTime);
 
-                                            await chan.SendMessageAsync($"Sovereignty structure reinforced in {solarSystemName.Value} nodes will spawn @{decloaktime}");
+                                            await chan.SendMessageAsync($"@everyone {Environment.NewLine}Sovereignty structure reinforced in {solarSystemName.Value} nodes will spawn @{decloaktime}");
+                                        }
+                                        else if (notificationType == 161)
+                                        {
+                                            await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
+                                                $"Type: {types[notificationType]}"));
+                                            var campaignEventType = notificationText["campaignEventType"].AllNodes.ToList()[0];
+                                            var constellationID = notificationText["constellationID"].AllNodes.ToList()[0];
+                                            var solarSystemID = Convert.ToInt64(notificationText["solarSystemID"].AllNodes.ToList()[0].ToString());
+                                            var names = await EveLib.IDtoName(new List<Int64> { solarSystemID });
+                                            var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
+
+                                            await chan.SendMessageAsync($"@everyone {Environment.NewLine}Command nodes decloaking for {solarSystemName.Value}");
+
                                         }
                                         else
                                         {
