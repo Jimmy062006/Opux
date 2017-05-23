@@ -2086,6 +2086,8 @@ namespace Opux
                 }
                 if(message != $"{context.Message.Author.Mention}, {Environment.NewLine}")
                     await context.Message.Channel.SendMessageAsync($"{message}");
+
+                await Client_Log(new LogMessage(LogSeverity.Info, "FleetOps", $"Sending Ops to {context.Message.Channel} for {context.Message.Author}"));
             }
 
             await Task.CompletedTask;
