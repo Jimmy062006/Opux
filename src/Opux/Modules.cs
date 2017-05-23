@@ -218,14 +218,34 @@ namespace Opux
         /// 
         /// </summary>
         /// <returns></returns>
-        [Command("MOTD", RunMode = RunMode.Async), Summary("Shows MOTD")]
-        public async Task MOTD()
+        [Command("motd", RunMode = RunMode.Async), Summary("Shows MOTD")]
+        public async Task motd()
         {
             if (Convert.ToBoolean(Program.Settings.GetSection("config")["MOTD"]))
             {
                 try
                 {
                     await Functions.MOTD(Context);
+                }
+                catch (Exception ex)
+                {
+                    await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
+                    await Task.FromException(ex);
+                }
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [Command("ops", RunMode = RunMode.Async), Summary("Shows current Fleetup Operations")]
+        public async Task ops()
+        {
+            if (Convert.ToBoolean(Program.Settings.GetSection("config")["fleetup"]))
+            {
+                try
+                {
+                    await Functions.Ops(Context);
                 }
                 catch (Exception ex)
                 {

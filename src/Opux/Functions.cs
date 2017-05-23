@@ -2034,6 +2034,62 @@ namespace Opux
 
             await Task.CompletedTask;
         }
+
+        internal static async Task Ops(ICommandContext context)
+        {
+            using (HttpClient webRequest = new HttpClient())
+            {
+                var UserId = Program.Settings.GetSection("fleetup")["UserId"];
+                var APICode = Program.Settings.GetSection("fleetup")["APICode"];
+                var GroupID = Program.Settings.GetSection("fleetup")["GroupID"];
+                var channelid = Convert.ToUInt64(Program.Settings.GetSection("fleetup")["channel"]);
+                var guildId = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
+                var lastopid = await SQLiteDataQuery("cacheData", "data", "fleetUpLastPostedOperation");
+
+                var channel = (ITextChannel)Program.Client.GetGuild(guildId).GetChannel(channelid);
+
+                var Json = await webRequest.GetStringAsync($"http://api.fleet-up.com/Api.svc/Ohigwbylcsuz56ue3O6Awlw5e/{UserId}/{APICode}/Operations/{GroupID}");
+                var result = JObject.Parse(Json);
+                var message = $"{context.Message.Author.Mention}, {Environment.NewLine}";
+                var count = message.Count();
+                foreach (var operation in result["Data"])
+                {
+                    var name = operation["Subject"];
+                    var startTime = operation["StartString"];
+                    var locationinfo = operation["LocationInfo"];
+                    var location = operation["Location"];
+                    var details = operation["Details"];
+
+                    var message_temp = $"```Title - {name} {Environment.NewLine}" +
+                                $"Form Up Time - {startTime} {Environment.NewLine}" +
+                                $"Form Up System - {location} - {locationinfo} {Environment.NewLine}" +
+                                $"Details - {details}``` {Environment.NewLine}";
+
+                    if(message.Count() + message_temp.Count() >= 2000)
+                    {
+                        if (message.Count() != count)
+                        {
+                            await context.Message.Channel.SendMessageAsync($"{message} {message_temp}");
+                            message = $"{context.Message.Author.Mention}, {Environment.NewLine}";
+                        }
+                        else
+                        {
+                            message += $"{message_temp}";
+                            await context.Message.Channel.SendMessageAsync($"{message}");
+                            message = $"{context.Message.Author.Mention}, {Environment.NewLine}";
+                        }
+                    }
+                    else
+                    {
+                        message += $"{message_temp}";
+                    }
+                }
+                if(message != $"{context.Message.Author.Mention}, {Environment.NewLine}")
+                    await context.Message.Channel.SendMessageAsync($"{message}");
+            }
+
+            await Task.CompletedTask;
+        }
         #endregion
 
         //Discord Stuff
