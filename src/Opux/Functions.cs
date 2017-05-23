@@ -1739,9 +1739,9 @@ namespace Opux
             {
                 JObject jObject = new JObject();
                 var channel = (ITextChannel)context.Message.Channel;
-                if (String.ToLower() == "plex")
+                if (String.ToLower() == "short name")
                 {
-                    String = "30 Day Pilot's License Extension (PLEX)";
+                    String = "Item Name";
                 }
 
                 var reply = await webClient.GetStringAsync(NametoId + String);
