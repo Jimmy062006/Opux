@@ -183,7 +183,13 @@ namespace Opux
             var url = (string)Program.Settings.GetSection("auth")["url"];
             var port = Convert.ToInt32(Program.Settings.GetSection("auth")["port"]);
             HttpListener listener = new HttpListener(IPAddress.Any, port);
-            if (!listener.IsListening)
+            
+            if (listener.IsListening)
+            {
+                await Client_Log(new LogMessage(LogSeverity.Critical, "AuthWeb", $"AuthWeb stopped Restarting, Listening on {listener.LocalEndpoint.Address}:{listener.LocalEndpoint.Port}"));
+                listener = new HttpListener(IPAddress.Any, port);
+            }
+            else if(!listener.IsListening)
             {
                 try
                 {
