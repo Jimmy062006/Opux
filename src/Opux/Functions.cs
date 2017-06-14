@@ -3,6 +3,7 @@ using Discord.Addons.EmojiTools;
 using Discord.Commands;
 using Discord.WebSocket;
 using EveLibCore;
+using Matrix.Xmpp.Chatstates;
 using Matrix.Xmpp.Client;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
@@ -2114,23 +2115,26 @@ namespace Opux
 
         internal static async void OnMessage(object sender, MessageEventArgs e)
         {
-            if (Convert.ToBoolean(Program.Settings.GetSection("jabber").GetSection("filter").Value))
+            if (e.Message.Chatstate == Chatstate.Active && !string.IsNullOrWhiteSpace(e.Message.Value))
             {
-                foreach (var filter in Program.Settings.GetSection("jabber").GetSection("filters").GetChildren().ToList())
+                if (Convert.ToBoolean(Program.Settings.GetSection("jabber").GetSection("filter").Value))
                 {
-                    if (e.Message.Value.ToLower().Contains(filter.Key.ToLower()))
+                    foreach (var filter in Program.Settings.GetSection("jabber").GetSection("filters").GetChildren().ToList())
                     {
-                        var prepend = Program.Settings.GetSection("jabber")["prepend"];
-                        var channel = (ITextChannel)Program.Client.GetChannel(Convert.ToUInt64(filter.Value));
-                        await channel.SendMessageAsync($"{prepend + Environment.NewLine}From: {e.Message.From.User} {Environment.NewLine} Message: ```{e.Message.Value}```");
+                        if (e.Message.Value.ToLower().Contains(filter.Key.ToLower()))
+                        {
+                            var prepend = Program.Settings.GetSection("jabber")["prepend"];
+                            var channel = (ITextChannel)Program.Client.GetChannel(Convert.ToUInt64(filter.Value));
+                            await channel.SendMessageAsync($"{prepend + Environment.NewLine}From: {e.Message.From.User} {Environment.NewLine} Message: ```{e.Message.Value}```");
+                        }
                     }
                 }
-            }
-            else
-            {
-                var prepend = Program.Settings.GetSection("jabber")["prepend"];
-                var channel = (ITextChannel)Program.Client.GetChannel(Convert.ToUInt64(Program.Settings.GetSection("jabber")["defchan"]));
-                await channel.SendMessageAsync($"{prepend + Environment.NewLine}From: {e.Message.From.User} {Environment.NewLine} Message: ```{e.Message.Value}```");
+                else if (!string.IsNullOrWhiteSpace(e.Message.Value))
+                {
+                    var prepend = Program.Settings.GetSection("jabber")["prepend"];
+                    var channel = (ITextChannel)Program.Client.GetChannel(Convert.ToUInt64(Program.Settings.GetSection("jabber")["defchan"]));
+                    await channel.SendMessageAsync($"{prepend + Environment.NewLine}From: {e.Message.From.User} {Environment.NewLine} Message: ```{e.Message.Value}```");
+                }
             }
         }
         #endregion
