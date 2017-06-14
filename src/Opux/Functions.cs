@@ -3,6 +3,7 @@ using Discord.Addons.EmojiTools;
 using Discord.Commands;
 using Discord.WebSocket;
 using EveLibCore;
+using Matrix.Xmpp.Client;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 using MySql.Data.MySqlClient;
@@ -16,7 +17,6 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Matrix.Xmpp.Client;
 
 namespace Opux
 {
