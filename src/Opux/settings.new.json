@@ -12,7 +12,8 @@
     "authWeb": false,
     "killFeed": false,
     "time": false,
-    "fleetup":  false,
+    "fleetup": false,
+    "jabber": false,
     "timeformat": "yyyy/MM/dd/ HH:mm:ss",
     "MOTD": false,
     "updatetopic": false, // MOTD must also be enabled, updated a selected channel's topic with MOTD.
@@ -94,5 +95,17 @@
     "APICode": "",
     "GroupID": "",
     "channel": 0
+  },
+  "jabber": {
+    "domain": "example.com",
+    "username": "username",
+    "password": "password",
+    "filter": false,
+    "defchan": "0000000000000",
+    "filters": {
+      "SUPER": "0000000000000", //Filter - Channel ID
+      "BLOPS": "0000000000000" //Filter - Channel ID
+    },
+    "prepend": "@here"
   }
 }
