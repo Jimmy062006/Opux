@@ -839,124 +839,131 @@ namespace Opux
 
                     string query = "select * from authUsers";
                     var responce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query);
-                    foreach (var u in responce)
+                    if (responce.Count > 0)
                     {
-                        var characterID = u["characterID"];
-                        var discordID = u["discordID"];
-                        var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
-                        var logchan = Convert.ToUInt64(Program.Settings.GetSection("auth")["alertChannel"]);
-                        JObject characterDetails;
-                        JObject corporationDetails;
-                        JObject allianceDetails;
-
-                        using (HttpClient webclient = new HttpClient())
-                        using (HttpResponseMessage _characterDetails = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{characterID}"))
-                        using (HttpContent _characterDetailsContent = _characterDetails.Content)
+                        foreach (var u in responce)
                         {
-                            var allianceID = "";
-                            var corpID = "";
-                            characterDetails = JObject.Parse(await _characterDetailsContent.ReadAsStringAsync());
-                            characterDetails.TryGetValue("corporation_id", out JToken corporationid);
-                            using (HttpResponseMessage _corporationDetails = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corporationid}"))
-                            using (HttpContent _corporationDetailsContent = _corporationDetails.Content)
+                            var characterID = u["characterID"];
+                            var discordID = u["discordID"];
+                            var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
+                            var logchan = Convert.ToUInt64(Program.Settings.GetSection("auth")["alertChannel"]);
+                            JObject characterDetails;
+                            JObject corporationDetails;
+                            JObject allianceDetails;
+
+                            using (HttpClient webclient = new HttpClient())
+                            using (HttpResponseMessage _characterDetails = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{characterID}"))
+                            using (HttpContent _characterDetailsContent = _characterDetails.Content)
                             {
-                                corporationDetails = JObject.Parse(await _corporationDetailsContent.ReadAsStringAsync());
-                                corporationDetails.TryGetValue("alliance_id", out JToken allianceid);
-                                string i = (allianceid.IsNullOrEmpty() ? "0" : allianceid.ToString());
-                                string c = (corporationid.IsNullOrEmpty() ? "0" : corporationid.ToString());
-                                allianceID = i;
-                                corpID = c;
-                                if (allianceID != "0")
+                                var allianceID = "";
+                                var corpID = "";
+                                characterDetails = JObject.Parse(await _characterDetailsContent.ReadAsStringAsync());
+                                characterDetails.TryGetValue("corporation_id", out JToken corporationid);
+                                using (HttpResponseMessage _corporationDetails = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corporationid}"))
+                                using (HttpContent _corporationDetailsContent = _corporationDetails.Content)
                                 {
-                                    using (HttpResponseMessage _allianceDetails = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{allianceid}"))
-                                    using (HttpContent _allianceDetailsContent = _allianceDetails.Content)
+                                    corporationDetails = JObject.Parse(await _corporationDetailsContent.ReadAsStringAsync());
+                                    corporationDetails.TryGetValue("alliance_id", out JToken allianceid);
+                                    string i = (allianceid.IsNullOrEmpty() ? "0" : allianceid.ToString());
+                                    string c = (corporationid.IsNullOrEmpty() ? "0" : corporationid.ToString());
+                                    allianceID = i;
+                                    corpID = c;
+                                    if (allianceID != "0")
                                     {
-                                        allianceDetails = JObject.Parse(await _allianceDetailsContent.ReadAsStringAsync());
-                                    }
-                                }
-                            }
-
-                            var discordGuild = Program.Client.Guilds.FirstOrDefault(X => X.Id == guildID);
-
-                            var discordUser = discordGuild.Users.FirstOrDefault(x => x.Id == Convert.ToUInt64(u["discordID"]));
-
-                            if (discordUser == null)
-                            {
-                                string remquery = $"DELETE FROM authUsers WHERE discordID = {u["discordID"]}";
-                                var remresponce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], remquery);
-                                await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Removing {characterDetails["name"]} from Database as they have left discord"));
-                                continue;
-                            }
-                            else
-                            {
-                                var rolesToAdd = new List<SocketRole>();
-                                var rolesToTake = new List<SocketRole>();
-
-                                try
-                                {
-                                    //Check for Corp roles
-                                    if (corps.ContainsKey(corpID))
-                                    {
-                                        var cinfo = corps.FirstOrDefault(x => x.Key == corpID);
-                                        rolesToAdd.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == cinfo.Value));
-                                    }
-
-                                    //Check for Alliance roles
-                                    if (alliance.ContainsKey(allianceID))
-                                    {
-                                        var ainfo = alliance.FirstOrDefault(x => x.Key == allianceID);
-                                        rolesToAdd.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == ainfo.Value));
-                                    }
-
-                                    foreach (var r in rolesToAdd)
-                                    {
-                                        if (discordUser.Roles.FirstOrDefault(x => x.Id == r.Id) == null)
+                                        using (HttpResponseMessage _allianceDetails = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{allianceid}"))
+                                        using (HttpContent _allianceDetailsContent = _allianceDetails.Content)
                                         {
-                                            var channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
-                                            await channel.SendMessageAsync($"Granting Roles to {characterDetails["name"]}");
-                                            await discordUser.AddRolesAsync(rolesToAdd);
+                                            allianceDetails = JObject.Parse(await _allianceDetailsContent.ReadAsStringAsync());
                                         }
                                     }
                                 }
 
-                                catch (Exception ex)
+                                var discordGuild = Program.Client.Guilds.FirstOrDefault(X => X.Id == guildID);
+
+                                var discordUser = discordGuild.Users.FirstOrDefault(x => x.Id == Convert.ToUInt64(u["discordID"]));
+
+                                if (discordUser == null)
                                 {
-                                    await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential ESI Failiure for {u["eveName"]} skipping, Reason: {ex.Message}", ex));
+                                    string remquery = $"DELETE FROM authUsers WHERE discordID = {u["discordID"]}";
+                                    var remresponce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], remquery);
+                                    await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Removing {characterDetails["name"]} from Database as they have left discord"));
                                     continue;
                                 }
-
-                                //Check if roles when should not have any
-                                if (!corps.ContainsKey(corporationid.ToString()) && !alliance.ContainsKey(allianceID))
+                                else
                                 {
-                                    if (discordUser != null)
-                                    {
-                                        var exemptRoles = Program.Settings.GetSection("auth").GetSection("exempt").GetChildren().ToList();
+                                    var rolesToAdd = new List<SocketRole>();
+                                    var rolesToTake = new List<SocketRole>();
 
-                                        rolesToTake.AddRange(discordUser.Roles);
-                                        var exemptCheckRoles = new List<SocketRole>(rolesToTake);
-                                        foreach (var r in exemptCheckRoles)
+                                    try
+                                    {
+                                        //Check for Corp roles
+                                        if (corps.ContainsKey(corpID))
                                         {
-                                            var name = r.Name;
-                                            if (exemptRoles.FindAll(x => x.Key == name).Count > 0)
+                                            var cinfo = corps.FirstOrDefault(x => x.Key == corpID);
+                                            rolesToAdd.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == cinfo.Value));
+                                        }
+
+                                        //Check for Alliance roles
+                                        if (alliance.ContainsKey(allianceID))
+                                        {
+                                            var ainfo = alliance.FirstOrDefault(x => x.Key == allianceID);
+                                            rolesToAdd.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == ainfo.Value));
+                                        }
+
+                                        foreach (var r in rolesToAdd)
+                                        {
+                                            if (discordUser.Roles.FirstOrDefault(x => x.Id == r.Id) == null)
                                             {
-                                                rolesToTake.Remove(rolesToTake.FirstOrDefault(x => x.Name == r.Name));
+                                                var channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
+                                                await channel.SendMessageAsync($"Granting Roles to {characterDetails["name"]}");
+                                                await discordUser.AddRolesAsync(rolesToAdd);
                                             }
                                         }
-                                        rolesToTake.Remove(rolesToTake.FirstOrDefault(x => x.Name == "@everyone"));
-                                        if (rolesToTake.Count > 0)
-                                        {
-                                            var channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
-                                            await channel.SendMessageAsync($"Taking Roles from {characterDetails["name"]}");
-                                            await discordUser.RemoveRolesAsync(rolesToTake);
-                                        }
                                     }
-                                    else
-                                    {
 
+                                    catch (Exception ex)
+                                    {
+                                        await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential ESI Failiure for {u["eveName"]} skipping, Reason: {ex.Message}", ex));
+                                        continue;
+                                    }
+
+                                    //Check if roles when should not have any
+                                    if (!corps.ContainsKey(corporationid.ToString()) && !alliance.ContainsKey(allianceID))
+                                    {
+                                        if (discordUser != null)
+                                        {
+                                            var exemptRoles = Program.Settings.GetSection("auth").GetSection("exempt").GetChildren().ToList();
+
+                                            rolesToTake.AddRange(discordUser.Roles);
+                                            var exemptCheckRoles = new List<SocketRole>(rolesToTake);
+                                            foreach (var r in exemptCheckRoles)
+                                            {
+                                                var name = r.Name;
+                                                if (exemptRoles.FindAll(x => x.Key == name).Count > 0)
+                                                {
+                                                    rolesToTake.Remove(rolesToTake.FirstOrDefault(x => x.Name == r.Name));
+                                                }
+                                            }
+                                            rolesToTake.Remove(rolesToTake.FirstOrDefault(x => x.Name == "@everyone"));
+                                            if (rolesToTake.Count > 0)
+                                            {
+                                                var channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
+                                                await channel.SendMessageAsync($"Taking Roles from {characterDetails["name"]}");
+                                                await discordUser.RemoveRolesAsync(rolesToTake);
+                                            }
+                                        }
+                                        else
+                                        {
+
+                                        }
                                     }
                                 }
                             }
+                            lastAuthCheck = DateTime.Now;
                         }
+                    }
+                    else
+                    {
                         lastAuthCheck = DateTime.Now;
                     }
                     await Task.CompletedTask;
