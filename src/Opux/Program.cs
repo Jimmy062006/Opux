@@ -24,7 +24,7 @@ namespace Opux
 
         static AutoResetEvent autoEvent = new AutoResetEvent(true);
 
-        static Timer stateTimer = new Timer(Functions.RunTick, autoEvent, 1 * 100, 1 * 100);
+        static Timer stateTimer = new Timer(Functions.RunTick, autoEvent, 100, 100);
 
         public static void Main(string[] args)
         {
