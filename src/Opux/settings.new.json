@@ -101,6 +101,7 @@
     "username": "username",
     "password": "password",
     "filter": false,
+    "debug":  false,
     "defchan": "0000000000000",
     "filters": {
       "SUPER": "0000000000000", //Filter - Channel ID

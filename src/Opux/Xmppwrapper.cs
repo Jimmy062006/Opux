@@ -32,6 +32,8 @@ namespace Opux
                 xmppClient.OnStreamError += OnStreamError;
                 xmppClient.OnXmlError += OnXmlError;
                 xmppClient.OnLogin += OnLogin;
+                xmppClient.OnReceiveXml += XmppClient_OnReceiveXml;
+                xmppClient.OnSendXml += XmppClient_OnSendXml;
 
                 connectTimerCallback = Connect;
                 connectTimer = new Timer(connectTimerCallback, null, 5000, Timeout.Infinite);
@@ -40,6 +42,18 @@ namespace Opux
             {
                 Debug.WriteLine(ex.Message);
             }
+        }
+
+        private void XmppClient_OnSendXml(object sender, Matrix.TextEventArgs e)
+        {
+            
+                Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Debug, "JabberClient Sent", e.Text));
+        }
+
+        private void XmppClient_OnReceiveXml(object sender, Matrix.TextEventArgs e)
+        {
+            if (Convert.ToBoolean(Program.Settings.GetSection("jabber")["debug"]))
+                Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Debug, "JabberClient Recived", e.Text));
         }
 
 
