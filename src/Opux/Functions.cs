@@ -966,7 +966,6 @@ namespace Opux
                     {
                         lastAuthCheck = DateTime.Now;
                     }
-                    await Task.CompletedTask;
                 }
                 catch (Exception ex)
                 {
