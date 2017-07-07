@@ -68,14 +68,15 @@
     }
   },
   "notifications": {
-    "characterID": "",
     "channelID": 0,
     "keys": {
       "key1": { //make sure the name is unique
+        "characterID": "",
         "keyID": "",
         "vCode": ""
-      } //,//DO NOT LEAVE EMPTY KEY SECTIONS UNCOMMENT TO USE
+      }//,//DO NOT LEAVE EMPTY KEY SECTIONS UNCOMMENT TO USE
       //"key1": {
+      //"characterID": ""
       //  "keyID": "",
       //  "vCode": ""
       //}

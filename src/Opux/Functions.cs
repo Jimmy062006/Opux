@@ -9,6 +9,7 @@ using MySql.Data.MySqlClient;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -90,14 +91,29 @@ namespace Opux
 
         //Needs logging to a file added
         #region Logger
-        internal static Task Client_Log(LogMessage arg)
+        internal async static Task Client_Log(LogMessage arg)
         {
+            var path = Path.Combine(AppContext.BaseDirectory + "\\logs");
+            var file = $"\\{arg.Source}.log";
+
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+            if (!File.Exists(Path.Combine(path + file)))
+            {
+                File.Create(Path.Combine(path + file));
+            }
+
+            var opuxPath = File.Open(Path.Combine(path + file), FileMode.Append);
             var cc = Console.ForegroundColor;
+
             switch (arg.Severity)
             {
                 case LogSeverity.Critical:
                 case LogSeverity.Error:
                     Console.ForegroundColor = ConsoleColor.Red;
+
                     break;
                 case LogSeverity.Warning:
                     Console.ForegroundColor = ConsoleColor.Yellow;
@@ -110,13 +126,19 @@ namespace Opux
                     Console.ForegroundColor = ConsoleColor.DarkGray;
                     break;
             }
+
+            using (StreamWriter logFile = new StreamWriter(opuxPath, Encoding.UTF8))
+            {
+                await logFile.WriteLineAsync($"{DateTime.Now,-19} [{arg.Severity,8}]: {arg.Message}");
+            }
+
             Console.WriteLine($"{DateTime.Now,-19} [{arg.Severity,8}] [{arg.Source}]: {arg.Message}");
             if (arg.Exception != null)
             {
                 Console.WriteLine(arg.Exception?.StackTrace);
             }
             Console.ForegroundColor = cc;
-            return Task.CompletedTask;
+            await Task.CompletedTask;
         }
         #endregion
 
@@ -1494,12 +1516,11 @@ namespace Opux
                     await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", "Running Notification Check"));
                     lastNotification = Convert.ToInt32(await SQLiteDataQuery("cacheData", "data", "lastNotificationID"));
                     var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
-                    var test = Program.Settings.GetSection("notifications")["characterId"];
                     var channelId = Convert.ToUInt64(Program.Settings.GetSection("notifications")["channelId"]);
                     var chan = (ITextChannel)Program.Client.GetGuild(guildID).GetChannel(channelId);
                     var keyID = "";
                     var vCode = "";
-                    var characterID = Program.Settings.GetSection("notifications")["characterID"];
+                    var characterID = "";
                     var keys = Program.Settings.GetSection("notifications").GetSection("keys").GetChildren();
                     var keyCount = keys.Count();
                     var nextKey = await SQLiteDataQuery("notifications", "data", "nextKey");
@@ -1509,6 +1530,7 @@ namespace Opux
                     {
                         if (nextKey == null || String.IsNullOrWhiteSpace(nextKey) || nextKey == key.Key)
                         {
+                            characterID = Program.Settings.GetSection("notifications")["characterID"];
                             keyID = key["keyID"];
                             vCode = key["vCode"];
 

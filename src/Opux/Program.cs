@@ -68,7 +68,7 @@ namespace Opux
             {
                 if (ex.Reason.Contains("401"))
                 {
-                    await Functions.Client_Log(new LogMessage(LogSeverity.Error, "Discord.NET", $"Check your Token: {ex.Reason}"));
+                    await Functions.Client_Log(new LogMessage(LogSeverity.Error, "Discord", $"Check your Token: {ex.Reason}"));
                 }
             }
             catch (Exception ex)
