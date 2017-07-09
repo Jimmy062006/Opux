@@ -44,8 +44,13 @@ namespace Opux
             }
             catch (Exception ex)
             {
-                Functions.Client_Log(new LogMessage(LogSeverity.Error, "Main", ex.Message, ex));
+                LoggerAsync(ex).GetAwaiter().GetResult();
             }
+        }
+
+        internal static async Task LoggerAsync(Exception args)
+        {
+            await Functions.Client_Log(new LogMessage(LogSeverity.Error, "Main", args.Message, args));
         }
 
         internal static async Task MainAsync(string[] args)
