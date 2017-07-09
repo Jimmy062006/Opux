@@ -34,7 +34,7 @@ namespace Opux
 
         //Timer is setup here
         #region Timer stuff
-        public static void RunTick(Object stateInfo)
+        public async static void RunTick(Object stateInfo)
         {
             try
             {
@@ -46,7 +46,7 @@ namespace Opux
             }
             catch (Exception ex)
             {
-                Client_Log(new LogMessage(LogSeverity.Error, "Aync_Tick", ex.Message, ex));
+                await Client_Log(new LogMessage(LogSeverity.Error, "Aync_Tick", ex.Message, ex));
             }
         }
 
@@ -100,12 +100,11 @@ namespace Opux
             {
                 Directory.CreateDirectory(path);
             }
-            if (!File.Exists(Path.Combine(path + file)))
+            if (!File.Exists(file))
             {
-                File.Create(Path.Combine(path + file));
+                File.Create(file);
             }
 
-            var opuxPath = File.Open(Path.Combine(path + file), FileMode.Append);
             var cc = Console.ForegroundColor;
 
             switch (arg.Severity)
@@ -127,7 +126,7 @@ namespace Opux
                     break;
             }
 
-            using (StreamWriter logFile = new StreamWriter(opuxPath, Encoding.UTF8))
+            using (StreamWriter logFile = new StreamWriter(File.Open(file, FileMode.Append), Encoding.UTF8))
             {
                 await logFile.WriteLineAsync($"{DateTime.Now,-19} [{arg.Severity,8}]: {arg.Message}");
             }
