@@ -93,8 +93,8 @@ namespace Opux
         #region Logger
         internal async static Task Client_Log(LogMessage arg)
         {
-            var path = Path.Combine(AppContext.BaseDirectory + "\\logs");
-            var file = $"\\{arg.Source}.log";
+            var path = Path.Combine(AppContext.BaseDirectory + Path.DirectorySeparatorChar + "logs");
+            var file = $"{Path.DirectorySeparatorChar}{arg.Source}.log";
 
             if (!Directory.Exists(path))
             {
