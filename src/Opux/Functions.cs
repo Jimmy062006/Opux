@@ -31,6 +31,7 @@ namespace Opux
         internal static bool authRunning = false;
         internal static string motdtopic;
         internal static DateTime lastTopicCheck = DateTime.Now;
+        internal static StreamWriter logFile;
 
         //Timer is setup here
         #region Timer stuff
@@ -105,6 +106,11 @@ namespace Opux
                 File.Create(file);
             }
 
+            if (logFile == null)
+            {
+                logFile = new StreamWriter(File.Open(file, FileMode.Append), Encoding.UTF8);
+            }
+
             var cc = Console.ForegroundColor;
 
             switch (arg.Severity)
@@ -126,10 +132,7 @@ namespace Opux
                     break;
             }
 
-            using (StreamWriter logFile = new StreamWriter(File.Open(file, FileMode.Append), Encoding.UTF8))
-            {
-                await logFile.WriteLineAsync($"{DateTime.Now,-19} [{arg.Severity,8}]: {arg.Message}");
-            }
+            await logFile.WriteLineAsync($"{DateTime.Now,-19} [{arg.Severity,8}]: {arg.Message}");
 
             Console.WriteLine($"{DateTime.Now,-19} [{arg.Severity,8}] [{arg.Source}]: {arg.Message}");
             if (arg.Exception != null)
