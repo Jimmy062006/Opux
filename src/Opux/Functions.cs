@@ -2115,7 +2115,7 @@ namespace Opux
 
         internal static async void OnMessage(object sender, MessageEventArgs e)
         {
-            if (e.Message.Chatstate == Chatstate.Active && !string.IsNullOrWhiteSpace(e.Message.Value))
+            if (e.Message.Chatstate != Chatstate.Composing && !string.IsNullOrWhiteSpace(e.Message.Value))
             {
                 if (Convert.ToBoolean(Program.Settings.GetSection("jabber").GetSection("filter").Value))
                 {
