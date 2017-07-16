@@ -1529,7 +1529,7 @@ namespace Opux
                     {
                         if (nextKey == null || String.IsNullOrWhiteSpace(nextKey) || nextKey == key.Key)
                         {
-                            characterID = Program.Settings.GetSection("notifications")["characterID"];
+                            characterID = key["characterID"];
                             keyID = key["keyID"];
                             vCode = key["vCode"];
 
