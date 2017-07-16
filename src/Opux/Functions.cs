@@ -1527,6 +1527,10 @@ namespace Opux
 
                     foreach (var key in keys)
                     {
+                        if (key.Key != nextKey)
+                        {
+                            index++;
+                        }
                         if (nextKey == null || String.IsNullOrWhiteSpace(nextKey) || nextKey == key.Key)
                         {
                             characterID = key["characterID"];
@@ -1731,7 +1735,7 @@ namespace Opux
                             }
                             index++;
                         }
-                        var interval = 30 / keys.Count();
+                        var interval = 30 / keyCount;
                         await SQLiteDataUpdate("cacheData", "data", "nextNotificationCheck", DateTime.Now.AddMinutes(interval).ToString());
                         nextNotificationCheck = DateTime.Now.AddMinutes(interval);
                         await Task.CompletedTask;
