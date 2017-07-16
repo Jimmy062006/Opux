@@ -1533,7 +1533,7 @@ namespace Opux
                             keyID = key["keyID"];
                             vCode = key["vCode"];
 
-                            await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Checking characterID {characterID}"));
+                            await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Checking characterID:{characterID} keyID:{keyID} vCode:{vCode}"));
 
                             await EveLib.SetApiKey(keyID, vCode, characterID);
                             var notifications = await EveLib.GetNotifications();
