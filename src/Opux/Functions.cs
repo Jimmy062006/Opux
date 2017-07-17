@@ -3,6 +3,8 @@ using Discord.Addons.EmojiTools;
 using Discord.Commands;
 using Discord.WebSocket;
 using EveLibCore;
+using Matrix.Xmpp.Chatstates;
+using Matrix.Xmpp.Client;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 using MySql.Data.MySqlClient;
@@ -29,6 +31,7 @@ namespace Opux
         internal static bool avaliable = false;
         internal static bool running = false;
         internal static bool authRunning = false;
+        internal static bool jabberRunning = false;
         internal static string motdtopic;
         internal static DateTime lastTopicCheck = DateTime.Now;
 
@@ -77,6 +80,10 @@ namespace Opux
                 if (Convert.ToBoolean(Program.Settings.GetSection("config")["updatetopic"]))
                 {
                     await TopicMOTD(null);
+                }
+                if (Convert.ToBoolean(Program.Settings.GetSection("config")["jabber"]))
+                {
+                    await Jabber();
                 }
 
                 running = false;
@@ -2116,6 +2123,57 @@ namespace Opux
         }
         #endregion
 
+        //Jabber Broadcasts
+        #region Jabber
+        internal static async Task Jabber()
+        {
+            var username = Program.Settings.GetSection("jabber")["username"];
+            var password = Program.Settings.GetSection("jabber")["password"];
+            var domain = Program.Settings.GetSection("jabber")["domain"];
+
+            if (!jabberRunning)
+            {
+                try
+                {
+                    var xmppWrapper = new ReconnectXmppWrapper(domain, username, password);
+                    xmppWrapper.Connect(null);
+                    jabberRunning = true;
+                }
+                catch (Exception ex)
+                {
+                    await Client_Log(new LogMessage(LogSeverity.Error, "Jabber", ex.Message, ex));
+                }
+            }
+
+            await Task.CompletedTask;
+        }
+
+        internal static async void OnMessage(object sender, MessageEventArgs e)
+        {
+            if (e.Message.Chatstate != Chatstate.Composing && !string.IsNullOrWhiteSpace(e.Message.Value))
+            {
+                if (Convert.ToBoolean(Program.Settings.GetSection("jabber").GetSection("filter").Value))
+                {
+                    foreach (var filter in Program.Settings.GetSection("jabber").GetSection("filters").GetChildren().ToList())
+                    {
+                        if (e.Message.Value.ToLower().Contains(filter.Key.ToLower()))
+                        {
+                            var prepend = Program.Settings.GetSection("jabber")["prepend"];
+                            var channel = (ITextChannel)Program.Client.GetChannel(Convert.ToUInt64(filter.Value));
+                            await channel.SendMessageAsync($"{prepend + Environment.NewLine}From: {e.Message.From.User} {Environment.NewLine} Message: ```{e.Message.Value}```");
+                        }
+                    }
+                }
+                else if (!string.IsNullOrWhiteSpace(e.Message.Value))
+                {
+                    var prepend = Program.Settings.GetSection("jabber")["prepend"];
+                    var channel = (ITextChannel)Program.Client.GetChannel(Convert.ToUInt64(Program.Settings.GetSection("jabber")["defchan"]));
+                    await channel.SendMessageAsync($"{prepend + Environment.NewLine}From: {e.Message.From.User} {Environment.NewLine} Message: ```{e.Message.Value}```");
+                }
+            }
+        }
+        #endregion
+
         //Discord Stuff
         #region Discord Modules
         internal static async Task InstallCommands()
@@ -2133,7 +2191,7 @@ namespace Opux
             int argPos = 0;
 
             if (!(message.HasCharPrefix(Program.Settings.GetSection("config")["commandprefix"].ToCharArray()[0], ref argPos) || message.HasMentionPrefix
-                  (Program.Client.CurrentUser, ref argPos))) return;
+                    (Program.Client.CurrentUser, ref argPos))) return;
 
             var context = new CommandContext(Program.Client, message);
 
@@ -2336,7 +2394,7 @@ namespace Opux
         }
         #endregion
 
-    }
+        }
 
     #region JToken null/empty check
     internal static class JsonExtensions

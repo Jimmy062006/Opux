@@ -84,10 +84,18 @@ namespace Opux
 
         public static Task UpdateSettings()
         {
-            Settings = new ConfigurationBuilder()
-            .SetBasePath(ApplicationBase)
-            .AddJsonFile("settings.json", optional: true, reloadOnChange: true).Build();
-            Functions.nextNotificationCheck = DateTime.Parse(Functions.SQLiteDataQuery("cacheData", "data", "nextNotificationCheck").GetAwaiter().GetResult());
+            try
+            {
+                Settings = new ConfigurationBuilder()
+                .SetBasePath(ApplicationBase)
+                .AddJsonFile("settings.json", optional: true, reloadOnChange: true).Build();
+                if (Convert.ToBoolean(Program.Settings.GetSection("config")["notificationFeed"]))
+                    Functions.nextNotificationCheck = DateTime.Parse(Functions.SQLiteDataQuery("cacheData", "data", "nextNotificationCheck").GetAwaiter().GetResult());
+            }
+            catch (Exception ex)
+            {
+                var debug = ex.Message;
+            }
             return Task.CompletedTask;
         }
     }
