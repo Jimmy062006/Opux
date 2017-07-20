@@ -100,51 +100,56 @@ namespace Opux
         #region Logger
         internal async static Task Client_Log(LogMessage arg)
         {
-            var path = Path.Combine(AppContext.BaseDirectory, "logs");
-            var file = Path.Combine(path, $"{arg.Source}.log");
-
-            if (!Directory.Exists(path))
+            try
             {
-                Directory.CreateDirectory(path);
-            }
-            if (!File.Exists(file))
-            {
-                File.Create(file);
-            }
 
-            var cc = Console.ForegroundColor;
+                var path = Path.Combine(AppContext.BaseDirectory, "logs");
+                var file = Path.Combine(path, $"{arg.Source}.log");
 
-            switch (arg.Severity)
-            {
-                case LogSeverity.Critical:
-                case LogSeverity.Error:
-                    Console.ForegroundColor = ConsoleColor.Red;
+                if (!Directory.Exists(path))
+                {
+                    Directory.CreateDirectory(path);
+                }
+                if (!File.Exists(file))
+                {
+                    File.Create(file);
+                }
 
-                    break;
-                case LogSeverity.Warning:
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    break;
-                case LogSeverity.Info:
-                    Console.ForegroundColor = ConsoleColor.White;
-                    break;
-                case LogSeverity.Verbose:
-                case LogSeverity.Debug:
-                    Console.ForegroundColor = ConsoleColor.DarkGray;
-                    break;
+                var cc = Console.ForegroundColor;
+
+                switch (arg.Severity)
+                {
+                    case LogSeverity.Critical:
+                    case LogSeverity.Error:
+                        Console.ForegroundColor = ConsoleColor.Red;
+
+                        break;
+                    case LogSeverity.Warning:
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        break;
+                    case LogSeverity.Info:
+                        Console.ForegroundColor = ConsoleColor.White;
+                        break;
+                    case LogSeverity.Verbose:
+                    case LogSeverity.Debug:
+                        Console.ForegroundColor = ConsoleColor.DarkGray;
+                        break;
+                }
+
+                using (StreamWriter logFile = new StreamWriter(File.Open(file, FileMode.Append, FileAccess.Write, FileShare.Write), Encoding.UTF8))
+                {
+                    await logFile.WriteLineAsync($"{DateTime.Now,-19} [{arg.Severity,8}]: {arg.Message}");
+                }
+
+                Console.WriteLine($"{DateTime.Now,-19} [{arg.Severity,8}] [{arg.Source}]: {arg.Message}");
+                if (arg.Exception != null)
+                {
+                    Console.WriteLine(arg.Exception?.StackTrace);
+                }
+                Console.ForegroundColor = cc;
+                await Task.CompletedTask;
             }
-
-            using (StreamWriter logFile = new StreamWriter(File.Open(file, FileMode.Append, FileAccess.Write, FileShare.Write), Encoding.UTF8))
-            {
-                await logFile.WriteLineAsync($"{DateTime.Now,-19} [{arg.Severity,8}]: {arg.Message}");
-            }
-
-            Console.WriteLine($"{DateTime.Now,-19} [{arg.Severity,8}] [{arg.Source}]: {arg.Message}");
-            if (arg.Exception != null)
-            {
-                Console.WriteLine(arg.Exception?.StackTrace);
-            }
-            Console.ForegroundColor = cc;
-            await Task.CompletedTask;
+            catch { }
         }
         #endregion
 
@@ -1509,6 +1514,7 @@ namespace Opux
                 {188,   "Structure destroyed (StructureDestroyed)"},
                 {198,   "Structure service offline (StructureServicesOffline)"},
                 {199,   "Item delivered (StructureItemsDelivered)"},
+                {200,   "Points Awarded"},
                 {201,   "StructureCourierContractChanged ?"},
                 {1012,  "OperationFinished ?"},
                 {1030,  "Game time received (GameTimeReceived)"},
