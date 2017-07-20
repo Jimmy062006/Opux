@@ -2046,7 +2046,7 @@ namespace Opux
                                 $"Form Up Time - {startTime} {Environment.NewLine}" +
                                 $"Form Up System - {location} - {locationinfo} {Environment.NewLine}" +
                                 $"Details - {details}{Environment.NewLine}" +
-                                $"Operation Link: {url}```";
+                                $"```{Environment.NewLine}{url}";
 
                             var sendres = await channel.SendMessageAsync(message);
 
@@ -2088,11 +2088,13 @@ namespace Opux
                     var locationinfo = operation["LocationInfo"];
                     var location = operation["Location"];
                     var details = operation["Details"];
+                    var url = $"http://fleet-up.com/Operation#{operation["OperationId"]}";
 
                     var message_temp = $"```Title - {name} {Environment.NewLine}" +
                                 $"Form Up Time - {startTime} {Environment.NewLine}" +
                                 $"Form Up System - {location} - {locationinfo} {Environment.NewLine}" +
-                                $"Details - {details}``` {Environment.NewLine}";
+                                $"Details - {details}```" +
+                                $"```{ Environment.NewLine}{url}";
 
                     if(message.Count() + message_temp.Count() >= 2000)
                     {
