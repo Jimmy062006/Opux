@@ -2100,7 +2100,7 @@ namespace Opux
                                 $"Form Up Time - {startTime} {Environment.NewLine}" +
                                 $"Form Up System - {location} - {locationinfo} {Environment.NewLine}" +
                                 $"Details - {details}```" +
-                                $"{ Environment.NewLine}{url}{Environment.NewLine}";
+                                $"{url}{Environment.NewLine}{Environment.NewLine}";
 
                     if(message.Count() + message_temp.Count() >= 2000)
                     {
