@@ -1537,14 +1537,15 @@ namespace Opux
                     var keyCount = keys.Count();
                     var nextKey = await SQLiteDataQuery("notifications", "data", "nextKey");
                     var index = 0;
+                    var runComplete = false;
 
                     foreach (var key in keys)
                     {
-                        if (key.Key != nextKey)
+                        if (key.Key != nextKey && nextKey != null)
                         {
                             index++;
                         }
-                        if (nextKey == null || String.IsNullOrWhiteSpace(nextKey) || nextKey == key.Key)
+                        if (nextKey == null && !runComplete || String.IsNullOrWhiteSpace(nextKey) && !runComplete || nextKey == key.Key && !runComplete)
                         {
                             characterID = key["characterID"];
                             keyID = key["keyID"];
@@ -1730,10 +1731,11 @@ namespace Opux
                                                 $"Type: {types[notificationType]} {Environment.NewLine} Text: {notificationText}"));
                                         }
                                         lastNotification = (int)notification.Value["notificationID"];
-                                        await SQLiteDataUpdate("cacheData", "data", "lastNotificationID", lastNotification.ToString());
+                                        runComplete = true;
                                     }
                                 }
                             }
+                            await SQLiteDataUpdate("cacheData", "data", "lastNotificationID", lastNotification.ToString());
                             if (keyCount > 1 && keyCount != index + 1)
                             {
                                 await SQLiteDataUpdate("notifications", "data", "nextKey", keys.ToList()[index + 1].Key);
@@ -1746,7 +1748,6 @@ namespace Opux
                             {
                                 await SQLiteDataUpdate("notifications", "data", "nextKey", key.Key);
                             }
-                            index++;
                         }
                         var interval = 30 / keyCount;
                         await SQLiteDataUpdate("cacheData", "data", "nextNotificationCheck", DateTime.Now.AddMinutes(interval).ToString());
