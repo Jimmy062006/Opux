@@ -1731,11 +1731,11 @@ namespace Opux
                                                 $"Type: {types[notificationType]} {Environment.NewLine} Text: {notificationText}"));
                                         }
                                         lastNotification = (int)notification.Value["notificationID"];
+                                        await SQLiteDataUpdate("cacheData", "data", "lastNotificationID", lastNotification.ToString());
                                         runComplete = true;
                                     }
                                 }
                             }
-                            await SQLiteDataUpdate("cacheData", "data", "lastNotificationID", lastNotification.ToString());
                             if (keyCount > 1 && keyCount != index + 1)
                             {
                                 await SQLiteDataUpdate("notifications", "data", "nextKey", keys.ToList()[index + 1].Key);
