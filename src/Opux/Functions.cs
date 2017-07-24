@@ -1733,18 +1733,18 @@ namespace Opux
                                         await SQLiteDataUpdate("cacheData", "data", "lastNotificationID", lastNotification.ToString());
                                     }
                                 }
-                                if (keyCount > 1 && keyCount != index + 1)
-                                {
-                                    await SQLiteDataUpdate("notifications", "data", "nextKey", keys.ToList()[index + 1].Key);
-                                }
-                                else if (keyCount == index + 1)
-                                {
-                                    await SQLiteDataUpdate("notifications", "data", "nextKey", keys.ToList()[0].Key);
-                                }
-                                else
-                                {
-                                    await SQLiteDataUpdate("notifications", "data", "nextKey", key.Key);
-                                }
+                            }
+                            if (keyCount > 1 && keyCount != index + 1)
+                            {
+                                await SQLiteDataUpdate("notifications", "data", "nextKey", keys.ToList()[index + 1].Key);
+                            }
+                            else if (keyCount == index + 1)
+                            {
+                                await SQLiteDataUpdate("notifications", "data", "nextKey", keys.ToList()[0].Key);
+                            }
+                            else
+                            {
+                                await SQLiteDataUpdate("notifications", "data", "nextKey", key.Key);
                             }
                             index++;
                         }
