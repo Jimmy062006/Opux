@@ -2107,7 +2107,7 @@ namespace Opux
                     {
                         if (message.Count() != count)
                         {
-                            await context.Message.Channel.SendMessageAsync($"{message} {message_temp}");
+                            await context.Message.Channel.SendMessageAsync($"{message}");
                             message = $"{context.Message.Author.Mention}, {Environment.NewLine}";
                         }
                         else
