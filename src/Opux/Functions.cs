@@ -941,12 +941,6 @@ namespace Opux
                                             }
                                         }
                                         rolesToTake.Remove(rolesToTake.FirstOrDefault(x => x.Name == "@everyone"));
-                                        if (rolesToTake.Count > 0)
-                                        {
-                                            var channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
-                                            await channel.SendMessageAsync($"Taking Roles from {characterDetails["name"]}");
-                                            await discordUser.RemoveRolesAsync(rolesToTake);
-                                        }
                                         //Check for Corp roles
                                         if (corps.ContainsKey(corpID))
                                         {
@@ -965,8 +959,10 @@ namespace Opux
                                         {
                                             if (discordUser.Roles.FirstOrDefault(x => x.Id == r.Id) == null)
                                             {
+
                                                 var channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
                                                 await channel.SendMessageAsync($"Granting Roles to {characterDetails["name"]}");
+                                                await discordUser.RemoveRolesAsync(rolesToTake);
                                                 await discordUser.AddRolesAsync(rolesToAdd);
                                             }
                                         }
