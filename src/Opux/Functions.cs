@@ -876,6 +876,7 @@ namespace Opux
                     {
                         foreach (var u in responce)
                         {
+                            var exemptRoles = Program.Settings.GetSection("auth").GetSection("exempt").GetChildren().ToList();
                             var characterID = u["characterID"];
                             var discordID = u["discordID"];
                             var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
@@ -929,6 +930,23 @@ namespace Opux
 
                                     try
                                     {
+                                        rolesToTake.AddRange(discordUser.Roles);
+                                        var exemptCheckRoles = new List<SocketRole>(rolesToTake);
+                                        foreach (var r in exemptCheckRoles)
+                                        {
+                                            var name = r.Name;
+                                            if (exemptRoles.FindAll(x => x.Key == name).Count > 0)
+                                            {
+                                                rolesToTake.Remove(rolesToTake.FirstOrDefault(x => x.Name == r.Name));
+                                            }
+                                        }
+                                        rolesToTake.Remove(rolesToTake.FirstOrDefault(x => x.Name == "@everyone"));
+                                        if (rolesToTake.Count > 0)
+                                        {
+                                            var channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
+                                            await channel.SendMessageAsync($"Taking Roles from {characterDetails["name"]}");
+                                            await discordUser.RemoveRolesAsync(rolesToTake);
+                                        }
                                         //Check for Corp roles
                                         if (corps.ContainsKey(corpID))
                                         {
@@ -965,8 +983,6 @@ namespace Opux
                                     {
                                         if (discordUser != null)
                                         {
-                                            var exemptRoles = Program.Settings.GetSection("auth").GetSection("exempt").GetChildren().ToList();
-
                                             rolesToTake.AddRange(discordUser.Roles);
                                             var exemptCheckRoles = new List<SocketRole>(rolesToTake);
                                             foreach (var r in exemptCheckRoles)
@@ -2088,38 +2104,45 @@ namespace Opux
                 var result = JObject.Parse(Json);
                 var message = $"{context.Message.Author.Mention}, {Environment.NewLine}";
                 var count = message.Count();
-                foreach (var operation in result["Data"])
+                if (result["Data"].IsNullOrEmpty())
                 {
-                    var name = operation["Subject"];
-                    var startTime = operation["StartString"];
-                    var locationinfo = operation["LocationInfo"];
-                    var location = operation["Location"];
-                    var details = operation["Details"];
-                    var url = $"http://fleet-up.com/Operation#{operation["OperationId"]}";
-
-                    var message_temp = $"```Title - {name} {Environment.NewLine}" +
-                                $"Form Up Time - {startTime} {Environment.NewLine}" +
-                                $"Form Up System - {location} - {locationinfo} {Environment.NewLine}" +
-                                $"Details - {details}```" +
-                                $"{url}{Environment.NewLine}{Environment.NewLine}";
-
-                    if(message.Count() + message_temp.Count() >= 2000)
+                    await context.Message.Channel.SendMessageAsync($"{message}No Ops Scheduled");
+                }
+                else
+                {
+                    foreach (var operation in result["Data"])
                     {
-                        if (message.Count() != count)
+                        var name = operation["Subject"];
+                        var startTime = operation["StartString"];
+                        var locationinfo = operation["LocationInfo"];
+                        var location = operation["Location"];
+                        var details = operation["Details"];
+                        var url = $"http://fleet-up.com/Operation#{operation["OperationId"]}";
+
+                        var message_temp = $"```Title - {name} {Environment.NewLine}" +
+                                    $"Form Up Time - {startTime} {Environment.NewLine}" +
+                                    $"Form Up System - {location} - {locationinfo} {Environment.NewLine}" +
+                                    $"Details - {details}```" +
+                                    $"{url}{Environment.NewLine}{Environment.NewLine}";
+
+                        if (message.Count() + message_temp.Count() >= 2000)
                         {
-                            await context.Message.Channel.SendMessageAsync($"{message}");
-                            message = $"{context.Message.Author.Mention}, {Environment.NewLine}";
+                            if (message.Count() != count)
+                            {
+                                await context.Message.Channel.SendMessageAsync($"{message}");
+                                message = $"{context.Message.Author.Mention}, {Environment.NewLine}";
+                            }
+                            else
+                            {
+                                message += $"{message_temp}";
+                                await context.Message.Channel.SendMessageAsync($"{message}");
+                                message = $"{context.Message.Author.Mention}, {Environment.NewLine}";
+                            }
                         }
                         else
                         {
                             message += $"{message_temp}";
-                            await context.Message.Channel.SendMessageAsync($"{message}");
-                            message = $"{context.Message.Author.Mention}, {Environment.NewLine}";
                         }
-                    }
-                    else
-                    {
-                        message += $"{message_temp}";
                     }
                 }
                 if(message != $"{context.Message.Author.Mention}, {Environment.NewLine}")
