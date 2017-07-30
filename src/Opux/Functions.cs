@@ -966,6 +966,29 @@ namespace Opux
                                                 await discordUser.AddRolesAsync(rolesToAdd);
                                             }
                                         }
+
+                                        var eveName = characterDetails["name"];
+
+                                        var corpTickers = Convert.ToBoolean(Program.Settings.GetSection("auth")["corpTickers"]);
+                                        var nameEnforce = Convert.ToBoolean(Program.Settings.GetSection("auth")["nameEnforce"]);
+
+                                        if (corpTickers || nameEnforce)
+                                        {
+                                            var Nickname = "";
+                                            if (corpTickers)
+                                            {
+                                                Nickname = $"[{corporationDetails["ticker"]}] ";
+                                            }
+                                            if (nameEnforce)
+                                            {
+                                                Nickname += $"{eveName}";
+                                            }
+                                            else
+                                            {
+                                                Nickname += $"{discordUser.Username}";
+                                            }
+                                            await discordUser.ModifyAsync(x => x.Nickname = Nickname);
+                                        }
                                     }
 
                                     catch (Exception ex)
