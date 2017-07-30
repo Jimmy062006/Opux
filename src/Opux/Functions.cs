@@ -987,7 +987,10 @@ namespace Opux
                                             {
                                                 Nickname += $"{discordUser.Username}";
                                             }
-                                            await discordUser.ModifyAsync(x => x.Nickname = Nickname);
+                                            if (Nickname != discordUser.Nickname)
+                                            {
+                                                await discordUser.ModifyAsync(x => x.Nickname = Nickname);
+                                            }
                                         }
                                     }
 
