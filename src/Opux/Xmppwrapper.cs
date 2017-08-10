@@ -46,14 +46,13 @@ namespace Opux
 
         private void XmppClient_OnSendXml(object sender, Matrix.TextEventArgs e)
         {
-            
-                Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Debug, "JabberClient Sent", e.Text));
+            Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Debug, "JabberClient Sent", e.Text)).GetAwaiter().GetResult();
         }
 
         private void XmppClient_OnReceiveXml(object sender, Matrix.TextEventArgs e)
         {
             if (Convert.ToBoolean(Program.Settings.GetSection("jabber")["debug"]))
-                Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Debug, "JabberClient Recived", e.Text));
+                Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Debug, "JabberClient Recived", e.Text)).GetAwaiter().GetResult();
         }
 
 
