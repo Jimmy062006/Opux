@@ -138,14 +138,17 @@ namespace Opux
 
                 using (StreamWriter logFile = new StreamWriter(File.Open(file, FileMode.Append, FileAccess.Write, FileShare.Write), Encoding.UTF8))
                 {
-                    await logFile.WriteLineAsync($"{DateTime.Now,-19} [{arg.Severity,8}]: {arg.Message}");
+                    if (arg.Exception != null)
+                    {
+                        await logFile.WriteLineAsync($"{DateTime.Now,-19} [{arg.Severity,8}]: {arg.Message} {Environment.NewLine}{arg.Exception}");
+                    }
+                    else
+                    {
+                        await logFile.WriteLineAsync($"{DateTime.Now,-19} [{arg.Severity,8}]: {arg.Message}");
+                    }
                 }
 
                 Console.WriteLine($"{DateTime.Now,-19} [{arg.Severity,8}] [{arg.Source}]: {arg.Message}");
-                if (arg.Exception != null)
-                {
-                    Console.WriteLine(arg.Exception?.StackTrace);
-                }
                 Console.ForegroundColor = cc;
                 await Task.CompletedTask;
             }
@@ -157,8 +160,6 @@ namespace Opux
         #region EVENTS
         internal async static Task Event_GuildAvaliable(SocketGuild arg)
         {
-            avaliable = true;
-            await arg.CurrentUser.ModifyAsync(x => x.Nickname = Program.Settings.GetSection("config")["name"]);
             await Task.CompletedTask;
         }
 
@@ -197,6 +198,13 @@ namespace Opux
         internal static Task Event_LoggedOut()
         {
             avaliable = false;
+            return Task.CompletedTask;
+        }
+
+        internal static Task Ready()
+        {
+            avaliable = true;
+            Program.Client.CurrentUser.ModifyAsync(x => x.Username = Program.Settings.GetSection("config")["name"]);
             return Task.CompletedTask;
         }
         #endregion

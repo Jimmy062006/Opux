@@ -41,6 +41,7 @@ namespace Opux
 
                 Console.ReadKey();
                 Client.StopAsync();
+                Thread.Sleep(5000);
             }
             catch (Exception ex)
             {
@@ -62,6 +63,7 @@ namespace Opux
             Client.Disconnected += Functions.Event_Disconnected;
             Client.GuildAvailable += Functions.Event_GuildAvaliable;
             Client.UserJoined += Functions.Event_UserJoined;
+            Client.Ready += Functions.Ready;
 
             try
             {
