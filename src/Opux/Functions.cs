@@ -44,7 +44,7 @@ namespace Opux
                 if (!running && avaliable)
                 {
                     running = true;
-                    Async_Tick(stateInfo).GetAwaiter().GetResult();
+                    await Async_Tick(stateInfo);
                 }
             }
             catch (Exception ex)
@@ -85,7 +85,7 @@ namespace Opux
                 {
                     await Jabber();
                 }
-
+                
                 running = false;
             }
             catch (Exception ex)
@@ -150,7 +150,7 @@ namespace Opux
 
                 Console.WriteLine($"{DateTime.Now,-19} [{arg.Severity,8}] [{arg.Source}]: {arg.Message}");
                 Console.ForegroundColor = cc;
-                await Task.CompletedTask;
+                
             }
             catch { }
         }
@@ -160,7 +160,7 @@ namespace Opux
         #region EVENTS
         internal async static Task Event_GuildAvaliable(SocketGuild arg)
         {
-            await Task.CompletedTask;
+            
         }
 
         internal async static Task Event_UserJoined(SocketGuildUser arg)
@@ -176,7 +176,7 @@ namespace Opux
                 await channel.SendMessageAsync($"Welcome {arg.Mention} to the server");
             }
 
-            await Task.CompletedTask;
+            
         }
 
         internal static Task Event_Disconnected(Exception arg)
@@ -659,7 +659,7 @@ namespace Opux
                 };
                 listener.Start();
             }
-            await Task.CompletedTask;
+            
         }
 
         private static string GetUniqID()
@@ -1052,7 +1052,7 @@ namespace Opux
                     await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", ex.Message, ex));
                 }
             }
-            await Task.CompletedTask;
+            
         }
         #endregion
 
@@ -1798,7 +1798,7 @@ namespace Opux
                         var interval = 30 / keyCount;
                         await SQLiteDataUpdate("cacheData", "data", "nextNotificationCheck", DateTime.Now.AddMinutes(interval).ToString());
                         nextNotificationCheck = DateTime.Now.AddMinutes(interval);
-                        await Task.CompletedTask;
+                        
                     }
                 }
             }
@@ -1829,7 +1829,7 @@ namespace Opux
                 if ((string)jObject["typeName"] == "bad item")
                 {
                     await channel.SendMessageAsync($"{context.Message.Author.Mention} Item {String} does not exist please try again");
-                    await Task.CompletedTask;
+                    
                 }
                 else
                 {
@@ -2114,7 +2114,7 @@ namespace Opux
                 }
             }
 
-            await Task.CompletedTask;
+            
         }
 
         internal static async Task Ops(ICommandContext context)
@@ -2181,7 +2181,7 @@ namespace Opux
                 await Client_Log(new LogMessage(LogSeverity.Info, "FleetOps", $"Sending Ops to {context.Message.Channel} for {context.Message.Author}"));
             }
 
-            await Task.CompletedTask;
+            
         }
         #endregion
 
@@ -2207,7 +2207,7 @@ namespace Opux
                 }
             }
 
-            await Task.CompletedTask;
+            
         }
 
         internal static async void OnMessage(object sender, MessageEventArgs e)
@@ -2369,7 +2369,7 @@ namespace Opux
                 try
                 {
                     insertSQL.ExecuteNonQuery();
-                    await Task.CompletedTask;
+                    
                 }
                 catch (Exception ex)
                 {
@@ -2391,7 +2391,7 @@ namespace Opux
                 try
                 {
                     insertSQL.ExecuteNonQuery();
-                    await Task.CompletedTask;
+                    
                 }
                 catch (Exception ex)
                 {
