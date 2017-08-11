@@ -175,13 +175,13 @@ namespace Opux
             {
                 await channel.SendMessageAsync($"Welcome {arg.Mention} to the server");
             }
-
-            
         }
 
         internal static Task Event_Disconnected(Exception arg)
         {
             avaliable = false;
+            Program.Client.StopAsync();
+            Program.Client.StartAsync();
             return Task.CompletedTask;
         }
 
