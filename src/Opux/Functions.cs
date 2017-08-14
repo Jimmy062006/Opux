@@ -158,11 +158,6 @@ namespace Opux
 
         //Events are attached here
         #region EVENTS
-        internal async static Task Event_GuildAvaliable(SocketGuild arg)
-        {
-            
-        }
-
         internal async static Task Event_UserJoined(SocketGuildUser arg)
         {
             var channel = (ITextChannel)arg.Guild.DefaultChannel;
@@ -177,34 +172,9 @@ namespace Opux
             }
         }
 
-        internal static Task Event_Disconnected(Exception arg)
-        {
-            avaliable = false;
-            Program.Client.StopAsync();
-            Program.Client.StartAsync();
-            return Task.CompletedTask;
-        }
-
-        internal static Task Event_Connected()
-        {
-            return Task.CompletedTask;
-        }
-
-        internal static Task Event_LoggedIn()
-        {
-            return Task.CompletedTask;
-        }
-
-        internal static Task Event_LoggedOut()
-        {
-            avaliable = false;
-            return Task.CompletedTask;
-        }
-
         internal static Task Ready()
         {
             avaliable = true;
-            Program.Client.CurrentUser.ModifyAsync(x => x.Username = Program.Settings.GetSection("config")["name"]);
             return Task.CompletedTask;
         }
         #endregion

@@ -57,11 +57,6 @@ namespace Opux
         internal static async Task MainAsync(string[] args)
         {
             Client.Log += Functions.Client_Log;
-            Client.LoggedOut += Functions.Event_LoggedOut;
-            Client.LoggedIn += Functions.Event_LoggedIn;
-            Client.Connected += Functions.Event_Connected;
-            Client.Disconnected += Functions.Event_Disconnected;
-            Client.GuildAvailable += Functions.Event_GuildAvaliable;
             Client.UserJoined += Functions.Event_UserJoined;
             Client.Ready += Functions.Ready;
 
