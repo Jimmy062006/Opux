@@ -2261,8 +2261,7 @@ namespace Opux
             using (HttpResponseMessage _characterid = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/search/?categories=character&datasource=tranquility&language=en-us&search={x}&strict=false"))
             using (HttpContent _characteridContent = _characterid.Content)
             {
-                var test = await _characteridContent.ReadAsStringAsync();
-                var id = JObject.Parse(test)["character"].FirstOrDefault();
+                var id = JObject.Parse(await _characteridContent.ReadAsStringAsync())["character"].FirstOrDefault();
                 var _character = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{id}/?datasource=tranquility");
                 var _characterContent = JObject.Parse(await _character.Content.ReadAsStringAsync());
                 var _corp = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{_characterContent["corporation_id"]}/?datasource=tranquility");
@@ -2294,6 +2293,7 @@ namespace Opux
                 var _ally = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{_corpContent["alliance_id"]}/?datasource=tranquility");
                 var _allyContent = JObject.Parse(await _ally.Content.ReadAsStringAsync());
                 var alliance = _allyContent["alliance_name"].IsNullOrEmpty() ? "None" : _allyContent["alliance_name"];
+
                 await channel.SendMessageAsync($"```Name: {_characterContent["name"]}{Environment.NewLine}" +
                     $"DOB: {_characterContent["birthday"]}{Environment.NewLine}{Environment.NewLine}" +
                     $"Corporation Name: {_corpContent["corporation_name"]}{Environment.NewLine}" +
@@ -2301,7 +2301,7 @@ namespace Opux
                     $"Last System: {_lastSystem["name"]}{Environment.NewLine}" +
                     $"Last Ship: {_lastShip["name"]}{Environment.NewLine}" +
                     $"Last Seen: {_lastSeen}{Environment.NewLine}```" +
-                    $"zKill: https://zkillboard.com/character/{id}/");
+                    $"ZKill: https://zkillboard.com/character/{id}/");
             }
             await Task.CompletedTask;
         }
@@ -2329,7 +2329,8 @@ namespace Opux
                         $"Corp Ticker: {_CorpDetailsContent["ticker"]}{Environment.NewLine}" +
                         $"CEO: {_CEONameContent["name"]}{Environment.NewLine}" +
                         $"Alliance Name: {alliance}{Environment.NewLine}" +
-                        $"Member Count: {_CorpDetailsContent["member_count"]}{Environment.NewLine}```");
+                        $"Member Count: {_CorpDetailsContent["member_count"]}{Environment.NewLine}```" +
+                        $"ZKill: https://zkillboard.com/api/kills/CorporationID/{_corpContent["corporation"][0]}/");
             }
             await Task.CompletedTask;
         }
