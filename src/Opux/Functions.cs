@@ -46,7 +46,7 @@ namespace Opux
                 if (!running && avaliable)
                 {
                     running = true;
-                    Async_Tick(stateInfo).GetAwaiter().GetResult();
+                    await Async_Tick(stateInfo);
                 }
             }
             catch (Exception ex)
@@ -87,7 +87,7 @@ namespace Opux
                 {
                     await Jabber();
                 }
-
+                
                 running = false;
             }
             catch (Exception ex)
@@ -140,16 +140,19 @@ namespace Opux
 
                 using (StreamWriter logFile = new StreamWriter(File.Open(file, FileMode.Append, FileAccess.Write, FileShare.Write), Encoding.UTF8))
                 {
-                    await logFile.WriteLineAsync($"{DateTime.Now,-19} [{arg.Severity,8}]: {arg.Message}");
+                    if (arg.Exception != null)
+                    {
+                        await logFile.WriteLineAsync($"{DateTime.Now,-19} [{arg.Severity,8}]: {arg.Message} {Environment.NewLine}{arg.Exception}");
+                    }
+                    else
+                    {
+                        await logFile.WriteLineAsync($"{DateTime.Now,-19} [{arg.Severity,8}]: {arg.Message}");
+                    }
                 }
 
                 Console.WriteLine($"{DateTime.Now,-19} [{arg.Severity,8}] [{arg.Source}]: {arg.Message}");
-                if (arg.Exception != null)
-                {
-                    Console.WriteLine(arg.Exception?.StackTrace);
-                }
                 Console.ForegroundColor = cc;
-                await Task.CompletedTask;
+                
             }
             catch { }
         }
@@ -157,13 +160,6 @@ namespace Opux
 
         //Events are attached here
         #region EVENTS
-        internal async static Task Event_GuildAvaliable(SocketGuild arg)
-        {
-            avaliable = true;
-            await arg.CurrentUser.ModifyAsync(x => x.Nickname = Program.Settings.GetSection("config")["name"]);
-            await Task.CompletedTask;
-        }
-
         internal async static Task Event_UserJoined(SocketGuildUser arg)
         {
             var channel = (ITextChannel)arg.Guild.DefaultChannel;
@@ -176,29 +172,11 @@ namespace Opux
             {
                 await channel.SendMessageAsync($"Welcome {arg.Mention} to the server");
             }
-
-            await Task.CompletedTask;
         }
 
-        internal static Task Event_Disconnected(Exception arg)
+        internal static Task Ready()
         {
-            avaliable = false;
-            return Task.CompletedTask;
-        }
-
-        internal static Task Event_Connected()
-        {
-            return Task.CompletedTask;
-        }
-
-        internal static Task Event_LoggedIn()
-        {
-            return Task.CompletedTask;
-        }
-
-        internal static Task Event_LoggedOut()
-        {
-            avaliable = false;
+            avaliable = true;
             return Task.CompletedTask;
         }
         #endregion
@@ -653,7 +631,7 @@ namespace Opux
                 };
                 listener.Start();
             }
-            await Task.CompletedTask;
+            
         }
 
         private static string GetUniqID()
@@ -878,6 +856,7 @@ namespace Opux
                     {
                         foreach (var u in responce)
                         {
+                            var exemptRoles = Program.Settings.GetSection("auth").GetSection("exempt").GetChildren().ToList();
                             var characterID = u["characterID"];
                             var discordID = u["discordID"];
                             var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
@@ -931,6 +910,17 @@ namespace Opux
 
                                     try
                                     {
+                                        rolesToTake.AddRange(discordUser.Roles);
+                                        var exemptCheckRoles = new List<SocketRole>(rolesToTake);
+                                        foreach (var r in exemptCheckRoles)
+                                        {
+                                            var name = r.Name;
+                                            if (exemptRoles.FindAll(x => x.Key == name).Count > 0)
+                                            {
+                                                rolesToTake.Remove(rolesToTake.FirstOrDefault(x => x.Name == r.Name));
+                                            }
+                                        }
+                                        rolesToTake.Remove(rolesToTake.FirstOrDefault(x => x.Name == "@everyone"));
                                         //Check for Corp roles
                                         if (corps.ContainsKey(corpID))
                                         {
@@ -949,9 +939,37 @@ namespace Opux
                                         {
                                             if (discordUser.Roles.FirstOrDefault(x => x.Id == r.Id) == null)
                                             {
+
                                                 var channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
                                                 await channel.SendMessageAsync($"Granting Roles to {characterDetails["name"]}");
+                                                await discordUser.RemoveRolesAsync(rolesToTake);
                                                 await discordUser.AddRolesAsync(rolesToAdd);
+                                            }
+                                        }
+
+                                        var eveName = characterDetails["name"];
+
+                                        var corpTickers = Convert.ToBoolean(Program.Settings.GetSection("auth")["corpTickers"]);
+                                        var nameEnforce = Convert.ToBoolean(Program.Settings.GetSection("auth")["nameEnforce"]);
+
+                                        if (corpTickers || nameEnforce)
+                                        {
+                                            var Nickname = "";
+                                            if (corpTickers)
+                                            {
+                                                Nickname = $"[{corporationDetails["ticker"]}] ";
+                                            }
+                                            if (nameEnforce)
+                                            {
+                                                Nickname += $"{eveName}";
+                                            }
+                                            else
+                                            {
+                                                Nickname += $"{discordUser.Username}";
+                                            }
+                                            if (Nickname != discordUser.Nickname)
+                                            {
+                                                await discordUser.ModifyAsync(x => x.Nickname = Nickname);
                                             }
                                         }
                                     }
@@ -967,8 +985,6 @@ namespace Opux
                                     {
                                         if (discordUser != null)
                                         {
-                                            var exemptRoles = Program.Settings.GetSection("auth").GetSection("exempt").GetChildren().ToList();
-
                                             rolesToTake.AddRange(discordUser.Roles);
                                             var exemptCheckRoles = new List<SocketRole>(rolesToTake);
                                             foreach (var r in exemptCheckRoles)
@@ -1008,7 +1024,7 @@ namespace Opux
                     await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", ex.Message, ex));
                 }
             }
-            await Task.CompletedTask;
+            
         }
         #endregion
 
@@ -1754,7 +1770,7 @@ namespace Opux
                         var interval = 30 / keyCount;
                         await SQLiteDataUpdate("cacheData", "data", "nextNotificationCheck", DateTime.Now.AddMinutes(interval).ToString());
                         nextNotificationCheck = DateTime.Now.AddMinutes(interval);
-                        await Task.CompletedTask;
+                        
                     }
                 }
             }
@@ -1785,7 +1801,7 @@ namespace Opux
                 if ((string)jObject["typeName"] == "bad item")
                 {
                     await channel.SendMessageAsync($"{context.Message.Author.Mention} Item {String} does not exist please try again");
-                    await Task.CompletedTask;
+                    
                 }
                 else
                 {
@@ -2070,7 +2086,7 @@ namespace Opux
                 }
             }
 
-            await Task.CompletedTask;
+            
         }
 
         internal static async Task Ops(ICommandContext context)
@@ -2090,38 +2106,45 @@ namespace Opux
                 var result = JObject.Parse(Json);
                 var message = $"{context.Message.Author.Mention}, {Environment.NewLine}";
                 var count = message.Count();
-                foreach (var operation in result["Data"])
+                if (result["Data"].IsNullOrEmpty())
                 {
-                    var name = operation["Subject"];
-                    var startTime = operation["StartString"];
-                    var locationinfo = operation["LocationInfo"];
-                    var location = operation["Location"];
-                    var details = operation["Details"];
-                    var url = $"http://fleet-up.com/Operation#{operation["OperationId"]}";
-
-                    var message_temp = $"```Title - {name} {Environment.NewLine}" +
-                                $"Form Up Time - {startTime} {Environment.NewLine}" +
-                                $"Form Up System - {location} - {locationinfo} {Environment.NewLine}" +
-                                $"Details - {details}```" +
-                                $"{url}{Environment.NewLine}{Environment.NewLine}";
-
-                    if(message.Count() + message_temp.Count() >= 2000)
+                    await context.Message.Channel.SendMessageAsync($"{message}No Ops Scheduled");
+                }
+                else
+                {
+                    foreach (var operation in result["Data"])
                     {
-                        if (message.Count() != count)
+                        var name = operation["Subject"];
+                        var startTime = operation["StartString"];
+                        var locationinfo = operation["LocationInfo"];
+                        var location = operation["Location"];
+                        var details = operation["Details"];
+                        var url = $"http://fleet-up.com/Operation#{operation["OperationId"]}";
+
+                        var message_temp = $"```Title - {name} {Environment.NewLine}" +
+                                    $"Form Up Time - {startTime} {Environment.NewLine}" +
+                                    $"Form Up System - {location} - {locationinfo} {Environment.NewLine}" +
+                                    $"Details - {details}```" +
+                                    $"{url}{Environment.NewLine}{Environment.NewLine}";
+
+                        if (message.Count() + message_temp.Count() >= 2000)
                         {
-                            await context.Message.Channel.SendMessageAsync($"{message}");
-                            message = $"{context.Message.Author.Mention}, {Environment.NewLine}";
+                            if (message.Count() != count)
+                            {
+                                await context.Message.Channel.SendMessageAsync($"{message}");
+                                message = $"{context.Message.Author.Mention}, {Environment.NewLine}";
+                            }
+                            else
+                            {
+                                message += $"{message_temp}";
+                                await context.Message.Channel.SendMessageAsync($"{message}");
+                                message = $"{context.Message.Author.Mention}, {Environment.NewLine}";
+                            }
                         }
                         else
                         {
                             message += $"{message_temp}";
-                            await context.Message.Channel.SendMessageAsync($"{message}");
-                            message = $"{context.Message.Author.Mention}, {Environment.NewLine}";
                         }
-                    }
-                    else
-                    {
-                        message += $"{message_temp}";
                     }
                 }
                 if(message != $"{context.Message.Author.Mention}, {Environment.NewLine}")
@@ -2130,7 +2153,7 @@ namespace Opux
                 await Client_Log(new LogMessage(LogSeverity.Info, "FleetOps", $"Sending Ops to {context.Message.Channel} for {context.Message.Author}"));
             }
 
-            await Task.CompletedTask;
+            
         }
         #endregion
 
@@ -2156,7 +2179,7 @@ namespace Opux
                 }
             }
 
-            await Task.CompletedTask;
+            
         }
 
         internal static async void OnMessage(object sender, MessageEventArgs e)
@@ -2455,7 +2478,7 @@ namespace Opux
                 try
                 {
                     insertSQL.ExecuteNonQuery();
-                    await Task.CompletedTask;
+                    
                 }
                 catch (Exception ex)
                 {
@@ -2477,7 +2500,7 @@ namespace Opux
                 try
                 {
                     insertSQL.ExecuteNonQuery();
-                    await Task.CompletedTask;
+                    
                 }
                 catch (Exception ex)
                 {
