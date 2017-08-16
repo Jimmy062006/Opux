@@ -15,7 +15,7 @@ namespace Opux
         public async Task Help()
         {
             var userInfo = Context.Message.Author;
-            await ReplyAsync($"{userInfo.Mention}, Here is a list of plugins available, **!help | !jita | !amarr | !dodixe | !rens | !pc**");
+            await ReplyAsync($"{userInfo.Mention}, Here is a list of plugins available, **!help | !about | !char | !corp | !jita | !amarr | !dodixe | !rens | !pc**");
         }
 
         /// <summary>
@@ -114,7 +114,7 @@ namespace Opux
         /// <returns></returns>
         [Command("rehash", RunMode = RunMode.Async), Summary("Rehash settings file")]
         [CheckForRole]
-        public async Task About()
+        public async Task Reshash()
         {
             try
             {
@@ -252,6 +252,60 @@ namespace Opux
                     await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
                     await Task.FromException(ex);
                 }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [Command("about", RunMode = RunMode.Async), Summary("About Opux")]
+        public async Task About()
+        {
+            try
+            {
+                await Functions.About(Context);
+            }
+            catch (Exception ex)
+            {
+                await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
+                await Task.FromException(ex);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [Command("char", RunMode = RunMode.Async), Summary("Character Details")]
+        public async Task Char([Remainder] string x)
+        {
+            try
+            {
+                await Functions.Char(Context, x);
+            }
+            catch (Exception ex)
+            {
+                await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
+                await Task.FromException(ex);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [Command("corp", RunMode = RunMode.Async), Summary("Corporation Details")]
+        public async Task Corp([Remainder] string x)
+        {
+            try
+            {
+                await Functions.Corp(Context, x);
+            }
+            catch (Exception ex)
+            {
+                await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
+                await Task.FromException(ex);
             }
         }
     }
