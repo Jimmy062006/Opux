@@ -2291,28 +2291,16 @@ namespace Opux
                 var _lastShip = JObject.Parse(await lastShip.Content.ReadAsStringAsync());
                 var _lastSeen = _zkillContent["killTime"];
 
-                if (!_corpContent["alliance_id"].IsNullOrEmpty())
-                {
                     var _ally = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{_corpContent["alliance_id"]}/?datasource=tranquility");
                     var _allyContent = JObject.Parse(await _ally.Content.ReadAsStringAsync());
-                    await channel.SendMessageAsync($"```Name: {_characterContent["name"]}{Environment.NewLine}" +
-                        $"DOB: {_characterContent["birthday"]}{Environment.NewLine}{Environment.NewLine}" +
-                        $"Corporation Name: {_corpContent["corporation_name"]}{Environment.NewLine}" +
-                        $"Alliance Name: {_allyContent["alliance_name"]}{Environment.NewLine}{Environment.NewLine}" +
-                        $"Last System: {_lastSystem["name"]}{Environment.NewLine}" +
-                        $"Last Ship: {_lastShip["name"]}{Environment.NewLine}" +
-                        $"Last Seen: {_lastSeen}{Environment.NewLine}```");
-                }
-                else
-                {
-
-                    await channel.SendMessageAsync($"```Name: {_characterContent["name"]}{Environment.NewLine}" +
-                        $"DOB: {_characterContent["birthday"]}{Environment.NewLine}{Environment.NewLine}" +
-                        $"Corporation Name: {_corpContent["corporation_name"]}{Environment.NewLine}{Environment.NewLine}" +
-                        $"{_lastSystem["name"]}{Environment.NewLine}" +
-                        $"{_lastShip["name"]}{Environment.NewLine}" +
-                        $"{_lastSeen}{Environment.NewLine}```");
-                }
+                await channel.SendMessageAsync($"```Name: {_characterContent["name"]}{Environment.NewLine}" +
+                    $"DOB: {_characterContent["birthday"]}{Environment.NewLine}{Environment.NewLine}" +
+                    $"Corporation Name: {_corpContent["corporation_name"]}{Environment.NewLine}" +
+                    $"Alliance Name: {_allyContent["alliance_name"]}{Environment.NewLine}{Environment.NewLine}" +
+                    $"Last System: {_lastSystem["name"]}{Environment.NewLine}" +
+                    $"Last Ship: {_lastShip["name"]}{Environment.NewLine}" +
+                    $"Last Seen: {_lastSeen}{Environment.NewLine}```" +
+                    $"zKill: https://zkillboard.com/character/{id}/");
             }
             await Task.CompletedTask;
         }
