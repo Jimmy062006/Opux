@@ -2330,7 +2330,7 @@ namespace Opux
                         $"CEO: {_CEONameContent["name"]}{Environment.NewLine}" +
                         $"Alliance Name: {alliance}{Environment.NewLine}" +
                         $"Member Count: {_CorpDetailsContent["member_count"]}{Environment.NewLine}```" +
-                        $"ZKill: https://zkillboard.com/api/kills/CorporationID/{_corpContent["corporation"][0]}/");
+                        $"ZKill: https://zkillboard.com/corporation/{_corpContent["corporation"][0]}/");
             }
             await Task.CompletedTask;
         }
