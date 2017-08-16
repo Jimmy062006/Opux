@@ -2291,8 +2291,8 @@ namespace Opux
                 var _lastShip = JObject.Parse(await lastShip.Content.ReadAsStringAsync());
                 var _lastSeen = _zkillContent["killTime"];
 
-                    var _ally = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{_corpContent["alliance_id"]}/?datasource=tranquility");
-                    var _allyContent = JObject.Parse(await _ally.Content.ReadAsStringAsync());
+                var _ally = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{_corpContent["alliance_id"]}/?datasource=tranquility");
+                var _allyContent = JObject.Parse(await _ally.Content.ReadAsStringAsync());
                 var alliance = _allyContent["alliance_name"].IsNullOrEmpty() ? "None" : _allyContent["alliance_name"];
                 await channel.SendMessageAsync($"```Name: {_characterContent["name"]}{Environment.NewLine}" +
                     $"DOB: {_characterContent["birthday"]}{Environment.NewLine}{Environment.NewLine}" +
