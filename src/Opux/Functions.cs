@@ -2293,10 +2293,11 @@ namespace Opux
 
                     var _ally = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{_corpContent["alliance_id"]}/?datasource=tranquility");
                     var _allyContent = JObject.Parse(await _ally.Content.ReadAsStringAsync());
+                var alliance = _allyContent["alliance_name"].IsNullOrEmpty() ? "None" : _allyContent["alliance_name"];
                 await channel.SendMessageAsync($"```Name: {_characterContent["name"]}{Environment.NewLine}" +
                     $"DOB: {_characterContent["birthday"]}{Environment.NewLine}{Environment.NewLine}" +
                     $"Corporation Name: {_corpContent["corporation_name"]}{Environment.NewLine}" +
-                    $"Alliance Name: {_allyContent["alliance_name"]}{Environment.NewLine}{Environment.NewLine}" +
+                    $"Alliance Name: {alliance}{Environment.NewLine}{Environment.NewLine}" +
                     $"Last System: {_lastSystem["name"]}{Environment.NewLine}" +
                     $"Last Ship: {_lastShip["name"]}{Environment.NewLine}" +
                     $"Last Seen: {_lastSeen}{Environment.NewLine}```" +
@@ -2322,11 +2323,12 @@ namespace Opux
                 var _CEONameContent = JObject.Parse(await _CEOName.Content.ReadAsStringAsync());
                 var _ally = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{_CorpDetailsContent["alliance_id"]}/?datasource=tranquility");
                 var _allyContent = JObject.Parse(await _ally.Content.ReadAsStringAsync());
+                var alliance = _allyContent["alliance_name"].IsNullOrEmpty() ? "None" : _allyContent["alliance_name"];
 
                 await channel.SendMessageAsync($"```Corp Name: {_CorpDetailsContent["corporation_name"]}{Environment.NewLine}" +
                         $"Corp Ticker: {_CorpDetailsContent["ticker"]}{Environment.NewLine}" +
                         $"CEO: {_CEONameContent["name"]}{Environment.NewLine}" +
-                        $"Alliance Name: {_allyContent["alliance_name"]}{Environment.NewLine}" +
+                        $"Alliance Name: {alliance}{Environment.NewLine}" +
                         $"Member Count: {_CorpDetailsContent["member_count"]}{Environment.NewLine}```");
             }
             await Task.CompletedTask;
