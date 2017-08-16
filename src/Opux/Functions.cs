@@ -2189,8 +2189,15 @@ namespace Opux
         #region About
         internal async static Task About(ICommandContext context)
         {
-            var directory = Path.Combine(Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(
+            if (AppContext.BaseDirectory.Contains("netcoreapp1.1"))
+            {
+                var directory = Path.Combine(Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(
                 Directory.GetParent(AppContext.BaseDirectory).FullName).FullName).FullName).FullName).FullName);
+            }
+            else
+            {
+                var directory = Path.Combine(AppContext.BaseDirectory);
+            }
             //using (var repo = new Repository(directory))
             //{
             var channel = (dynamic)context.Channel;
@@ -2231,7 +2238,8 @@ namespace Opux
             using (HttpResponseMessage _characterid = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/search/?categories=character&datasource=tranquility&language=en-us&search={x}&strict=false"))
             using (HttpContent _characteridContent = _characterid.Content)
             {
-                var id = JObject.Parse(await _characteridContent.ReadAsStringAsync())["character"].FirstOrDefault();
+                var test = await _characteridContent.ReadAsStringAsync();
+                var id = JObject.Parse(test)["character"].FirstOrDefault();
                 var _character = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{id}/?datasource=tranquility");
                 var _characterContent = JObject.Parse(await _character.Content.ReadAsStringAsync());
                 var _corp = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{_characterContent["corporation_id"]}/?datasource=tranquility");
