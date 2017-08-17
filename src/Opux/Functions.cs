@@ -2233,7 +2233,7 @@ namespace Opux
             //{
             var channel = (dynamic)context.Channel;
             var botid = Program.Client.CurrentUser.Id;
-            var MemoryUsed = Math.Round(ByteSize.FromBytes(Process.GetCurrentProcess().WorkingSet64).MegaBytes, 2);
+            var MemoryUsed = Math.Round(ByteSize.FromBytes(GC.GetTotalMemory(true)).MegaBytes, 2);
             var RunTime = DateTime.Now - Process.GetCurrentProcess().StartTime;
             var Guilds = Program.Client.Guilds.Count;
             var TotalUsers = 0;
