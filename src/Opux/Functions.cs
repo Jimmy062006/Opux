@@ -164,7 +164,7 @@ namespace Opux
         #region EVENTS
         internal async static Task Event_UserJoined(SocketGuildUser arg)
         {
-            var channel = (ITextChannel)arg.Guild.DefaultChannel;
+            var channel = (dynamic)arg.Guild.DefaultChannel;
             var authurl = Program.Settings.GetSection("auth")["authurl"];
             if (!String.IsNullOrWhiteSpace(authurl))
             {
@@ -762,7 +762,7 @@ namespace Opux
                             {
                                 if (discordUser.Roles.FirstOrDefault(x => x.Id == r.Id) == null)
                                 {
-                                    var channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == alertChannel);
+                                    var channel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == alertChannel);
                                     await channel.SendMessageAsync($"Granting Roles to {characterDetails["name"]}");
                                     await discordUser.AddRolesAsync(rolesToAdd);
                                 }
@@ -942,7 +942,7 @@ namespace Opux
                                             if (discordUser.Roles.FirstOrDefault(x => x.Id == r.Id) == null)
                                             {
 
-                                                var channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
+                                                var channel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
                                                 await channel.SendMessageAsync($"Granting Roles to {characterDetails["name"]}");
                                                 await discordUser.RemoveRolesAsync(rolesToTake);
                                                 await discordUser.AddRolesAsync(rolesToAdd);
@@ -985,7 +985,7 @@ namespace Opux
                                     try
                                     {
                                         //Check if roles when should not have any
-                                        if (!corps.ContainsKey(corporationid.ToString()) && !alliance.ContainsKey(allianceID))
+                                        if (!corps.ContainsKey(corporationid.ToString()) && !alliance.ContainsKey(allianceID.ToString()))
                                         {
                                             if (discordUser != null)
                                             {
@@ -1002,7 +1002,7 @@ namespace Opux
                                                 rolesToTake.Remove(rolesToTake.FirstOrDefault(x => x.Name == "@everyone"));
                                                 if (rolesToTake.Count > 0)
                                                 {
-                                                    var channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
+                                                    var channel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
                                                     await channel.SendMessageAsync($"Taking Roles from {characterDetails["name"]}");
                                                     await discordUser.RemoveRolesAsync(rolesToTake);
                                                 }
@@ -1140,7 +1140,7 @@ namespace Opux
                                 }
                                 if (bigKillGlobal != 0 && value >= bigKillGlobal)
                                 {
-                                    channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == bigKillGlobalChan);
+                                    channel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == bigKillGlobalChan);
                                     globalBigKill = true;
                                     post = true;
                                 }
@@ -1148,13 +1148,13 @@ namespace Opux
                                 {
                                     if (bigKillValue != 0 && value >= bigKillValue && !globalBigKill)
                                     {
-                                        channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == bigKillChannel);
+                                        channel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == bigKillChannel);
                                         bigKill = true;
                                         post = true;
                                     }
                                     else
                                     {
-                                        channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == channelGroup);
+                                        channel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == channelGroup);
                                         var totalValue = value;
                                         if (minimumValue == 0 || minimumValue <= totalValue)
                                             post = true;
@@ -1162,7 +1162,7 @@ namespace Opux
                                 }
                                 else if (!globalBigKill)
                                 {
-                                    channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == channelGroup);
+                                    channel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == channelGroup);
                                     if (victimAlliance != null)
                                     {
                                         if ((Int32)victimAlliance["id"] == allianceID && losses == true ||
@@ -1170,7 +1170,7 @@ namespace Opux
                                         {
                                             if (bigKillValue != 0 && value >= bigKillValue)
                                             {
-                                                channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == bigKillChannel);
+                                                channel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == bigKillChannel);
                                                 bigKill = true;
                                                 post = true;
                                             }
@@ -1185,7 +1185,7 @@ namespace Opux
                                     {
                                         if (bigKillValue != 0 && value >= bigKillValue)
                                         {
-                                            channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == bigKillChannel);
+                                            channel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == bigKillChannel);
                                             bigKill = true;
                                             post = true;
                                         }
@@ -1204,7 +1204,7 @@ namespace Opux
                                             {
                                                 if (bigKillValue != 0 && value >= bigKillValue)
                                                 {
-                                                    channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == bigKillChannel);
+                                                    channel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == bigKillChannel);
                                                     bigKill = true;
                                                     post = true;
                                                 }
@@ -1218,7 +1218,7 @@ namespace Opux
                                             {
                                                 if (bigKillValue != 0 && value >= bigKillValue)
                                                 {
-                                                    channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == bigKillChannel);
+                                                    channel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == bigKillChannel);
                                                     bigKill = true;
                                                     post = true;
                                                 }
@@ -1241,7 +1241,7 @@ namespace Opux
                                     {
                                         if (radiusKill)
                                         {
-                                            var _radiusChannel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == radiusChannel);
+                                            var _radiusChannel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == radiusChannel);
                                             var radiusMessage = "";
                                             radiusMessage = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]}{Environment.NewLine}";
                                             radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
@@ -1269,7 +1269,7 @@ namespace Opux
                                     {
                                         if (radiusKill)
                                         {
-                                            var _radiusChannel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == radiusChannel);
+                                            var _radiusChannel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == radiusChannel);
                                             var radiusMessage = "";
                                             radiusMessage = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]}{Environment.NewLine}";
                                             radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
@@ -1299,7 +1299,7 @@ namespace Opux
                                 {
                                     if (radiusKill)
                                     {
-                                        var _radiusChannel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == radiusChannel);
+                                        var _radiusChannel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == radiusChannel);
                                         var radiusMessage = "";
                                         radiusMessage = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]}{Environment.NewLine}";
                                         radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
@@ -1328,7 +1328,7 @@ namespace Opux
                                 {
                                     if (radiusKill)
                                     {
-                                        var _radiusChannel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == radiusChannel);
+                                        var _radiusChannel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == radiusChannel);
                                         var radiusMessage = "";
                                         radiusMessage = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]}{Environment.NewLine}";
                                         radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
@@ -1557,7 +1557,7 @@ namespace Opux
                     lastNotification = Convert.ToInt32(await SQLiteDataQuery("cacheData", "data", "lastNotificationID"));
                     var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
                     var channelId = Convert.ToUInt64(Program.Settings.GetSection("notifications")["channelId"]);
-                    var chan = (ITextChannel)Program.Client.GetGuild(guildID).GetChannel(channelId);
+                    var chan = (dynamic)Program.Client.GetGuild(guildID).GetChannel(channelId);
                     var keyID = "";
                     var vCode = "";
                     var characterID = "";
@@ -1808,7 +1808,7 @@ namespace Opux
             using (HttpClient webClient = new HttpClient())
             {
                 JObject jObject = new JObject();
-                var channel = (ITextChannel)context.Message.Channel;
+                var channel = (dynamic)context.Message.Channel;
                 if (String.ToLower() == "short name")
                 {
                     String = "Item Name";
@@ -2001,7 +2001,7 @@ namespace Opux
                     {
                         var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
                         var channelId = Convert.ToUInt64(Program.Settings.GetSection("motd")["motdtopicchan"]);
-                        var chan1 = (ITextChannel)Program.Client.GetGuild(guildID).GetChannel(channelId);
+                        var chan1 = (dynamic)Program.Client.GetGuild(guildID).GetChannel(channelId);
                         var keyID = Program.Settings.GetSection("motd")["motdkeyID"];
                         var vCode = Program.Settings.GetSection("motd")["motdvCode"];
                         var CharID = Program.Settings.GetSection("motd")["motdcharid"];
@@ -2081,7 +2081,7 @@ namespace Opux
                             var details = operation["Details"];
                             var url = $"http://fleet-up.com/Operation#{operation["OperationId"]}";
 
-                            var channel = (ITextChannel)Program.Client.GetGuild(guildId).GetChannel(channelid);
+                            var channel = (dynamic)Program.Client.GetGuild(guildId).GetChannel(channelid);
 
                             var message = $"@everyone {Environment.NewLine}{Environment.NewLine}" +
                                 $"**New Operation Posted** {Environment.NewLine}{Environment.NewLine}" +
@@ -2118,7 +2118,7 @@ namespace Opux
                 var guildId = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
                 var lastopid = await SQLiteDataQuery("cacheData", "data", "fleetUpLastPostedOperation");
 
-                var channel = (ITextChannel)Program.Client.GetGuild(guildId).GetChannel(channelid);
+                var channel = (dynamic)Program.Client.GetGuild(guildId).GetChannel(channelid);
 
                 var Json = await webRequest.GetStringAsync($"http://api.fleet-up.com/Api.svc/Ohigwbylcsuz56ue3O6Awlw5e/{UserId}/{APICode}/Operations/{GroupID}");
                 var result = JObject.Parse(Json);
@@ -2211,7 +2211,7 @@ namespace Opux
                         if (e.Message.Value.ToLower().Contains(filter.Key.ToLower()))
                         {
                             var prepend = Program.Settings.GetSection("jabber")["prepend"];
-                            var channel = (ITextChannel)Program.Client.GetChannel(Convert.ToUInt64(filter.Value));
+                            var channel = (dynamic)Program.Client.GetChannel(Convert.ToUInt64(filter.Value));
                             await channel.SendMessageAsync($"{prepend + Environment.NewLine}From: {e.Message.From.User} {Environment.NewLine} Message: ```{e.Message.Value}```");
                         }
                     }
@@ -2219,7 +2219,7 @@ namespace Opux
                 else if (!string.IsNullOrWhiteSpace(e.Message.Value))
                 {
                     var prepend = Program.Settings.GetSection("jabber")["prepend"];
-                    var channel = (ITextChannel)Program.Client.GetChannel(Convert.ToUInt64(Program.Settings.GetSection("jabber")["defchan"]));
+                    var channel = (dynamic)Program.Client.GetChannel(Convert.ToUInt64(Program.Settings.GetSection("jabber")["defchan"]));
                     await channel.SendMessageAsync($"{prepend + Environment.NewLine}From: {e.Message.From.User} {Environment.NewLine} Message: ```{e.Message.Value}```");
                 }
             }
