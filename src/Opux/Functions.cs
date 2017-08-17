@@ -982,33 +982,41 @@ namespace Opux
                                         continue;
                                     }
 
-                                    //Check if roles when should not have any
-                                    if (!corps.ContainsKey(corporationid.ToString()) && !alliance.ContainsKey(allianceID))
+                                    try
                                     {
-                                        if (discordUser != null)
+                                        //Check if roles when should not have any
+                                        if (!corps.ContainsKey(corporationid.ToString()) && !alliance.ContainsKey(allianceID))
                                         {
-                                            rolesToTake.AddRange(discordUser.Roles);
-                                            var exemptCheckRoles = new List<SocketRole>(rolesToTake);
-                                            foreach (var r in exemptCheckRoles)
+                                            if (discordUser != null)
                                             {
-                                                var name = r.Name;
-                                                if (exemptRoles.FindAll(x => x.Key == name).Count > 0)
+                                                rolesToTake.AddRange(discordUser.Roles);
+                                                var exemptCheckRoles = new List<SocketRole>(rolesToTake);
+                                                foreach (var r in exemptCheckRoles)
                                                 {
-                                                    rolesToTake.Remove(rolesToTake.FirstOrDefault(x => x.Name == r.Name));
+                                                    var name = r.Name;
+                                                    if (exemptRoles.FindAll(x => x.Key == name).Count > 0)
+                                                    {
+                                                        rolesToTake.Remove(rolesToTake.FirstOrDefault(x => x.Name == r.Name));
+                                                    }
+                                                }
+                                                rolesToTake.Remove(rolesToTake.FirstOrDefault(x => x.Name == "@everyone"));
+                                                if (rolesToTake.Count > 0)
+                                                {
+                                                    var channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
+                                                    await channel.SendMessageAsync($"Taking Roles from {characterDetails["name"]}");
+                                                    await discordUser.RemoveRolesAsync(rolesToTake);
                                                 }
                                             }
-                                            rolesToTake.Remove(rolesToTake.FirstOrDefault(x => x.Name == "@everyone"));
-                                            if (rolesToTake.Count > 0)
+                                            else
                                             {
-                                                var channel = (ITextChannel)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
-                                                await channel.SendMessageAsync($"Taking Roles from {characterDetails["name"]}");
-                                                await discordUser.RemoveRolesAsync(rolesToTake);
+
                                             }
                                         }
-                                        else
-                                        {
-
-                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Failiure for {u["eveName"]} skipping, Reason: {ex.Message}", ex));
+                                        continue;
                                     }
                                 }
                             }
