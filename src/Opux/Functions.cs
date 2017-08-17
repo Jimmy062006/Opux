@@ -87,7 +87,9 @@ namespace Opux
                 {
                     await Jabber();
                 }
-                
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+
                 running = false;
             }
             catch (Exception ex)
