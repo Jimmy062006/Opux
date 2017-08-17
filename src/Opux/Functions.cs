@@ -863,6 +863,7 @@ namespace Opux
                             var discordID = u["discordID"];
                             var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
                             var logchan = Convert.ToUInt64(Program.Settings.GetSection("auth")["alertChannel"]);
+
                             JObject characterDetails;
                             JObject corporationDetails;
                             JObject allianceDetails;
@@ -875,6 +876,12 @@ namespace Opux
                                 var corpID = "";
                                 characterDetails = JObject.Parse(await _characterDetailsContent.ReadAsStringAsync());
                                 characterDetails.TryGetValue("corporation_id", out JToken corporationid);
+                                if (corporationid.IsNullOrEmpty())
+                                {
+                                    var channel = (dynamic)Context.Message.Channel;
+                                    await channel.SendMessageAsync("ESI IS DOWN STOPPING AUTHCHECK");
+                                    throw new Exception("ESI IS DOWN STOPPING AUTHCHECK");
+                                }
                                 using (HttpResponseMessage _corporationDetails = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corporationid}"))
                                 using (HttpContent _corporationDetailsContent = _corporationDetails.Content)
                                 {
@@ -956,22 +963,29 @@ namespace Opux
 
                                         if (corpTickers || nameEnforce)
                                         {
-                                            var Nickname = "";
-                                            if (corpTickers)
+                                            if (!corporationDetails["ticker"].IsNullOrEmpty())
                                             {
-                                                Nickname = $"[{corporationDetails["ticker"]}] ";
-                                            }
-                                            if (nameEnforce)
-                                            {
-                                                Nickname += $"{eveName}";
+                                                var Nickname = "";
+                                                if (corpTickers)
+                                                {
+                                                    Nickname = $"[{corporationDetails["ticker"]}] ";
+                                                }
+                                                if (nameEnforce)
+                                                {
+                                                    Nickname += $"{eveName}";
+                                                }
+                                                else
+                                                {
+                                                    Nickname += $"{discordUser.Username}";
+                                                }
+                                                if (Nickname != discordUser.Nickname)
+                                                {
+                                                    await discordUser.ModifyAsync(x => x.Nickname = Nickname);
+                                                }
                                             }
                                             else
                                             {
-                                                Nickname += $"{discordUser.Username}";
-                                            }
-                                            if (Nickname != discordUser.Nickname)
-                                            {
-                                                await discordUser.ModifyAsync(x => x.Nickname = Nickname);
+                                                await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential ESI Failiure for {u["eveName"]} skipping rename"));
                                             }
                                         }
                                     }
@@ -985,7 +999,7 @@ namespace Opux
                                     try
                                     {
                                         //Check if roles when should not have any
-                                        if (!corps.ContainsKey(corporationid.ToString()) && !alliance.ContainsKey(allianceID.ToString()))
+                                        if (corps.Count > 0 && !corps.ContainsValue(corporationid.ToString()) && alliance.Count > 0 && !alliance.ContainsValue(allianceID))
                                         {
                                             if (discordUser != null)
                                             {
