@@ -876,6 +876,12 @@ namespace Opux
                                 var corpID = "";
                                 characterDetails = JObject.Parse(await _characterDetailsContent.ReadAsStringAsync());
                                 characterDetails.TryGetValue("corporation_id", out JToken corporationid);
+                                if (corporationid.IsNullOrEmpty())
+                                {
+                                    var channel = (dynamic)Context.Message.Channel;
+                                    await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential ESI Failiure for {u["eveName"]} skipping rename"));
+                                    continue;
+                                }
                                 using (HttpResponseMessage _corporationDetails = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corporationid}"))
                                 using (HttpContent _corporationDetailsContent = _corporationDetails.Content)
                                 {
