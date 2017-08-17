@@ -183,7 +183,7 @@ namespace Opux
 
         //Auth
         #region AuthWeb
-        internal static HttpListener listener;
+        internal static System.Net.Http.HttpListener listener;
 
         internal async static Task AuthWeb()
         {
@@ -196,7 +196,7 @@ namespace Opux
             if (listener == null || !listener.IsListening)
             {
                 await Client_Log(new LogMessage(LogSeverity.Info, "AuthWeb", "Starting AuthWeb Server"));
-                listener = new HttpListener(IPAddress.Any, port);
+                listener = new System.Net.Http.HttpListener(IPAddress.Any, port);
 
                 listener.Request += async (sender, context) =>
                 {
@@ -2239,7 +2239,7 @@ namespace Opux
             var TotalUsers = 0;
             foreach (var guild in Program.Client.Guilds)
             {
-                TotalUsers = guild.Users.Count;
+                TotalUsers = TotalUsers + guild.Users.Count;
             }
 
             channel.SendMessageAsync($"{context.User.Mention},{Environment.NewLine}{Environment.NewLine}" +
