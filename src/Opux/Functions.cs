@@ -1745,8 +1745,16 @@ namespace Opux
                                         }
                                         else
                                         {
-                                            await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Skipping Notification TypeID: {notificationType} " +
-                                                $"Type: {types[notificationType]} {Environment.NewLine} Text: {notificationText}"));
+                                            try
+                                            {
+                                                await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Skipping Notification TypeID: {notificationType} " +
+                                                    $"Type: {types[notificationType]} {Environment.NewLine} Text: {notificationText}"));
+                                            }
+                                            catch (KeyNotFoundException)
+                                            {
+                                                await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Skipping **NEW** Notification TypeID: {notificationType} " +
+                                                    $"{Environment.NewLine} Text: {notificationText}"));
+                                            }
                                         }
                                         lastNotification = (int)notification.Value["notificationID"];
                                         await SQLiteDataUpdate("cacheData", "data", "lastNotificationID", lastNotification.ToString());
@@ -2243,8 +2251,7 @@ namespace Opux
                 $"Statistics:{Environment.NewLine}" +
                 $"Memory Used: {MemoryUsed}MB{Environment.NewLine}" +
                 $"Total Connected Guilds: {Guilds}{Environment.NewLine}" +
-                $"Total Users Seen: {TotalUsers}```" +
-                $"Invite URL: <https://discordapp.com/oauth2/authorize?&client_id=347078401376649216&scope=bot>{Environment.NewLine}");
+                $"Total Users Seen: {TotalUsers}```");
             //$"GitHub URL: <{repo.Config.ToList().FirstOrDefault(x => x.Key == "remote.origin.url").Value}>");
             //}
 
