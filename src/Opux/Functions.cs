@@ -963,7 +963,7 @@ namespace Opux
 
                                         if (corpTickers || nameEnforce)
                                         {
-                                            if (!corporationDetails["ticker"].IsNullOrEmpty())
+                                            if (corporationDetails["error"].IsNullOrEmpty())
                                             {
                                                 var Nickname = "";
                                                 if (corpTickers)
