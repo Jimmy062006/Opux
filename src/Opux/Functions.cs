@@ -88,6 +88,8 @@ namespace Opux
                     await Jabber();
                 }
 
+                
+
                 running = false;
             }
             catch (Exception ex)
@@ -2233,7 +2235,7 @@ namespace Opux
             //{
             var channel = (dynamic)context.Channel;
             var botid = Program.Client.CurrentUser.Id;
-            var MemoryUsed = Math.Round(ByteSize.FromBytes(Process.GetCurrentProcess().PrivateMemorySize64).MegaBytes, 2);
+            var MemoryUsed = ByteSize.FromBytes(Process.GetCurrentProcess().PrivateMemorySize64);
             var RunTime = DateTime.Now - Process.GetCurrentProcess().StartTime;
             var Guilds = Program.Client.Guilds.Count;
             var TotalUsers = 0;
@@ -2249,7 +2251,7 @@ namespace Opux
                 //$"Current Branch: {repo.Head.FriendlyName}{Environment.NewLine}" +
                 $"Run Time: {RunTime.Days}:{RunTime.Hours}:{RunTime.Minutes}:{RunTime.Seconds}{Environment.NewLine}{Environment.NewLine}" +
                 $"Statistics:{Environment.NewLine}" +
-                $"Memory Used: {MemoryUsed}MB{Environment.NewLine}" +
+                $"Memory Used: {Math.Round(MemoryUsed.LargestWholeNumberValue, 2)} {MemoryUsed.LargestWholeNumberSymbol}{Environment.NewLine}" +
                 $"Total Connected Guilds: {Guilds}{Environment.NewLine}" +
                 $"Total Users Seen: {TotalUsers}```");
             //$"GitHub URL: <{repo.Config.ToList().FirstOrDefault(x => x.Key == "remote.origin.url").Value}>");
