@@ -2375,31 +2375,33 @@ namespace Opux
         internal static async Task<IList<IDictionary<string, object>>> MysqlQuery(string connstring, string query)
         {
             using (MySqlConnection conn = new MySqlConnection(connstring))
+            using (MySqlCommand cmd = conn.CreateCommand())
             {
-                MySqlCommand cmd = conn.CreateCommand();
                 List<IDictionary<string, object>> list = new List<IDictionary<string, object>>(); ;
                 cmd.CommandText = query;
                 try
                 {
                     conn.ConnectionString = connstring;
                     conn.Open();
-                    MySqlDataReader reader = cmd.ExecuteReader();
-
-                    while (reader.Read())
+                    using (MySqlDataReader reader = cmd.ExecuteReader())
                     {
-                        var record = new Dictionary<string, object>();
 
-                        for (var i = 0; i < reader.FieldCount; i++)
+                        while (reader.Read())
                         {
-                            var key = reader.GetName(i);
-                            var value = reader[i];
-                            record.Add(key, value);
+                            var record = new Dictionary<string, object>();
+
+                            for (var i = 0; i < reader.FieldCount; i++)
+                            {
+                                var key = reader.GetName(i);
+                                var value = reader[i];
+                                record.Add(key, value);
+                            }
+
+                            list.Add(record);
                         }
 
-                        list.Add(record);
+                        return list;
                     }
-
-                    return list;
                 }
                 catch (MySqlException ex)
                 {
