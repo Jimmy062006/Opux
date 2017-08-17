@@ -999,7 +999,7 @@ namespace Opux
                                     try
                                     {
                                         //Check if roles when should not have any
-                                        if (corps.Count > 0 && !corps.ContainsValue(corporationid.ToString()) && alliance.Count > 0 && !alliance.ContainsValue(allianceID))
+                                        if (!corps.ContainsValue(corpID) && !alliance.ContainsValue(allianceID))
                                         {
                                             if (discordUser != null)
                                             {
