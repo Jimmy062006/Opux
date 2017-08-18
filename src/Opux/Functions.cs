@@ -824,6 +824,8 @@ namespace Opux
             //Check inactive users are correct
             if (DateTime.Now > lastAuthCheck.AddMilliseconds(Convert.ToInt32(Program.Settings.GetSection("config")["authInterval"]) * 1000 * 60) || Context != null)
             {
+                lastAuthCheck = DateTime.Now;
+
                 await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Running Auth Check"));
 
                 var authgroups = Program.Settings.GetSection("auth").GetSection("authgroups").GetChildren().ToList();
