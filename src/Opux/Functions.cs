@@ -2225,7 +2225,7 @@ namespace Opux
         #region About
         internal async static Task About(ICommandContext context)
         {
-            if (AppContext.BaseDirectory.Contains("netcoreapp1.1"))
+            if (AppContext.BaseDirectory.Contains("netcoreapp2.0"))
             {
                 var directory = Path.Combine(Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(
                 Directory.GetParent(AppContext.BaseDirectory).FullName).FullName).FullName).FullName).FullName);
