@@ -139,7 +139,6 @@ namespace Opux
             try
             {
                 await Functions.AuthCheck(Context);
-                await ReplyAsync($"{Context.Message.Author.Mention} REAUTH COMPLETED");
             }
             catch (Exception ex)
             {
