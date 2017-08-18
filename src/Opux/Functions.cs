@@ -876,6 +876,7 @@ namespace Opux
                                 var corpID = "";
                                 characterDetails = JObject.Parse(await _characterDetailsContent.ReadAsStringAsync());
                                 characterDetails.TryGetValue("corporation_id", out JToken corporationid);
+                                int alliance_id;
                                 if (corporationid.IsNullOrEmpty())
                                 {
                                     var channel = (dynamic)Context.Message.Channel;
@@ -887,6 +888,7 @@ namespace Opux
                                 {
                                     corporationDetails = JObject.Parse(await _corporationDetailsContent.ReadAsStringAsync());
                                     corporationDetails.TryGetValue("alliance_id", out JToken allianceid);
+                                    alliance_id = Convert.ToInt16(allianceid);
                                     string i = (allianceid.IsNullOrEmpty() ? "0" : allianceid.ToString());
                                     string c = (corporationid.IsNullOrEmpty() ? "0" : corporationid.ToString());
                                     allianceID = i;
@@ -999,7 +1001,7 @@ namespace Opux
                                     try
                                     {
                                         //Check if roles when should not have any
-                                        if (!corps.ContainsValue(corpID) || !alliance.ContainsValue(allianceID))
+                                        if (!corps.ContainsValue(corporationid.ToString()) && !alliance.ContainsValue(alliance_id.ToString()))
                                         {
                                             if (discordUser != null)
                                             {
