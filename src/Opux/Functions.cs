@@ -876,7 +876,7 @@ namespace Opux
                                 var corpID = "";
                                 characterDetails = JObject.Parse(await _characterDetailsContent.ReadAsStringAsync());
                                 characterDetails.TryGetValue("corporation_id", out JToken corporationid);
-                                int alliance_id;
+                                JToken allianceid;
                                 if (corporationid.IsNullOrEmpty())
                                 {
                                     var channel = (dynamic)Context.Message.Channel;
@@ -887,8 +887,7 @@ namespace Opux
                                 using (HttpContent _corporationDetailsContent = _corporationDetails.Content)
                                 {
                                     corporationDetails = JObject.Parse(await _corporationDetailsContent.ReadAsStringAsync());
-                                    corporationDetails.TryGetValue("alliance_id", out JToken allianceid);
-                                    alliance_id = Convert.ToInt16(allianceid);
+                                    corporationDetails.TryGetValue("alliance_id", out allianceid);
                                     string i = (allianceid.IsNullOrEmpty() ? "0" : allianceid.ToString());
                                     string c = (corporationid.IsNullOrEmpty() ? "0" : corporationid.ToString());
                                     allianceID = i;
@@ -995,43 +994,6 @@ namespace Opux
                                     catch (Exception ex)
                                     {
                                         await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential ESI Failiure for {u["eveName"]} skipping, Reason: {ex.Message}", ex));
-                                        continue;
-                                    }
-
-                                    try
-                                    {
-                                        //Check if roles when should not have any
-                                        if (!corps.ContainsValue(corporationid.ToString()) && !alliance.ContainsValue(alliance_id.ToString()))
-                                        {
-                                            if (discordUser != null)
-                                            {
-                                                rolesToTake.AddRange(discordUser.Roles);
-                                                var exemptCheckRoles = new List<SocketRole>(rolesToTake);
-                                                foreach (var r in exemptCheckRoles)
-                                                {
-                                                    var name = r.Name;
-                                                    if (exemptRoles.FindAll(x => x.Key == name).Count > 0)
-                                                    {
-                                                        rolesToTake.Remove(rolesToTake.FirstOrDefault(x => x.Name == r.Name));
-                                                    }
-                                                }
-                                                rolesToTake.Remove(rolesToTake.FirstOrDefault(x => x.Name == "@everyone"));
-                                                if (rolesToTake.Count > 0)
-                                                {
-                                                    var channel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
-                                                    await channel.SendMessageAsync($"Taking Roles from {characterDetails["name"]}");
-                                                    await discordUser.RemoveRolesAsync(rolesToTake);
-                                                }
-                                            }
-                                            else
-                                            {
-
-                                            }
-                                        }
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Failiure for {u["eveName"]} skipping, Reason: {ex.Message}", ex));
                                         continue;
                                     }
                                 }
