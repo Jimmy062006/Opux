@@ -9,6 +9,7 @@ using Matrix.Xmpp.Client;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -26,16 +27,16 @@ namespace Opux
 {
     internal class Functions
     {
-        internal static DateTime lastAuthCheck = DateTime.Now;
-        internal static DateTime lastFeedCheck = DateTime.Now;
-        internal static DateTime nextNotificationCheck = DateTime.FromFileTime(0);
-        internal static int lastNotification;
-        internal static bool avaliable = false;
-        internal static bool running = false;
-        internal static bool authRunning = false;
-        internal static bool jabberRunning = false;
-        internal static string motdtopic;
-        internal static DateTime lastTopicCheck = DateTime.Now;
+        static DateTime _lastAuthCheck = DateTime.Now;
+        static DateTime _lastFeedCheck = DateTime.Now;
+        internal static DateTime _nextNotificationCheck = DateTime.FromFileTime(0);
+        static int _lastNotification;
+        static bool _avaliable = false;
+        static bool _running = false;
+        static bool _jabberRunning = false;
+        static string _motdtopic;
+        static DateTime _lastTopicCheck = DateTime.Now;
+        static readonly HttpClient _httpClient = new HttpClient();
 
         //Timer is setup here
         #region Timer stuff
@@ -43,9 +44,9 @@ namespace Opux
         {
             try
             {
-                if (!running && avaliable)
+                if (!_running && _avaliable)
                 {
-                    running = true;
+                    _running = true;
                     await Async_Tick(stateInfo);
                 }
             }
@@ -88,14 +89,12 @@ namespace Opux
                     await Jabber();
                 }
 
-                
-
-                running = false;
+                _running = false;
             }
             catch (Exception ex)
             {
                 await Client_Log(new LogMessage(LogSeverity.Error, "Aync_Tick", ex.Message, ex));
-                running = false;
+                _running = false;
             }
         }
         #endregion
@@ -154,7 +153,7 @@ namespace Opux
 
                 Console.WriteLine($"{DateTime.Now,-19} [{arg.Severity,8}] [{arg.Source}]: {arg.Message}");
                 Console.ForegroundColor = cc;
-                
+
             }
             catch { }
         }
@@ -164,7 +163,7 @@ namespace Opux
         #region EVENTS
         internal async static Task Event_UserJoined(SocketGuildUser arg)
         {
-            var channel = (dynamic)arg.Guild.DefaultChannel;
+            var channel = arg.Guild.DefaultChannel;
             var authurl = Program.Settings.GetSection("auth")["authurl"];
             if (!String.IsNullOrWhiteSpace(authurl))
             {
@@ -178,7 +177,7 @@ namespace Opux
 
         internal static Task Ready()
         {
-            avaliable = true;
+            _avaliable = true;
             return Task.CompletedTask;
         }
         #endregion
@@ -189,10 +188,10 @@ namespace Opux
 
         internal async static Task AuthWeb()
         {
-            var callbackurl = (string)Program.Settings.GetSection("auth")["callbackurl"];
-            var client_id = (string)Program.Settings.GetSection("auth")["client_id"];
-            var secret = (string)Program.Settings.GetSection("auth")["secret"];
-            var url = (string)Program.Settings.GetSection("auth")["url"];
+            var callbackurl = Program.Settings.GetSection("auth")["callbackurl"];
+            var client_id = Program.Settings.GetSection("auth")["client_id"];
+            var secret = Program.Settings.GetSection("auth")["secret"];
+            var url = Program.Settings.GetSection("auth")["url"];
             var port = Convert.ToInt32(Program.Settings.GetSection("auth")["port"]);
 
             if (listener == null || !listener.IsListening)
@@ -628,12 +627,12 @@ namespace Opux
                     {
                         response.MethodNotAllowed();
                     }
-                // Close the HttpResponse to send it back to the client.
-                response.Close();
+                    // Close the HttpResponse to send it back to the client.
+                    response.Close();
                 };
                 listener.Start();
             }
-            
+
         }
 
         private static string GetUniqID()
@@ -672,145 +671,124 @@ namespace Opux
                 {
                     var configChildren = config.GetChildren();
 
-                    var corpID = configChildren.FirstOrDefault(x => x.Key == "corpID").Value ?? "";
-                    var allianceID = configChildren.FirstOrDefault(x => x.Key == "allianceID").Value ?? "";
+                    var corpID2 = configChildren.FirstOrDefault(x => x.Key == "corpID").Value ?? "";
+                    var allianceID2 = configChildren.FirstOrDefault(x => x.Key == "allianceID").Value ?? "";
                     var corpMemberRole = configChildren.FirstOrDefault(x => x.Key == "corpMemberRole").Value ?? "";
                     var allianceMemberRole = configChildren.FirstOrDefault(x => x.Key == "allianceMemberRole").Value ?? "";
 
-                    if (Convert.ToInt32(corpID) != 0)
+                    if (Convert.ToInt32(corpID2) != 0)
                     {
-                        corps.Add(corpID, corpMemberRole);
+                        corps.Add(corpID2, corpMemberRole);
                     }
-                    if (Convert.ToInt32(allianceID) != 0)
+                    if (Convert.ToInt32(allianceID2) != 0)
                     {
-                        alliance.Add(allianceID, allianceMemberRole);
+                        alliance.Add(allianceID2, allianceMemberRole);
                     }
-
                 }
 
-                var CharacterID = responce[0]["characterID"].ToString();
-                JObject characterDetails;
-                JObject corporationDetails;
-                JObject allianceDetails;
+                var characterID = responce[0]["characterID"].ToString();
 
-                using (HttpClient webclient = new HttpClient())
-                using (HttpResponseMessage _characterDetails = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{CharacterID}"))
-                using (HttpContent _characterDetailsContent = _characterDetails.Content)
+                var responceMessage = await _httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{characterID}/?datasource=tranquility");
+                var characterData = JsonConvert.DeserializeObject<CharacterData>(await responceMessage.Content.ReadAsStringAsync());
+
+                responceMessage = await _httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.corporation_id}/?datasource=tranquility");
+                var corporationData = JsonConvert.DeserializeObject<CorporationData>(await responceMessage.Content.ReadAsStringAsync());
+
+                responceMessage = await _httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{corporationData.alliance_id}/?datasource=tranquility");
+                var allianceData = JsonConvert.DeserializeObject<AllianceData>(await responceMessage.Content.ReadAsStringAsync());
+
+                var allianceID = (corporationData.alliance_id.ToString() == "" ? "0" : corporationData.alliance_id.ToString());
+                var corpID = (characterData.corporation_id.ToString() == "" ? "0" : characterData.corporation_id.ToString());
+
+                var enable = false;
+
+                if (corps.ContainsKey(corpID))
                 {
-                    var allianceID = "";
-                    var corpID = "";
-                    characterDetails = JObject.Parse(await _characterDetailsContent.ReadAsStringAsync());
-                    characterDetails.TryGetValue("corporation_id", out JToken corporationid);
-                    using (HttpResponseMessage _corporationDetails = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corporationid}"))
-                    using (HttpContent _corporationDetailsContent = _corporationDetails.Content)
+                    enable = true;
+                }
+                if (alliance.ContainsKey(allianceID))
+                {
+                    enable = true;
+                }
+
+                if (enable)
+                {
+                    var rolesToAdd = new List<SocketRole>();
+                    var rolesToTake = new List<SocketRole>();
+
+                    try
                     {
-                        corporationDetails = JObject.Parse(await _corporationDetailsContent.ReadAsStringAsync());
-                        corporationDetails.TryGetValue("alliance_id", out JToken allianceid);
-                        string i = (allianceid.IsNullOrEmpty() ? "0" : allianceid.ToString());
-                        string c = (corporationid.IsNullOrEmpty() ? "0" : corporationid.ToString());
-                        allianceID = i;
-                        corpID = c;
-                        if (allianceID != "0")
+                        var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
+                        var alertChannel = Convert.ToUInt64(Program.Settings.GetSection("auth")["alertChannel"]);
+
+                        var discordGuild = Program.Client.GetGuild(guildID);
+                        var discordUser = Program.Client.GetGuild(guildID).GetUser(context.Message.Author.Id);
+
+                        //Check for Corp roles
+                        if (corps.ContainsKey(corpID))
                         {
-                            using (HttpResponseMessage _allianceDetails = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{allianceid}"))
-                            using (HttpContent _allianceDetailsContent = _allianceDetails.Content)
+                            var cinfo = corps.FirstOrDefault(x => x.Key == corpID);
+                            rolesToAdd.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == cinfo.Value));
+                        }
+
+                        //Check for Alliance roles
+                        if (alliance.ContainsKey(allianceID))
+                        {
+                            var ainfo = alliance.FirstOrDefault(x => x.Key == allianceID);
+                            rolesToAdd.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == ainfo.Value));
+                        }
+
+                        foreach (var r in rolesToAdd)
+                        {
+                            if (discordUser.Roles.FirstOrDefault(x => x.Id == r.Id) == null)
                             {
-                                allianceDetails = JObject.Parse(await _allianceDetailsContent.ReadAsStringAsync());
+                                var channel = discordGuild.GetTextChannel(alertChannel);
+                                await channel.SendMessageAsync($"Granting Roles to {characterData.name}");
+                                await discordUser.AddRolesAsync(rolesToAdd);
                             }
+                        }
+                        var query2 = $"UPDATE pendingUsers SET active=\"0\" WHERE authString=\"{remainder}\"";
+                        var responce2 = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query2);
+
+                        await context.Channel.SendMessageAsync($"{context.Message.Author.Mention},:white_check_mark: **Success**: " +
+                            $"{characterData.name} has been successfully authed.");
+
+                        var eveName = characterData.name;
+                        var discordID = discordUser.Id;
+                        var active = "yes";
+                        var addedOn = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+                        query2 = "INSERT INTO authUsers(eveName, characterID, discordID, role, active, addedOn) " +
+                        $"VALUES (\"{eveName}\", \"{characterID}\", \"{discordID}\", \"[]\", \"{active}\", \"{addedOn}\") ON DUPLICATE KEY UPDATE " +
+                        $"eveName = \"{eveName}\", discordID = \"{discordID}\", role = \"[]\", active = \"{active}\", addedOn = \"{addedOn}\"";
+
+                        responce2 = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query2);
+
+                        var corpTickers = Convert.ToBoolean(Program.Settings.GetSection("auth")["corpTickers"]);
+                        var nameEnforce = Convert.ToBoolean(Program.Settings.GetSection("auth")["nameEnforce"]);
+
+                        if (corpTickers || nameEnforce)
+                        {
+                            var Nickname = "";
+                            if (corpTickers)
+                            {
+                                Nickname = $"[{corporationData.ticker}] ";
+                            }
+                            if (nameEnforce)
+                            {
+                                Nickname += $"{eveName}";
+                            }
+                            else
+                            {
+                                Nickname += $"{discordUser.Username}";
+                            }
+                            await discordUser.ModifyAsync(x => x.Nickname = Nickname);
                         }
                     }
 
-                    var enable = false;
-
-                    if (corps.ContainsKey(corpID))
+                    catch (Exception ex)
                     {
-                        enable = true;
-                    }
-                    if (alliance.ContainsKey(allianceID))
-                    {
-                        enable = true;
-                    }
-
-                    if (enable)
-                    {
-                        var rolesToAdd = new List<SocketRole>();
-                        var rolesToTake = new List<SocketRole>();
-
-                        try
-                        {
-                            var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
-                            var alertChannel = Convert.ToUInt64(Program.Settings.GetSection("auth")["alertChannel"]);
-
-                            var discordGuild = (SocketGuild)context.Guild;
-                            var discordUser = (SocketGuildUser)context.Message.Author;
-
-                            //Check for Corp roles
-                            if (corps.ContainsKey(corpID))
-                            {
-                                var cinfo = corps.FirstOrDefault(x => x.Key == corpID);
-                                rolesToAdd.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == cinfo.Value));
-                            }
-
-                            //Check for Alliance roles
-                            if (alliance.ContainsKey(allianceID))
-                            {
-                                var ainfo = alliance.FirstOrDefault(x => x.Key == allianceID);
-                                rolesToAdd.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == ainfo.Value));
-                            }
-
-                            foreach (var r in rolesToAdd)
-                            {
-                                if (discordUser.Roles.FirstOrDefault(x => x.Id == r.Id) == null)
-                                {
-                                    var channel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == alertChannel);
-                                    await channel.SendMessageAsync($"Granting Roles to {characterDetails["name"]}");
-                                    await discordUser.AddRolesAsync(rolesToAdd);
-                                }
-                            }
-                            var query2 = $"UPDATE pendingUsers SET active=\"0\" WHERE authString=\"{remainder}\"";
-                            var responce2 = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query2);
-
-                            await context.Channel.SendMessageAsync($"{context.Message.Author.Mention},:white_check_mark: **Success**: " +
-                                $"{characterDetails["name"]} has been successfully authed.");
-
-                            var eveName = characterDetails["name"];
-                            var characterID = CharacterID;
-                            var discordID = discordUser.Id;
-                            var active = "yes";
-                            var addedOn = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-
-                            query2 = "INSERT INTO authUsers(eveName, characterID, discordID, role, active, addedOn) " +
-                            $"VALUES (\"{eveName}\", \"{characterID}\", \"{discordID}\", \"[]\", \"{active}\", \"{addedOn}\") ON DUPLICATE KEY UPDATE " +
-                            $"eveName = \"{eveName}\", discordID = \"{discordID}\", role = \"[]\", active = \"{active}\", addedOn = \"{addedOn}\"";
-
-                            responce2 = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query2);
-
-                            var corpTickers = Convert.ToBoolean(Program.Settings.GetSection("auth")["corpTickers"]);
-                            var nameEnforce = Convert.ToBoolean(Program.Settings.GetSection("auth")["nameEnforce"]);
-
-                            if (corpTickers || nameEnforce)
-                            {
-                                var Nickname = "";
-                                if (corpTickers)
-                                {
-                                    Nickname = $"[{corporationDetails["ticker"]}] ";
-                                }
-                                if (nameEnforce)
-                                {
-                                    Nickname += $"{eveName}";
-                                }
-                                else
-                                {
-                                    Nickname += $"{discordUser.Username}";
-                                }
-                                await discordUser.ModifyAsync(x => x.Nickname = Nickname);
-                            }
-                        }
-
-                        catch (Exception ex)
-                        {
-                            await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Failed adding Roles to User {characterDetails["name"]}, Reason: {ex.Message}", ex));
-                        }
+                        await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Failed adding Roles to User {characterData.name}, Reason: {ex.Message}", ex));
                     }
                 }
             }
@@ -822,9 +800,9 @@ namespace Opux
         internal async static Task AuthCheck(ICommandContext Context)
         {
             //Check inactive users are correct
-            if (DateTime.Now > lastAuthCheck.AddMilliseconds(Convert.ToInt32(Program.Settings.GetSection("config")["authInterval"]) * 1000 * 60) || Context != null)
+            if (DateTime.Now > _lastAuthCheck.AddMilliseconds(Convert.ToInt32(Program.Settings.GetSection("config")["authInterval"]) * 1000 * 60) || Context != null)
             {
-                lastAuthCheck = DateTime.Now;
+                _lastAuthCheck = DateTime.Now;
 
                 await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Running Auth Check"));
 
@@ -863,10 +841,6 @@ namespace Opux
                     if (u.Id == Program.Client.CurrentUser.Id)
                         continue;
 
-                    JObject characterDetails;
-                    JObject corporationDetails;
-                    JObject allianceDetails;
-
                     string query = $"SELECT * FROM authUsers WHERE discordID={u.Id}";
                     var responce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query);
 
@@ -874,42 +848,19 @@ namespace Opux
                     {
                         var characterID = responce.OrderByDescending(x => x["id"]).FirstOrDefault()["characterID"];
 
-                        using (HttpClient webclient = new HttpClient())
-                        using (HttpResponseMessage _characterDetails = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{characterID}"))
-                        using (HttpContent _characterDetailsContent = _characterDetails.Content)
-                        {
-                            var allianceID = "";
-                            var corpID = "";
-                            characterDetails = JObject.Parse(await _characterDetailsContent.ReadAsStringAsync());
-                            characterDetails.TryGetValue("corporation_id", out JToken corporationid);
-                            JToken allianceid;
-                            if (corporationid.IsNullOrEmpty())
-                            {
-                                var channel = (dynamic)Context.Message.Channel;
-                                await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential ESI Failiure for " +
-                                    $"{responce.OrderByDescending(x => x["id"]).FirstOrDefault()["eveName"]} skipping rename"));
-                                continue;
-                            }
-                            using (HttpResponseMessage _corporationDetails = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corporationid}"))
-                            using (HttpContent _corporationDetailsContent = _corporationDetails.Content)
-                            {
-                                corporationDetails = JObject.Parse(await _corporationDetailsContent.ReadAsStringAsync());
-                                corporationDetails.TryGetValue("alliance_id", out allianceid);
-                                string i = (allianceid.IsNullOrEmpty() ? "0" : allianceid.ToString());
-                                string c = (corporationid.IsNullOrEmpty() ? "0" : corporationid.ToString());
-                                allianceID = i;
-                                corpID = c;
-                                if (allianceID != "0")
-                                {
-                                    using (HttpResponseMessage _allianceDetails = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{allianceid}"))
-                                    using (HttpContent _allianceDetailsContent = _allianceDetails.Content)
-                                    {
-                                        allianceDetails = JObject.Parse(await _allianceDetailsContent.ReadAsStringAsync());
-                                    }
-                                }
-                            }
+                        var responceMessage = await _httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{characterID}/?datasource=tranquility");
+                        var characterData = JsonConvert.DeserializeObject<CharacterData>(await responceMessage.Content.ReadAsStringAsync());
 
-                            var roles = new List<SocketRole>();
+                        responceMessage = await _httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.corporation_id}/?datasource=tranquility");
+                        var corporationData = JsonConvert.DeserializeObject<CorporationData>(await responceMessage.Content.ReadAsStringAsync());
+
+                        responceMessage = await _httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{corporationData.alliance_id}/?datasource=tranquility");
+                        var allianceData = JsonConvert.DeserializeObject<AllianceData>(await responceMessage.Content.ReadAsStringAsync());
+
+                        var allianceID = (corporationData.alliance_id.ToString() == "" ? "0" : corporationData.alliance_id.ToString());
+                        var corpID = (characterData.corporation_id.ToString() == "" ? "0" : characterData.corporation_id.ToString());
+
+                        var roles = new List<SocketRole>();
                             var rolesOrig = new List<SocketRole>(u.Roles);
                             var remroles = new List<SocketRole>();
                             roles.Add(u.Roles.FirstOrDefault(x => x.Name == "@everyone"));
@@ -926,7 +877,7 @@ namespace Opux
                                 var cinfo = corps.FirstOrDefault(x => x.Key == corpID);
                                 roles.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == cinfo.Value));
                             }
-                            
+
                             //Check for Alliance roles
                             if (alliance.ContainsKey(allianceID))
                             {
@@ -954,43 +905,42 @@ namespace Opux
                             if (changed)
                             {
                                 roles.Remove(u.Roles.FirstOrDefault(x => x.Name == "@everyone"));
-                                var channel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
+                                var channel = discordGuild.GetTextChannel(logchan);
                                 await channel.SendMessageAsync($"Adjusting roles for {u.Username}");
                                 await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Adjusting roles for {u.Username}"));
                                 await u.AddRolesAsync(roles);
                                 await u.RemoveRolesAsync(remroles);
                             }
 
-                            var eveName = characterDetails["name"];
+                            var eveName = characterData.name;
 
                             var corpTickers = Convert.ToBoolean(Program.Settings.GetSection("auth")["corpTickers"]);
                             var nameEnforce = Convert.ToBoolean(Program.Settings.GetSection("auth")["nameEnforce"]);
 
-                            if (corpTickers || nameEnforce)
+                        if (corpTickers || nameEnforce)
+                        {
+                            if (corporationData.ticker == "")
                             {
-                                if (corporationDetails["error"].IsNullOrEmpty())
+                                var Nickname = "";
+                                if (corpTickers)
                                 {
-                                    var Nickname = "";
-                                    if (corpTickers)
-                                    {
-                                        Nickname = $"[{corporationDetails["ticker"]}] ";
-                                    }
-                                    if (nameEnforce)
-                                    {
-                                        Nickname += $"{eveName}";
-                                    }
-                                    else
-                                    {
-                                        Nickname += $"{u.Username}";
-                                    }
-                                    if (Nickname != u.Nickname && !String.IsNullOrWhiteSpace(u.Nickname) || String.IsNullOrWhiteSpace(u.Nickname) && u.Username != Nickname)
-                                    {
-                                        await u.ModifyAsync(x => x.Nickname = Nickname);
-                                        await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Changed name of {u.Nickname} to {Nickname}"));
-                                    }
+                                    Nickname = $"[{corporationData.ticker}] ";
+                                }
+                                if (nameEnforce)
+                                {
+                                    Nickname += $"{eveName}";
+                                }
+                                else
+                                {
+                                    Nickname += $"{u.Username}";
+                                }
+                                if (Nickname != u.Nickname && !String.IsNullOrWhiteSpace(u.Nickname) || String.IsNullOrWhiteSpace(u.Nickname) && u.Username != Nickname)
+                                {
+                                    await u.ModifyAsync(x => x.Nickname = Nickname);
+                                    await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Changed name of {u.Nickname} to {Nickname}"));
                                 }
                             }
-                        }
+                        }                     
                     }
                     else
                     {
@@ -1002,6 +952,8 @@ namespace Opux
                             if (exemptRole != null)
                                 rroles.Remove(exemptRole);
                         }
+
+                        rrolesOrig.Remove(u.Roles.FirstOrDefault(x => x.Name == "@everyone"));
 
                         bool rchanged = false;
 
@@ -1019,7 +971,7 @@ namespace Opux
 
                         if (rchanged)
                         {
-                            var channel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
+                            var channel = discordGuild.GetTextChannel(logchan);
                             await channel.SendMessageAsync($"Resetting roles for {u.Username}");
                             await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Resetting roles for {u.Username}"));
                             await u.RemoveRolesAsync(rroles);
@@ -1028,7 +980,7 @@ namespace Opux
                 }
                 if (Context != null)
                 {
-                    var channel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == logchan);
+                    var channel = discordGuild.GetTextChannel(logchan);
                     await channel.SendMessageAsync($"{Context.Message.Author.Mention} REAUTH COMPLETED");
                 }
             }
@@ -1041,7 +993,7 @@ namespace Opux
         {
             try
             {
-                lastFeedCheck = DateTime.Now;
+                _lastFeedCheck = DateTime.Now;
                 Dictionary<string, IEnumerable<IConfigurationSection>> feedGroups = new Dictionary<string, IEnumerable<IConfigurationSection>>();
 
                 UInt64 guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
@@ -1137,7 +1089,7 @@ namespace Opux
                                 }
                                 if (bigKillGlobal != 0 && value >= bigKillGlobal)
                                 {
-                                    channel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == bigKillGlobalChan);
+                                    channel = discordGuild.GetTextChannel(bigKillGlobalChan);
                                     globalBigKill = true;
                                     post = true;
                                 }
@@ -1145,13 +1097,13 @@ namespace Opux
                                 {
                                     if (bigKillValue != 0 && value >= bigKillValue && !globalBigKill)
                                     {
-                                        channel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == bigKillChannel);
+                                        channel = discordGuild.GetTextChannel(bigKillChannel);
                                         bigKill = true;
                                         post = true;
                                     }
                                     else
                                     {
-                                        channel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == channelGroup);
+                                        channel = discordGuild.GetTextChannel(channelGroup);
                                         var totalValue = value;
                                         if (minimumValue == 0 || minimumValue <= totalValue)
                                             post = true;
@@ -1159,7 +1111,7 @@ namespace Opux
                                 }
                                 else if (!globalBigKill)
                                 {
-                                    channel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == channelGroup);
+                                    channel = discordGuild.GetTextChannel(channelGroup);
                                     if (victimAlliance != null)
                                     {
                                         if ((Int32)victimAlliance["id"] == allianceID && losses == true ||
@@ -1167,7 +1119,7 @@ namespace Opux
                                         {
                                             if (bigKillValue != 0 && value >= bigKillValue)
                                             {
-                                                channel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == bigKillChannel);
+                                                channel = discordGuild.GetTextChannel(bigKillChannel);
                                                 bigKill = true;
                                                 post = true;
                                             }
@@ -1182,7 +1134,7 @@ namespace Opux
                                     {
                                         if (bigKillValue != 0 && value >= bigKillValue)
                                         {
-                                            channel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == bigKillChannel);
+                                            channel = discordGuild.GetTextChannel(bigKillChannel);
                                             bigKill = true;
                                             post = true;
                                         }
@@ -1201,7 +1153,7 @@ namespace Opux
                                             {
                                                 if (bigKillValue != 0 && value >= bigKillValue)
                                                 {
-                                                    channel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == bigKillChannel);
+                                                    channel = discordGuild.GetTextChannel(bigKillChannel);
                                                     bigKill = true;
                                                     post = true;
                                                 }
@@ -1215,7 +1167,7 @@ namespace Opux
                                             {
                                                 if (bigKillValue != 0 && value >= bigKillValue)
                                                 {
-                                                    channel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == bigKillChannel);
+                                                    channel = discordGuild.GetTextChannel(bigKillChannel);
                                                     bigKill = true;
                                                     post = true;
                                                 }
@@ -1238,7 +1190,7 @@ namespace Opux
                                     {
                                         if (radiusKill)
                                         {
-                                            var _radiusChannel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == radiusChannel);
+                                            var _radiusChannel = discordGuild.GetTextChannel(radiusChannel);
                                             var radiusMessage = "";
                                             radiusMessage = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]}{Environment.NewLine}";
                                             radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
@@ -1266,7 +1218,7 @@ namespace Opux
                                     {
                                         if (radiusKill)
                                         {
-                                            var _radiusChannel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == radiusChannel);
+                                            var _radiusChannel = discordGuild.GetTextChannel(radiusChannel);
                                             var radiusMessage = "";
                                             radiusMessage = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]}{Environment.NewLine}";
                                             radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
@@ -1296,7 +1248,7 @@ namespace Opux
                                 {
                                     if (radiusKill)
                                     {
-                                        var _radiusChannel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == radiusChannel);
+                                        var _radiusChannel = discordGuild.GetTextChannel(radiusChannel);
                                         var radiusMessage = "";
                                         radiusMessage = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]}{Environment.NewLine}";
                                         radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
@@ -1325,7 +1277,7 @@ namespace Opux
                                 {
                                     if (radiusKill)
                                     {
-                                        var _radiusChannel = (dynamic)discordGuild.Channels.FirstOrDefault(x => x.Id == radiusChannel);
+                                        var _radiusChannel = discordGuild.GetTextChannel(radiusChannel);
                                         var radiusMessage = "";
                                         radiusMessage = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]}{Environment.NewLine}";
                                         radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
@@ -1548,13 +1500,13 @@ namespace Opux
             #endregion
             try
             {
-                if (DateTime.Now > nextNotificationCheck)
+                if (DateTime.Now > _nextNotificationCheck)
                 {
                     await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", "Running Notification Check"));
-                    lastNotification = Convert.ToInt32(await SQLiteDataQuery("cacheData", "data", "lastNotificationID"));
+                    _lastNotification = Convert.ToInt32(await SQLiteDataQuery("cacheData", "data", "lastNotificationID"));
                     var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
                     var channelId = Convert.ToUInt64(Program.Settings.GetSection("notifications")["channelId"]);
-                    var chan = (dynamic)Program.Client.GetGuild(guildID).GetChannel(channelId);
+                    var chan = Program.Client.GetGuild(guildID).GetTextChannel(channelId);
                     var keyID = "";
                     var vCode = "";
                     var characterID = "";
@@ -1595,7 +1547,7 @@ namespace Opux
 
                                 foreach (var notification in notificationsSort)
                                 {
-                                    if ((int)notification.Value["notificationID"] > lastNotification)
+                                    if ((int)notification.Value["notificationID"] > _lastNotification)
                                     {
                                         var notificationText = notificationsText.FirstOrDefault(x => x.Key == notification.Key).Value;
                                         var notificationType = (int)notification.Value["typeID"];
@@ -1763,8 +1715,8 @@ namespace Opux
                                                     $"{Environment.NewLine} Text: {notificationText}"));
                                             }
                                         }
-                                        lastNotification = (int)notification.Value["notificationID"];
-                                        await SQLiteDataUpdate("cacheData", "data", "lastNotificationID", lastNotification.ToString());
+                                        _lastNotification = (int)notification.Value["notificationID"];
+                                        await SQLiteDataUpdate("cacheData", "data", "lastNotificationID", _lastNotification.ToString());
                                         runComplete = true;
                                     }
                                 }
@@ -1784,8 +1736,8 @@ namespace Opux
                         }
                         var interval = 30 / keyCount;
                         await SQLiteDataUpdate("cacheData", "data", "nextNotificationCheck", DateTime.Now.AddMinutes(interval).ToString());
-                        nextNotificationCheck = DateTime.Now.AddMinutes(interval);
-                        
+                        _nextNotificationCheck = DateTime.Now.AddMinutes(interval);
+
                     }
                 }
             }
@@ -1805,7 +1757,7 @@ namespace Opux
             using (HttpClient webClient = new HttpClient())
             {
                 JObject jObject = new JObject();
-                var channel = (dynamic)context.Message.Channel;
+                var channel = context.Message.Channel;
                 if (String.ToLower() == "short name")
                 {
                     String = "Item Name";
@@ -1816,7 +1768,7 @@ namespace Opux
                 if ((string)jObject["typeName"] == "bad item")
                 {
                     await channel.SendMessageAsync($"{context.Message.Author.Mention} Item {String} does not exist please try again");
-                    
+
                 }
                 else
                 {
@@ -1991,14 +1943,14 @@ namespace Opux
         {
             try
             {
-                if (DateTime.Now > lastTopicCheck.AddMilliseconds(Convert.ToInt32(Program.Settings.GetSection("motd")["topicInterval"]) * 1000 * 60))
+                if (DateTime.Now > _lastTopicCheck.AddMilliseconds(Convert.ToInt32(Program.Settings.GetSection("motd")["topicInterval"]) * 1000 * 60))
                 {
                     await Client_Log(new LogMessage(LogSeverity.Info, "CheckTopic", "Running Topic Check"));
-                    motdtopic = Convert.ToString(await SQLiteDataQuery("cacheData", "data", "motd"));
+                    _motdtopic = Convert.ToString(await SQLiteDataQuery("cacheData", "data", "motd"));
                     {
                         var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
                         var channelId = Convert.ToUInt64(Program.Settings.GetSection("motd")["motdtopicchan"]);
-                        var chan1 = (dynamic)Program.Client.GetGuild(guildID).GetChannel(channelId);
+                        var chan1 = Program.Client.GetGuild(guildID).GetTextChannel(channelId);
                         var keyID = Program.Settings.GetSection("motd")["motdkeyID"];
                         var vCode = Program.Settings.GetSection("motd")["motdvCode"];
                         var CharID = Program.Settings.GetSection("motd")["motdcharid"];
@@ -2025,10 +1977,10 @@ namespace Opux
                                 com = StripTagsCharArray(com);
                                 com = com.Replace("&lt;", "<").Replace("&gt;", ">");
 
-                                if (com != motdtopic)
+                                if (com != _motdtopic)
                                 {
                                     var chanid = Convert.ToUInt64(Program.Settings.GetSection("motd")["motdtopicchan"]);
-                                    var chan = (ITextChannel)Program.Client.Guilds.FirstOrDefault().Channels.FirstOrDefault(x => x.Id == chanid); ;
+                                    var chan = (ITextChannel)Program.Client.Guilds.FirstOrDefault().GetTextChannel(chanid); ;
 
                                     await SQLiteDataUpdate("cacheData", "data", "motd", com.ToString());
                                     await chan.ModifyAsync(x => x.Topic = com);
@@ -2037,7 +1989,7 @@ namespace Opux
                             }
                         }
                     }
-                    lastTopicCheck = DateTime.Now;
+                    _lastTopicCheck = DateTime.Now;
                 }
             }
             catch (Exception ex)
@@ -2078,7 +2030,7 @@ namespace Opux
                             var details = operation["Details"];
                             var url = $"http://fleet-up.com/Operation#{operation["OperationId"]}";
 
-                            var channel = (dynamic)Program.Client.GetGuild(guildId).GetChannel(channelid);
+                            var channel = Program.Client.GetGuild(guildId).GetTextChannel(channelid);
 
                             var message = $"@everyone {Environment.NewLine}{Environment.NewLine}" +
                                 $"**New Operation Posted** {Environment.NewLine}{Environment.NewLine}" +
@@ -2101,7 +2053,7 @@ namespace Opux
                 }
             }
 
-            
+
         }
 
         internal static async Task Ops(ICommandContext context)
@@ -2115,7 +2067,7 @@ namespace Opux
                 var guildId = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
                 var lastopid = await SQLiteDataQuery("cacheData", "data", "fleetUpLastPostedOperation");
 
-                var channel = (dynamic)Program.Client.GetGuild(guildId).GetChannel(channelid);
+                var channel = Program.Client.GetGuild(guildId).GetChannel(channelid);
 
                 var Json = await webRequest.GetStringAsync($"http://api.fleet-up.com/Api.svc/Ohigwbylcsuz56ue3O6Awlw5e/{UserId}/{APICode}/Operations/{GroupID}");
                 var result = JObject.Parse(Json);
@@ -2162,13 +2114,13 @@ namespace Opux
                         }
                     }
                 }
-                if(message != $"{context.Message.Author.Mention}, {Environment.NewLine}")
+                if (message != $"{context.Message.Author.Mention}, {Environment.NewLine}")
                     await context.Message.Channel.SendMessageAsync($"{message}");
 
                 await Client_Log(new LogMessage(LogSeverity.Info, "FleetOps", $"Sending Ops to {context.Message.Channel} for {context.Message.Author}"));
             }
 
-            
+
         }
         #endregion
 
@@ -2180,13 +2132,13 @@ namespace Opux
             var password = Program.Settings.GetSection("jabber")["password"];
             var domain = Program.Settings.GetSection("jabber")["domain"];
 
-            if (!jabberRunning)
+            if (!_jabberRunning)
             {
                 try
                 {
                     var xmppWrapper = new ReconnectXmppWrapper(domain, username, password);
                     xmppWrapper.Connect(null);
-                    jabberRunning = true;
+                    _jabberRunning = true;
                 }
                 catch (Exception ex)
                 {
@@ -2194,7 +2146,7 @@ namespace Opux
                 }
             }
 
-            
+
         }
 
         internal static async void OnMessage(object sender, MessageEventArgs e)
@@ -2208,7 +2160,7 @@ namespace Opux
                         if (e.Message.Value.ToLower().Contains(filter.Key.ToLower()))
                         {
                             var prepend = Program.Settings.GetSection("jabber")["prepend"];
-                            var channel = (dynamic)Program.Client.GetChannel(Convert.ToUInt64(filter.Value));
+                            var channel = Program.Client.GetGuild(Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"])).GetTextChannel(Convert.ToUInt64(filter.Value));
                             await channel.SendMessageAsync($"{prepend + Environment.NewLine}From: {e.Message.From.User} {Environment.NewLine} Message: ```{e.Message.Value}```");
                         }
                     }
@@ -2216,7 +2168,7 @@ namespace Opux
                 else if (!string.IsNullOrWhiteSpace(e.Message.Value))
                 {
                     var prepend = Program.Settings.GetSection("jabber")["prepend"];
-                    var channel = (dynamic)Program.Client.GetChannel(Convert.ToUInt64(Program.Settings.GetSection("jabber")["defchan"]));
+                    var channel = Program.Client.GetGuild(Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"])).GetTextChannel(Convert.ToUInt64(Program.Settings.GetSection("jabber")["defchan"]));
                     await channel.SendMessageAsync($"{prepend + Environment.NewLine}From: {e.Message.From.User} {Environment.NewLine} Message: ```{e.Message.Value}```");
                 }
             }
@@ -2238,7 +2190,7 @@ namespace Opux
             }
             //using (var repo = new Repository(directory))
             //{
-            var channel = (dynamic)context.Channel;
+            var channel = context.Channel;
             var botid = Program.Client.CurrentUser.Id;
             var MemoryUsed = ByteSize.FromBytes(Process.GetCurrentProcess().PrivateMemorySize64);
             var RunTime = DateTime.Now - Process.GetCurrentProcess().StartTime;
@@ -2249,7 +2201,7 @@ namespace Opux
                 TotalUsers = TotalUsers + guild.Users.Count;
             }
 
-            channel.SendMessageAsync($"{context.User.Mention},{Environment.NewLine}{Environment.NewLine}" +
+            await channel.SendMessageAsync($"{context.User.Mention},{Environment.NewLine}{Environment.NewLine}" +
                 $"```Developer: Jimmy06 (In-game Name: Jimmy06){Environment.NewLine}{Environment.NewLine}" +
                 $"Bot ID: {botid}{Environment.NewLine}{Environment.NewLine}" +
                 //$"Current Version: {repo.Head.Tip.Id}{Environment.NewLine}" +
@@ -2270,53 +2222,56 @@ namespace Opux
         #region Char
         internal async static Task Char(ICommandContext context, string x)
         {
-            var channel = (dynamic)context.Channel;
-            using (HttpClient webclient = new HttpClient())
-            using (HttpResponseMessage _characterid = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/search/?categories=character&datasource=tranquility&language=en-us&search={x}&strict=false"))
-            using (HttpContent _characteridContent = _characterid.Content)
+            var channel = context.Channel;
+            var responceMessage = await _httpClient.GetAsync($"https://esi.tech.ccp.is/latest/search/?categories=character&datasource=tranquility&language=en-us&search={x}&strict=false");
+            var characterID = JsonConvert.DeserializeObject<CharacterID>(await responceMessage.Content.ReadAsStringAsync()).character.FirstOrDefault();
+            responceMessage = await _httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{characterID}/?datasource=tranquility");
+            var characterData = JsonConvert.DeserializeObject<CharacterData>(await responceMessage.Content.ReadAsStringAsync());
+            responceMessage = await _httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.corporation_id}/?datasource=tranquility");
+            var corporationData = JsonConvert.DeserializeObject<CorporationData>(await responceMessage.Content.ReadAsStringAsync());
+            responceMessage = await _httpClient.GetAsync($"https://zkillboard.com/api/kills/characterID/{characterID}/");
+            var zkillContent = JsonConvert.DeserializeObject<List<Kill>>(await responceMessage.Content.ReadAsStringAsync());
+            Kill zkillLast = zkillContent.Count > 0 ? zkillContent[0] : new Kill();
+
+            responceMessage = await _httpClient.GetAsync($"https://esi.tech.ccp.is/latest/universe/systems/{zkillLast.solarSystemID}/?datasource=tranquility&language=en-us");
+            var systemData = JsonConvert.DeserializeObject<SystemData>(await responceMessage.Content.ReadAsStringAsync());
+
+            var lastShipType = "Unknown";
+
+            if (zkillLast.victim != null && zkillLast.victim.characterID == characterID)
             {
-                var id = JObject.Parse(await _characteridContent.ReadAsStringAsync())["character"].FirstOrDefault();
-                var _character = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{id}/?datasource=tranquility");
-                var _characterContent = JObject.Parse(await _character.Content.ReadAsStringAsync());
-                var _corp = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{_characterContent["corporation_id"]}/?datasource=tranquility");
-                var _corpContent = JObject.Parse(await _corp.Content.ReadAsStringAsync());
-                var _zkill = await webclient.GetAsync($"https://zkillboard.com/api/kills/characterID/{id}/");
-                var _zkillContent = JArray.Parse(await _zkill.Content.ReadAsStringAsync())[0];
-                var lastSystem = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/universe/systems/{_zkillContent["solarSystemID"]}/?datasource=tranquility&language=en-us");
-                var _lastSystem = JObject.Parse(await lastSystem.Content.ReadAsStringAsync());
-                var lastShipType = "Unknown";
-                if (_zkillContent["victim"]["characterID"] == id)
+                lastShipType = zkillLast.victim.shipTypeID.ToString();
+            }
+            else if(zkillLast.victim != null)
+            {
+                foreach (var attacker in zkillLast.attackers)
                 {
-                    lastShipType = _zkillContent["victim"]["shipTypeID"].ToString();
-                }
-                else
-                {
-                    foreach (var attacker in _zkillContent["attackers"])
+                    if (attacker.characterID == characterID)
                     {
-                        if ((int)attacker["characterID"] == (int)id)
-                        {
-                            lastShipType = attacker["shipTypeID"].ToString();
-                        }
+                        lastShipType = attacker.shipTypeID.ToString();
                     }
                 }
-
-                var lastShip = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/universe/types/{lastShipType}/?datasource=tranquility&language=en-us");
-                var _lastShip = JObject.Parse(await lastShip.Content.ReadAsStringAsync());
-                var _lastSeen = _zkillContent["killTime"];
-
-                var _ally = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{_corpContent["alliance_id"]}/?datasource=tranquility");
-                var _allyContent = JObject.Parse(await _ally.Content.ReadAsStringAsync());
-                var alliance = _allyContent["alliance_name"].IsNullOrEmpty() ? "None" : _allyContent["alliance_name"];
-
-                await channel.SendMessageAsync($"```Name: {_characterContent["name"]}{Environment.NewLine}" +
-                    $"DOB: {_characterContent["birthday"]}{Environment.NewLine}{Environment.NewLine}" +
-                    $"Corporation Name: {_corpContent["corporation_name"]}{Environment.NewLine}" +
-                    $"Alliance Name: {alliance}{Environment.NewLine}{Environment.NewLine}" +
-                    $"Last System: {_lastSystem["name"]}{Environment.NewLine}" +
-                    $"Last Ship: {_lastShip["name"]}{Environment.NewLine}" +
-                    $"Last Seen: {_lastSeen}{Environment.NewLine}```" +
-                    $"ZKill: https://zkillboard.com/character/{id}/");
             }
+
+            responceMessage = await _httpClient.GetAsync($"https://esi.tech.ccp.is/latest/universe/types/{lastShipType}/?datasource=tranquility&language=en-us");
+            var lastShip = JsonConvert.DeserializeObject<Ship>(await responceMessage.Content.ReadAsStringAsync());
+            var lastSeen = zkillLast.killTime;
+
+            responceMessage = await _httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.alliance_id}/?datasource=tranquility");
+            var allianceData = JsonConvert.DeserializeObject<AllianceData>(await responceMessage.Content.ReadAsStringAsync());
+            var alliance = allianceData.alliance_name == null ? "None" : allianceData.alliance_name;
+
+            await channel.SendMessageAsync($"```Name: {characterData.name}{Environment.NewLine}" +
+                $"DOB: {characterData.birthday}{Environment.NewLine}{Environment.NewLine}" +
+                $"Corporation Name: {corporationData.corporation_name}{Environment.NewLine}" +
+                $"Alliance Name: {alliance}{Environment.NewLine}{Environment.NewLine}" +
+                $"Last System: {systemData.name}{Environment.NewLine}" +
+                $"Last Ship: {lastShip.name}{Environment.NewLine}" +
+                $"Last Seen: {lastSeen}{Environment.NewLine}```" +
+                $"ZKill: https://zkillboard.com/character/{characterID}/");
+
+            responceMessage.Dispose();
+
             await Task.CompletedTask;
         }
         #endregion
@@ -2325,7 +2280,7 @@ namespace Opux
         #region Corp
         internal async static Task Corp(ICommandContext context, string x)
         {
-            var channel = (dynamic)context.Channel;
+            var channel = context.Channel;
             using (HttpClient webclient = new HttpClient())
             using (HttpResponseMessage _characterid = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/search/?categories=corporation&datasource=tranquility&language=en-us&search={x}&strict=false"))
             using (HttpContent _characteridContent = _characterid.Content)
@@ -2485,7 +2440,7 @@ namespace Opux
                 try
                 {
                     insertSQL.ExecuteNonQuery();
-                    
+
                 }
                 catch (Exception ex)
                 {
@@ -2507,7 +2462,7 @@ namespace Opux
                 try
                 {
                     insertSQL.ExecuteNonQuery();
-                    
+
                 }
                 catch (Exception ex)
                 {
@@ -2572,7 +2527,7 @@ namespace Opux
         }
         #endregion
 
-        }
+    }
 
     #region JToken null/empty check
     internal static class JsonExtensions
@@ -2588,5 +2543,182 @@ namespace Opux
         }
     }
     #endregion
+
+
+    public class CharacterID
+    {
+        public int[] character { get; set; }
+    }
+
+
+    public class CharacterData
+    {
+        public int corporation_id { get; set; }
+        public DateTime birthday { get; set; }
+        public string name { get; set; }
+        public string gender { get; set; }
+        public int race_id { get; set; }
+        public int bloodline_id { get; set; }
+        public string description { get; set; }
+        public int alliance_id { get; set; }
+        public int ancestry_id { get; set; }
+        public float security_status { get; set; }
+    }
+
+    public class CorporationData
+    {
+        public string corporation_name { get; set; }
+        public string ticker { get; set; }
+        public int member_count { get; set; }
+        public int ceo_id { get; set; }
+        public string corporation_description { get; set; }
+        public float tax_rate { get; set; }
+        public int creator_id { get; set; }
+        public string url { get; set; }
+        public int alliance_id { get; set; }
+        public DateTime creation_date { get; set; }
+    }
+
+    public class ZKill
+    {
+        public Kill[] kill { get; set; }
+    }
+
+    public class Kill
+    {
+        public int killID { get; set; }
+        public int solarSystemID { get; set; }
+        public string killTime { get; set; }
+        public int moonID { get; set; }
+        public Victim victim { get; set; }
+        public Attacker[] attackers { get; set; }
+        public Item[] items { get; set; }
+        public PositionData position { get; set; }
+        public Zkb zkb { get; set; }
+    }
+
+    public class Victim
+    {
+        public int shipTypeID { get; set; }
+        public int characterID { get; set; }
+        public string characterName { get; set; }
+        public int corporationID { get; set; }
+        public string corporationName { get; set; }
+        public int allianceID { get; set; }
+        public string allianceName { get; set; }
+        public int factionID { get; set; }
+        public string factionName { get; set; }
+        public int damageTaken { get; set; }
+    }
+
+    public class Zkb
+    {
+        public int locationID { get; set; }
+        public string hash { get; set; }
+        public float fittedValue { get; set; }
+        public float totalValue { get; set; }
+        public int points { get; set; }
+        public bool npc { get; set; }
+    }
+
+    public class Attacker
+    {
+        public int characterID { get; set; }
+        public string characterName { get; set; }
+        public int corporationID { get; set; }
+        public string corporationName { get; set; }
+        public int allianceID { get; set; }
+        public string allianceName { get; set; }
+        public int factionID { get; set; }
+        public string factionName { get; set; }
+        public float securityStatus { get; set; }
+        public int damageDone { get; set; }
+        public int finalBlow { get; set; }
+        public int weaponTypeID { get; set; }
+        public int shipTypeID { get; set; }
+    }
+
+    public class Item
+    {
+        public int typeID { get; set; }
+        public int flag { get; set; }
+        public int qtyDropped { get; set; }
+        public int qtyDestroyed { get; set; }
+        public int singleton { get; set; }
+        public Item1[] items { get; set; }
+    }
+
+    public class Item1
+    {
+        public int typeID { get; set; }
+        public int flag { get; set; }
+        public int qtyDropped { get; set; }
+        public int qtyDestroyed { get; set; }
+        public int singleton { get; set; }
+    }
+
+
+    public class Ship
+    {
+        public int type_id { get; set; }
+        public string name { get; set; }
+        public string description { get; set; }
+        public bool published { get; set; }
+        public int group_id { get; set; }
+        public float radius { get; set; }
+        public float volume { get; set; }
+        public float capacity { get; set; }
+        public int portion_size { get; set; }
+        public float mass { get; set; }
+        public int graphic_id { get; set; }
+        public Dogma_Attributes[] dogma_attributes { get; set; }
+        public Dogma_Effects[] dogma_effects { get; set; }
+    }
+
+    public class Dogma_Attributes
+    {
+        public int attribute_id { get; set; }
+        public float value { get; set; }
+    }
+
+    public class Dogma_Effects
+    {
+        public int effect_id { get; set; }
+        public bool is_default { get; set; }
+    }
+
+
+    public class AllianceData
+    {
+        public string alliance_name { get; set; }
+        public string ticker { get; set; }
+        public DateTime date_founded { get; set; }
+        public int executor_corp { get; set; }
+    }
+
+    public class SystemData
+    {
+        public int system_id { get; set; }
+        public string name { get; set; }
+        public PositionData position { get; set; }
+        public float security_status { get; set; }
+        public int constellation_id { get; set; }
+        public PlanetData[] planets { get; set; }
+        public int[] stargates { get; set; }
+        public string security_class { get; set; }
+    }
+
+    public class PositionData
+    {
+        public float x { get; set; }
+        public float y { get; set; }
+        public float z { get; set; }
+    }
+
+    public class PlanetData
+    {
+        public int planet_id { get; set; }
+        public int[] moons { get; set; }
+    }
 
 }

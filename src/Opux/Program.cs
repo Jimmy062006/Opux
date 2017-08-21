@@ -9,7 +9,6 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using WS4NetCore;
 
 namespace Opux
 {
@@ -33,7 +32,7 @@ namespace Opux
                 ApplicationBase = Path.GetDirectoryName(new Uri(Assembly.GetEntryAssembly().CodeBase).LocalPath);
                 if (!File.Exists(ApplicationBase + "/Opux.db"))
                     File.Copy(ApplicationBase + "/Opux.def.db", ApplicationBase + "/Opux.db");
-                Client = new DiscordSocketClient(new DiscordSocketConfig() { WebSocketProvider = WS4NetProvider.Instance });
+                Client = new DiscordSocketClient(new DiscordSocketConfig() { });
                 Commands = new CommandService();
                 EveLib = new EveLib();
                 UpdateSettings();
@@ -87,7 +86,7 @@ namespace Opux
                 .SetBasePath(ApplicationBase)
                 .AddJsonFile("settings.json", optional: true, reloadOnChange: true).Build();
                 if (Convert.ToBoolean(Program.Settings.GetSection("config")["notificationFeed"]))
-                    Functions.nextNotificationCheck = DateTime.Parse(Functions.SQLiteDataQuery("cacheData", "data", "nextNotificationCheck").GetAwaiter().GetResult());
+                    Functions._nextNotificationCheck = DateTime.Parse(Functions.SQLiteDataQuery("cacheData", "data", "nextNotificationCheck").GetAwaiter().GetResult());
             }
             catch (Exception ex)
             {

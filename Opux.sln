@@ -1,12 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26206.0
+VisualStudioVersion = 15.0.26730.8
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{7B372C57-D38E-4D41-A5DF-3ADEC27C3D06}"
-	ProjectSection(SolutionItems) = preProject
-		src\Opux\NuGet.config = src\Opux\NuGet.config
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{AD2B0E05-EA76-4791-925C-A6FD86C73DD1}"
 EndProject
@@ -28,5 +25,8 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{ABF03EBA-6D08-4F95-8431-9534BC2B6781} = {7B372C57-D38E-4D41-A5DF-3ADEC27C3D06}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {46E7FA70-ECA0-49F6-A26D-66CEA014383F}
 	EndGlobalSection
 EndGlobal
