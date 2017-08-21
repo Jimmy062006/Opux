@@ -3,6 +3,7 @@
     "name": "Opux",
     "game": "Status",
     "token": "",
+    "WS4NetProvider": false,
     "connstring": "datasource=localhost;port=3306;username=discord;password=password;database=discord;",
     "commandprefix": "!", //Single Character only
     "logchan": 0,

@@ -9,6 +9,7 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using WS4NetCore;
 
 namespace Opux
 {
@@ -32,7 +33,16 @@ namespace Opux
                 ApplicationBase = Path.GetDirectoryName(new Uri(Assembly.GetEntryAssembly().CodeBase).LocalPath);
                 if (!File.Exists(ApplicationBase + "/Opux.db"))
                     File.Copy(ApplicationBase + "/Opux.def.db", ApplicationBase + "/Opux.db");
-                Client = new DiscordSocketClient(new DiscordSocketConfig() { });
+                if (Convert.ToBoolean(Settings.GetSection("config")["WS4NetProvider"]))
+                {
+                    Client = new DiscordSocketClient(new DiscordSocketConfig() { });
+                }
+                else
+                {
+                    Client = new DiscordSocketClient(new DiscordSocketConfig() { WebSocketProvider = WS4NetProvider.Instance });
+                }
+
+                
                 Commands = new CommandService();
                 EveLib = new EveLib();
                 UpdateSettings();
