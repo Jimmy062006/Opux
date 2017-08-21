@@ -34,7 +34,7 @@ namespace Opux
                 if (!File.Exists(ApplicationBase + "/Opux.db"))
                     File.Copy(ApplicationBase + "/Opux.def.db", ApplicationBase + "/Opux.db");
                 UpdateSettings();
-                if (Convert.ToBoolean(Settings.GetSection("config")["WS4NetProvider"]))
+                if (!Convert.ToBoolean(Settings.GetSection("config")["WS4NetProvider"]))
                 {
                     Client = new DiscordSocketClient(new DiscordSocketConfig() { });
                 }
