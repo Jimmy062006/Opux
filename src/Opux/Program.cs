@@ -33,6 +33,7 @@ namespace Opux
                 ApplicationBase = Path.GetDirectoryName(new Uri(Assembly.GetEntryAssembly().CodeBase).LocalPath);
                 if (!File.Exists(ApplicationBase + "/Opux.db"))
                     File.Copy(ApplicationBase + "/Opux.def.db", ApplicationBase + "/Opux.db");
+                UpdateSettings();
                 if (Convert.ToBoolean(Settings.GetSection("config")["WS4NetProvider"]))
                 {
                     Client = new DiscordSocketClient(new DiscordSocketConfig() { });
@@ -45,7 +46,6 @@ namespace Opux
                 
                 Commands = new CommandService();
                 EveLib = new EveLib();
-                UpdateSettings();
                 MainAsync(args).GetAwaiter().GetResult();
 
                 Console.ReadKey();
