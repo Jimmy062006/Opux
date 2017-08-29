@@ -385,8 +385,8 @@ namespace Opux
                                             {
                                                 corporationDetails = JObject.Parse(await _corporationDetailsContent.ReadAsStringAsync());
                                                 corporationDetails.TryGetValue("alliance_id", out JToken allianceid);
-                                                string i = (allianceid.HasValues ? "0" : allianceid.ToString());
-                                                string c = (corporationid.HasValues ? "0" : corporationid.ToString());
+                                                string i = (allianceid == null ? "0" : allianceid.ToString());
+                                                string c = (allianceid == null ? "0" : corporationid.ToString());
                                                 allianceID = i;
                                                 corpID = c;
                                                 if (allianceID != "0")

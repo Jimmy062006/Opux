@@ -64,7 +64,7 @@ namespace EveLibCore
 
                 IDictionary<string, JToken> rowList = (JObject)result["eveapi"]["result"]["rowset"];
 
-                if (rowList["row"].HasValues)
+                if (rowList["row"] == null)
                 {
 
                 }
