@@ -1,6 +1,5 @@
 ﻿using ByteSizeLib;
 using Discord;
-using Discord.Addons.EmojiTools;
 using Discord.Commands;
 using Discord.WebSocket;
 using EveLibCore;
