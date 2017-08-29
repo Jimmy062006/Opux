@@ -218,7 +218,7 @@ namespace Opux
         /// </summary>
         /// <returns></returns>
         [Command("motd", RunMode = RunMode.Async), Summary("Shows MOTD")]
-        public async Task motd()
+        public async Task Motd()
         {
             if (Convert.ToBoolean(Program.Settings.GetSection("config")["MOTD"]))
             {
@@ -238,7 +238,7 @@ namespace Opux
         /// </summary>
         /// <returns></returns>
         [Command("ops", RunMode = RunMode.Async), Summary("Shows current Fleetup Operations")]
-        public async Task ops()
+        public async Task Ops()
         {
             if (Convert.ToBoolean(Program.Settings.GetSection("config")["fleetup"]))
             {

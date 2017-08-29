@@ -1,7 +1,7 @@
-﻿using Matrix.Xmpp.Client;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Threading;
+using Matrix.Xmpp.Client;
 
 namespace Opux
 {

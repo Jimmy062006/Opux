@@ -88,6 +88,8 @@ namespace Opux
                     await Jabber();
                 }
 
+                //await Client_Log(new LogMessage(LogSeverity.Info, "DETZ",$"{Process.GetCurrentProcess().Id}"));
+
                 _running = false;
             }
             catch (Exception ex)
@@ -690,14 +692,14 @@ namespace Opux
                 var responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{characterID}/?datasource=tranquility");
                 var characterData = JsonConvert.DeserializeObject<CharacterData>(await responceMessage.Content.ReadAsStringAsync());
 
-                responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.corporation_id}/?datasource=tranquility");
+                responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.Corporation_id}/?datasource=tranquility");
                 var corporationData = JsonConvert.DeserializeObject<CorporationData>(await responceMessage.Content.ReadAsStringAsync());
 
-                responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{corporationData.alliance_id}/?datasource=tranquility");
+                responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{corporationData.Alliance_id}/?datasource=tranquility");
                 var allianceData = JsonConvert.DeserializeObject<AllianceData>(await responceMessage.Content.ReadAsStringAsync());
 
-                var allianceID = (corporationData.alliance_id.ToString() == "" ? "0" : corporationData.alliance_id.ToString());
-                var corpID = (characterData.corporation_id.ToString() == "" ? "0" : characterData.corporation_id.ToString());
+                var allianceID = (corporationData.Alliance_id.ToString() == "" ? "0" : corporationData.Alliance_id.ToString());
+                var corpID = (characterData.Corporation_id.ToString() == "" ? "0" : characterData.Corporation_id.ToString());
 
                 var enable = false;
 
@@ -742,7 +744,7 @@ namespace Opux
                             if (discordUser.Roles.FirstOrDefault(x => x.Id == r.Id) == null)
                             {
                                 var channel = discordGuild.GetTextChannel(alertChannel);
-                                await channel.SendMessageAsync($"Granting Roles to {characterData.name}");
+                                await channel.SendMessageAsync($"Granting Roles to {characterData.Name}");
                                 await discordUser.AddRolesAsync(rolesToAdd);
                             }
                         }
@@ -750,9 +752,9 @@ namespace Opux
                         var responce2 = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query2);
 
                         await context.Channel.SendMessageAsync($"{context.Message.Author.Mention},:white_check_mark: **Success**: " +
-                            $"{characterData.name} has been successfully authed.");
+                            $"{characterData.Name} has been successfully authed.");
 
-                        var eveName = characterData.name;
+                        var eveName = characterData.Name;
                         var discordID = discordUser.Id;
                         var active = "yes";
                         var addedOn = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
@@ -771,7 +773,7 @@ namespace Opux
                             var Nickname = "";
                             if (corpTickers)
                             {
-                                Nickname = $"[{corporationData.ticker}] ";
+                                Nickname = $"[{corporationData.Ticker}] ";
                             }
                             if (nameEnforce)
                             {
@@ -787,7 +789,7 @@ namespace Opux
 
                     catch (Exception ex)
                     {
-                        await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Failed adding Roles to User {characterData.name}, Reason: {ex.Message}", ex));
+                        await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Failed adding Roles to User {characterData.Name}, Reason: {ex.Message}", ex));
                     }
                 }
             }
@@ -850,14 +852,14 @@ namespace Opux
                         var responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{characterID}/?datasource=tranquility");
                         var characterData = JsonConvert.DeserializeObject<CharacterData>(await responceMessage.Content.ReadAsStringAsync());
 
-                        responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.corporation_id}/?datasource=tranquility");
+                        responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.Corporation_id}/?datasource=tranquility");
                         var corporationData = JsonConvert.DeserializeObject<CorporationData>(await responceMessage.Content.ReadAsStringAsync());
 
-                        responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{corporationData.alliance_id}/?datasource=tranquility");
+                        responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{corporationData.Alliance_id}/?datasource=tranquility");
                         var allianceData = JsonConvert.DeserializeObject<AllianceData>(await responceMessage.Content.ReadAsStringAsync());
 
-                        var allianceID = (corporationData.alliance_id.ToString() == "" ? "0" : corporationData.alliance_id.ToString());
-                        var corpID = (characterData.corporation_id.ToString() == "" ? "0" : characterData.corporation_id.ToString());
+                        var allianceID = (corporationData.Alliance_id.ToString() == "" ? "0" : corporationData.Alliance_id.ToString());
+                        var corpID = (characterData.Corporation_id.ToString() == "" ? "0" : characterData.Corporation_id.ToString());
 
                         var roles = new List<SocketRole>();
                             var rolesOrig = new List<SocketRole>(u.Roles);
@@ -911,19 +913,19 @@ namespace Opux
                                 await u.RemoveRolesAsync(remroles);
                             }
 
-                            var eveName = characterData.name;
+                            var eveName = characterData.Name;
 
                             var corpTickers = Convert.ToBoolean(Program.Settings.GetSection("auth")["corpTickers"]);
                             var nameEnforce = Convert.ToBoolean(Program.Settings.GetSection("auth")["nameEnforce"]);
 
                         if (corpTickers || nameEnforce)
                         {
-                            if (corporationData.ticker == "")
+                            if (corporationData.Ticker == "")
                             {
                                 var Nickname = "";
                                 if (corpTickers)
                                 {
-                                    Nickname = $"[{corporationData.ticker}] ";
+                                    Nickname = $"[{corporationData.Ticker}] ";
                                 }
                                 if (nameEnforce)
                                 {
@@ -1002,7 +1004,7 @@ namespace Opux
                 ITextChannel channel = null;
                 var redisqResponse = await (await Program._httpClient.GetAsync(String.IsNullOrEmpty(redisQID) ?
                     $"https://redisq.zkillboard.com/listen.php" : $"https://redisq.zkillboard.com/listen.php?queueID={redisQID}")).Content.ReadAsStringAsync();
-                var kill = JsonConvert.DeserializeObject<zKillboardRedisq>(redisqResponse).package;
+                var kill = JsonConvert.DeserializeObject<ZKillboardRedisq>(redisqResponse).Package;
 
                 if (kill == null)
                 {
@@ -1011,16 +1013,16 @@ namespace Opux
 
                 var bigKillGlobal = Convert.ToInt64(Program.Settings.GetSection("killFeed")["bigKill"]);
                 var bigKillGlobalChan = Convert.ToUInt64(Program.Settings.GetSection("killFeed")["bigKillChannel"]);
-                var iD = kill.killmail.killID_str;
-                var killTime = kill.killmail.killTime;
-                var ship = kill.killmail.victim.shipType.name;
-                var value = kill.zkb.totalValue;
-                var victimCharacter = kill.killmail.victim.character;
-                var victimCorp = kill.killmail.victim.corporation;
-                var victimAlliance = kill.killmail.victim.alliance;
-                var attackers = kill.killmail.attackers;
-                var sysName = kill.killmail.solarSystem.name;
-                var systemId = kill.killmail.solarSystem.id_str;
+                var iD = kill.Killmail.KillID_str;
+                var killTime = kill.Killmail.KillTime;
+                var ship = kill.Killmail.Victim.ShipType.Name;
+                var value = kill.Zkb.TotalValue;
+                var victimCharacter = kill.Killmail.Victim.Character;
+                var victimCorp = kill.Killmail.Victim.Corporation;
+                var victimAlliance = kill.Killmail.Victim.Alliance;
+                var attackers = kill.Killmail.Attackers;
+                var sysName = kill.Killmail.SolarSystem.Name;
+                var systemId = kill.Killmail.SolarSystem.Id_str;
                 var losses = Convert.ToBoolean(Program.Settings.GetSection("killFeed")["losses"]);
                 var radius = Convert.ToInt16(Program.Settings.GetSection("killFeed")["radius"]);
                 var radiusSystem = Program.Settings.GetSection("killFeed")["radiusSystem"];
@@ -1051,8 +1053,8 @@ namespace Opux
                         var SystemNameContent = SystemName.Content;
                         var httpresult = JsonConvert.DeserializeObject<SolarSystemSearch>(await SystemNameContent.ReadAsStringAsync());
 
-                        SystemID = httpresult.solarsystem[0].ToString();
-                        var systemID = kill.killmail.solarSystem.id_str;
+                        SystemID = httpresult.Solarsystem[0].ToString();
+                        var systemID = kill.Killmail.SolarSystem.Id_str;
 
                         var radiusSystems = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/route/{SystemID}/{systemId}/?datasource=tranquility&flag=shortest");
 
@@ -1093,8 +1095,8 @@ namespace Opux
                         channel = discordGuild.GetTextChannel(channelGroup);
                         if (victimAlliance != null)
                         {
-                            if (victimAlliance.id == allianceID && losses == true ||
-                                victimCorp.id == corpID && losses == true)
+                            if (victimAlliance.Id == allianceID && losses == true ||
+                                victimCorp.Id == corpID && losses == true)
                             {
                                 if (bigKillValue != 0 && value >= bigKillValue)
                                 {
@@ -1109,7 +1111,7 @@ namespace Opux
                                 }
                             }
                         }
-                        else if (victimCorp.id == corpID && losses == true)
+                        else if (victimCorp.Id == corpID && losses == true)
                         {
                             if (bigKillValue != 0 && value >= bigKillValue)
                             {
@@ -1125,10 +1127,10 @@ namespace Opux
                         }
                         foreach (var attacker in attackers.ToList())
                         {
-                            if (attacker.alliance != null)
+                            if (attacker.Alliance != null)
                             {
-                                if (attacker.alliance.id == allianceID ||
-                                    attacker.corporation.id == corpID)
+                                if (attacker.Alliance.Id == allianceID ||
+                                    attacker.Corporation.Id == corpID)
                                 {
                                     if (bigKillValue != 0 && value >= bigKillValue)
                                     {
@@ -1142,7 +1144,7 @@ namespace Opux
                                             post = true;
                                     }
                                 }
-                                else if (attacker.corporation.id == corpID)
+                                else if (attacker.Corporation.Id == corpID)
                                 {
                                     if (bigKillValue != 0 && value >= bigKillValue)
                                     {
@@ -1172,7 +1174,7 @@ namespace Opux
                                     var radiusMessage = "";
                                     radiusMessage = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]}{Environment.NewLine}";
                                     radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
-                                        $" [{victimCorp.name}]** killed in **{sysName}** {Environment.NewLine} https://zkillboard.com/kill/{iD}/";
+                                        $" [{victimCorp.Name}]** killed in **{sysName}** {Environment.NewLine} https://zkillboard.com/kill/{iD}/";
                                     await _radiusChannel.SendMessageAsync(radiusMessage);
                                 }
                                 var message = "";
@@ -1187,7 +1189,7 @@ namespace Opux
                                 if (post)
                                 {
                                     message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
-                                        $" [{victimCorp.name}]** killed in **{sysName}** {Environment.NewLine} " +
+                                        $" [{victimCorp.Name}]** killed in **{sysName}** {Environment.NewLine} " +
                                         $"https://zkillboard.com/kill/{iD}/";
                                     await channel.SendMessageAsync(message);
                                 }
@@ -1200,7 +1202,7 @@ namespace Opux
                                     var radiusMessage = "";
                                     radiusMessage = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]}{Environment.NewLine}";
                                     radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
-                                    $" {victimCorp.name} | [{victimAlliance.name}]** killed in **{sysName}** {Environment.NewLine} " +
+                                    $" {victimCorp.Name} | [{victimAlliance.Name}]** killed in **{sysName}** {Environment.NewLine} " +
                                     $"https://zkillboard.com/kill/{iD}/";
                                     await _radiusChannel.SendMessageAsync(radiusMessage);
                                 }
@@ -1216,7 +1218,7 @@ namespace Opux
                                 if (post)
                                 {
                                     message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
-                                        $" {victimCorp.name} | [{victimAlliance.name}]** killed in **{sysName}** {Environment.NewLine} " +
+                                        $" {victimCorp.Name} | [{victimAlliance.Name}]** killed in **{sysName}** {Environment.NewLine} " +
                                         $"https://zkillboard.com/kill/{iD}/";
                                     await channel.SendMessageAsync(message);
                                 }
@@ -1230,7 +1232,7 @@ namespace Opux
                                 var radiusMessage = "";
                                 radiusMessage = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]}{Environment.NewLine}";
                                 radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
-                                $"** ISK flown by **{victimCharacter.name} |**  **[{victimCorp.name}] | <{victimAlliance.name}>** killed in **{sysName}** {Environment.NewLine} " +
+                                $"** ISK flown by **{victimCharacter.Name} |**  **[{victimCorp.Name}] | <{victimAlliance.Name}>** killed in **{sysName}** {Environment.NewLine} " +
                                 $"https://zkillboard.com/kill/{iD}/";
                                 await _radiusChannel.SendMessageAsync(radiusMessage);
                             }
@@ -1246,7 +1248,7 @@ namespace Opux
                             if (post)
                             {
                                 message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
-                                    $"** ISK flown by **{victimCharacter.name} |**  **[{victimCorp.name}] | <{victimAlliance.name}>** killed in **{sysName}** {Environment.NewLine} " +
+                                    $"** ISK flown by **{victimCharacter.Name} |**  **[{victimCorp.Name}] | <{victimAlliance.Name}>** killed in **{sysName}** {Environment.NewLine} " +
                                     $"https://zkillboard.com/kill/{iD}/";
                                 await channel.SendMessageAsync(message);
                             }
@@ -1259,7 +1261,7 @@ namespace Opux
                                 var radiusMessage = "";
                                 radiusMessage = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]}{Environment.NewLine}";
                                 radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
-                                $"** ISK flown by **{victimCharacter.name} |** **[{victimCorp.name}]** killed in **{sysName}** {Environment.NewLine} " +
+                                $"** ISK flown by **{victimCharacter.Name} |** **[{victimCorp.Name}]** killed in **{sysName}** {Environment.NewLine} " +
                                 $"https://zkillboard.com/kill/{iD}/";
                                 await _radiusChannel.SendMessageAsync(radiusMessage);
                             }
@@ -1275,12 +1277,12 @@ namespace Opux
                             if (post)
                             {
                                 message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
-                                    $"** ISK flown by **{victimCharacter.name} |** **[{victimCorp.name}]** killed in **{sysName}** {Environment.NewLine} " +
+                                    $"** ISK flown by **{victimCharacter.Name} |** **[{victimCorp.Name}]** killed in **{sysName}** {Environment.NewLine} " +
                                     $"https://zkillboard.com/kill/{iD}/";
                                 await channel.SendMessageAsync(message);
                             }
                         }
-                        await Client_Log(new LogMessage(LogSeverity.Info, "killFeed", $"POSTING Kill/Loss ID:{kill.killmail.killID_str} Value:{string.Format("{0:n0}", value)}"));
+                        await Client_Log(new LogMessage(LogSeverity.Info, "killFeed", $"POSTING Kill/Loss ID:{kill.Killmail.KillID_str} Value:{string.Format("{0:n0}", value)}"));
                     }
                 }
             }
@@ -1740,7 +1742,7 @@ namespace Opux
 
             var searchResults = JsonConvert.DeserializeObject<SearchInventoryType>(result);
 
-            if (string.IsNullOrWhiteSpace(searchResults.inventorytype.ToString()))
+            if (string.IsNullOrWhiteSpace(searchResults.Inventorytype.ToString()))
             {
                 await channel.SendMessageAsync($"{context.Message.Author.Mention} Item {String} does not exist please try again");
 
@@ -1751,83 +1753,83 @@ namespace Opux
                 {
                     if (system == "")
                     {
-                        var eveCentralReply = await Program._httpClient.GetStringAsync($"http://api.eve-central.com/api/marketstat/json?typeid={searchResults.inventorytype[0]}");
+                        var eveCentralReply = await Program._httpClient.GetStringAsync($"http://api.eve-central.com/api/marketstat/json?typeid={searchResults.Inventorytype[0]}");
                         var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
                         await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
                         await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Universe**{Environment.NewLine}" +
                             $"**Buy:**{Environment.NewLine}" +
-                            $"```Low: {centralreply.buy.min :n2}{Environment.NewLine}" +
-                            $"Avg: {centralreply.buy.avg:n2}{Environment.NewLine}" +
-                            $"High: {centralreply.buy.max:n2}```" +
+                            $"```Low: {centralreply.Buy.Min :n2}{Environment.NewLine}" +
+                            $"Avg: {centralreply.Buy.Avg:n2}{Environment.NewLine}" +
+                            $"High: {centralreply.Buy.Max:n2}```" +
                             $"{Environment.NewLine}" +
                             $"**Sell**:{Environment.NewLine}" +
-                            $"```Low: {centralreply.sell.min:n2}{Environment.NewLine}" +
-                            $"Avg: {centralreply.sell.avg:n2}{Environment.NewLine}" +
-                            $"High: {centralreply.sell.max:n2}```");
+                            $"```Low: {centralreply.Sell.Min:n2}{Environment.NewLine}" +
+                            $"Avg: {centralreply.Sell.Avg:n2}{Environment.NewLine}" +
+                            $"High: {centralreply.Sell.Max:n2}```");
                     }
                     if (system == "jita")
                     {
-                        var eveCentralReply = await Program._httpClient.GetStringAsync($"http://api.eve-central.com/api/marketstat/json?typeid={searchResults.inventorytype[0]}&usesystem=30000142");
+                        var eveCentralReply = await Program._httpClient.GetStringAsync($"http://api.eve-central.com/api/marketstat/json?typeid={searchResults.Inventorytype[0]}&usesystem=30000142");
                         var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
                         await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
                         await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Universe**{Environment.NewLine}" +
                             $"**Buy:**{Environment.NewLine}" +
-                            $"```Low: {centralreply.buy.min:n2}{Environment.NewLine}" +
-                            $"Avg: {centralreply.buy.avg:n2}{Environment.NewLine}" +
-                            $"High: {centralreply.buy.max:n2}```" +
+                            $"```Low: {centralreply.Buy.Min:n2}{Environment.NewLine}" +
+                            $"Avg: {centralreply.Buy.Avg:n2}{Environment.NewLine}" +
+                            $"High: {centralreply.Buy.Max:n2}```" +
                             $"{Environment.NewLine}" +
                             $"**Sell**:{Environment.NewLine}" +
-                            $"```Low: {centralreply.sell.min:n2}{Environment.NewLine}" +
-                            $"Avg: {centralreply.sell.avg:n2}{Environment.NewLine}" +
-                            $"High: {centralreply.sell.max:n2}```");
+                            $"```Low: {centralreply.Sell.Min:n2}{Environment.NewLine}" +
+                            $"Avg: {centralreply.Sell.Avg:n2}{Environment.NewLine}" +
+                            $"High: {centralreply.Sell.Max:n2}```");
                     }
                     if (system == "amarr")
                     {
-                        var eveCentralReply = await Program._httpClient.GetStringAsync($"http://api.eve-central.com/api/marketstat/json?typeid={searchResults.inventorytype[0]}&usesystem=30002187");
+                        var eveCentralReply = await Program._httpClient.GetStringAsync($"http://api.eve-central.com/api/marketstat/json?typeid={searchResults.Inventorytype[0]}&usesystem=30002187");
                         var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
                         await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
                         await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Universe**{Environment.NewLine}" +
                             $"**Buy:**{Environment.NewLine}" +
-                            $"```Low: {centralreply.buy.min:n2}{Environment.NewLine}" +
-                            $"Avg: {centralreply.buy.avg:n2}{Environment.NewLine}" +
-                            $"High: {centralreply.buy.max:n2}```" +
+                            $"```Low: {centralreply.Buy.Min:n2}{Environment.NewLine}" +
+                            $"Avg: {centralreply.Buy.Avg:n2}{Environment.NewLine}" +
+                            $"High: {centralreply.Buy.Max:n2}```" +
                             $"{Environment.NewLine}" +
                             $"**Sell**:{Environment.NewLine}" +
-                            $"```Low: {centralreply.sell.min:n2}{Environment.NewLine}" +
-                            $"Avg: {centralreply.sell.avg:n2}{Environment.NewLine}" +
-                            $"High: {centralreply.sell.max:n2}```");
+                            $"```Low: {centralreply.Sell.Min:n2}{Environment.NewLine}" +
+                            $"Avg: {centralreply.Sell.Avg:n2}{Environment.NewLine}" +
+                            $"High: {centralreply.Sell.Max:n2}```");
                     }
                     if (system == "rens")
                     {
-                        var eveCentralReply = await Program._httpClient.GetStringAsync($"http://api.eve-central.com/api/marketstat/json?typeid={searchResults.inventorytype[0]}&usesystem=30002510");
+                        var eveCentralReply = await Program._httpClient.GetStringAsync($"http://api.eve-central.com/api/marketstat/json?typeid={searchResults.Inventorytype[0]}&usesystem=30002510");
                         var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
                         await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
                         await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Universe**{Environment.NewLine}" +
                             $"**Buy:**{Environment.NewLine}" +
-                            $"```Low: {centralreply.buy.min:n2}{Environment.NewLine}" +
-                            $"Avg: {centralreply.buy.avg:n2}{Environment.NewLine}" +
-                            $"High: {centralreply.buy.max:n2}```" +
+                            $"```Low: {centralreply.Buy.Min:n2}{Environment.NewLine}" +
+                            $"Avg: {centralreply.Buy.Avg:n2}{Environment.NewLine}" +
+                            $"High: {centralreply.Buy.Max:n2}```" +
                             $"{Environment.NewLine}" +
                             $"**Sell**:{Environment.NewLine}" +
-                            $"```Low: {centralreply.sell.min:n2}{Environment.NewLine}" +
-                            $"Avg: {centralreply.sell.avg:n2}{Environment.NewLine}" +
-                            $"High: {centralreply.sell.max:n2}```");
+                            $"```Low: {centralreply.Sell.Min:n2}{Environment.NewLine}" +
+                            $"Avg: {centralreply.Sell.Avg:n2}{Environment.NewLine}" +
+                            $"High: {centralreply.Sell.Max:n2}```");
                     }
                     if (system == "dodixie")
                     {
-                        var eveCentralReply = await Program._httpClient.GetStringAsync($"http://api.eve-central.com/api/marketstat/json?typeid={searchResults.inventorytype[0]}&usesystem=30002659");
+                        var eveCentralReply = await Program._httpClient.GetStringAsync($"http://api.eve-central.com/api/marketstat/json?typeid={searchResults.Inventorytype[0]}&usesystem=30002659");
                         var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
                         await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
                         await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Universe**{Environment.NewLine}" +
                             $"**Buy:**{Environment.NewLine}" +
-                            $"```Low: {centralreply.buy.min:n2}{Environment.NewLine}" +
-                            $"Avg: {centralreply.buy.avg:n2}{Environment.NewLine}" +
-                            $"High: {centralreply.buy.max:n2}```" +
+                            $"```Low: {centralreply.Buy.Min:n2}{Environment.NewLine}" +
+                            $"Avg: {centralreply.Buy.Avg:n2}{Environment.NewLine}" +
+                            $"High: {centralreply.Buy.Max:n2}```" +
                             $"{Environment.NewLine}" +
                             $"**Sell**:{Environment.NewLine}" +
-                            $"```Low: {centralreply.sell.min:n2}{Environment.NewLine}" +
-                            $"Avg: {centralreply.sell.avg:n2}{Environment.NewLine}" +
-                            $"High: {centralreply.sell.max:n2}```");
+                            $"```Low: {centralreply.Sell.Min:n2}{Environment.NewLine}" +
+                            $"Avg: {centralreply.Sell.Avg:n2}{Environment.NewLine}" +
+                            $"High: {centralreply.Sell.Max:n2}```");
                     }
                 }
                 catch (Exception ex)
@@ -2185,49 +2187,49 @@ namespace Opux
         {
             var channel = context.Channel;
             var responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/search/?categories=character&datasource=tranquility&language=en-us&search={x}&strict=false");
-            var characterID = JsonConvert.DeserializeObject<CharacterID>(await responceMessage.Content.ReadAsStringAsync()).character.FirstOrDefault();
+            var characterID = JsonConvert.DeserializeObject<CharacterID>(await responceMessage.Content.ReadAsStringAsync()).Character.FirstOrDefault();
             responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{characterID}/?datasource=tranquility");
             var characterData = JsonConvert.DeserializeObject<CharacterData>(await responceMessage.Content.ReadAsStringAsync());
-            responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.corporation_id}/?datasource=tranquility");
+            responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.Corporation_id}/?datasource=tranquility");
             var corporationData = JsonConvert.DeserializeObject<CorporationData>(await responceMessage.Content.ReadAsStringAsync());
             responceMessage = await Program._httpClient.GetAsync($"https://zkillboard.com/api/kills/characterID/{characterID}/");
             var zkillContent = JsonConvert.DeserializeObject<List<Kill>>(await responceMessage.Content.ReadAsStringAsync());
             Kill zkillLast = zkillContent.Count > 0 ? zkillContent[0] : new Kill();
 
-            responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/universe/systems/{zkillLast.solarSystemID}/?datasource=tranquility&language=en-us");
+            responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/universe/systems/{zkillLast.SolarSystemID}/?datasource=tranquility&language=en-us");
             var systemData = JsonConvert.DeserializeObject<SystemData>(await responceMessage.Content.ReadAsStringAsync());
 
             var lastShipType = "Unknown";
 
-            if (zkillLast.victim != null && zkillLast.victim.characterID == characterID)
+            if (zkillLast.Victim != null && zkillLast.Victim.CharacterID == characterID)
             {
-                lastShipType = zkillLast.victim.shipTypeID.ToString();
+                lastShipType = zkillLast.Victim.ShipTypeID.ToString();
             }
-            else if(zkillLast.victim != null)
+            else if(zkillLast.Victim != null)
             {
-                foreach (var attacker in zkillLast.attackers)
+                foreach (var attacker in zkillLast.Attackers)
                 {
-                    if (attacker.characterID == characterID)
+                    if (attacker.CharacterID == characterID)
                     {
-                        lastShipType = attacker.shipTypeID.ToString();
+                        lastShipType = attacker.ShipTypeID.ToString();
                     }
                 }
             }
 
             responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/universe/types/{lastShipType}/?datasource=tranquility&language=en-us");
             var lastShip = JsonConvert.DeserializeObject<Ship>(await responceMessage.Content.ReadAsStringAsync());
-            var lastSeen = zkillLast.killTime;
+            var lastSeen = zkillLast.KillTime;
 
-            responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.alliance_id}/?datasource=tranquility");
+            responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.Alliance_id}/?datasource=tranquility");
             var allianceData = JsonConvert.DeserializeObject<AllianceData>(await responceMessage.Content.ReadAsStringAsync());
-            var alliance = allianceData.alliance_name == null ? "None" : allianceData.alliance_name;
+            var alliance = allianceData.Alliance_name ?? "None";
 
-            await channel.SendMessageAsync($"```Name: {characterData.name}{Environment.NewLine}" +
-                $"DOB: {characterData.birthday}{Environment.NewLine}{Environment.NewLine}" +
-                $"Corporation Name: {corporationData.corporation_name}{Environment.NewLine}" +
+            await channel.SendMessageAsync($"```Name: {characterData.Name}{Environment.NewLine}" +
+                $"DOB: {characterData.Birthday}{Environment.NewLine}{Environment.NewLine}" +
+                $"Corporation Name: {corporationData.Corporation_name}{Environment.NewLine}" +
                 $"Alliance Name: {alliance}{Environment.NewLine}{Environment.NewLine}" +
-                $"Last System: {systemData.name}{Environment.NewLine}" +
-                $"Last Ship: {lastShip.name}{Environment.NewLine}" +
+                $"Last System: {systemData.Name}{Environment.NewLine}" +
+                $"Last Ship: {lastShip.Name}{Environment.NewLine}" +
                 $"Last Seen: {lastSeen}{Environment.NewLine}```" +
                 $"ZKill: https://zkillboard.com/character/{characterID}/");
 
@@ -2246,26 +2248,27 @@ namespace Opux
                 $"https://esi.tech.ccp.is/latest/search/?categories=corporation&datasource=tranquility&language=en-us&search={x}&strict=true");
             var corpContent = JsonConvert.DeserializeObject<CorporationSearch>(responceMessage);
 
-            if (corpContent.corporation == null)
+            if (corpContent.Corporation == null)
             {
                 await channel.SendMessageAsync($"{context.User.Mention}, Corp not found please try again");
-                return;
             }
+            else
+            {
+                responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/corporations/{corpContent.Corporation[0]}/?datasource=tranquility");
+                var CorpDetailsContent = JsonConvert.DeserializeObject<CorporationData>(responceMessage);
+                responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/characters/{CorpDetailsContent.Ceo_id}/?datasource=tranquility");
+                var CEONameContent = JsonConvert.DeserializeObject<CharacterData>(responceMessage);
+                responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/alliances/{CorpDetailsContent.Alliance_id}/?datasource=tranquility");
+                var allyContent = JsonConvert.DeserializeObject<AllianceData>(responceMessage);
+                var alliance = allyContent.Alliance_name;
 
-            responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/corporations/{corpContent.corporation[0]}/?datasource=tranquility");
-            var CorpDetailsContent = JsonConvert.DeserializeObject<CorporationData>(responceMessage);
-            responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/characters/{CorpDetailsContent.ceo_id}/?datasource=tranquility");
-            var CEONameContent = JsonConvert.DeserializeObject<CharacterData>(responceMessage);
-            responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/alliances/{CorpDetailsContent.alliance_id}/?datasource=tranquility");
-            var allyContent = JsonConvert.DeserializeObject<AllianceData>(responceMessage);
-            var alliance = allyContent.alliance_name;
-
-            await channel.SendMessageAsync($"```Corp Name: {CorpDetailsContent.corporation_name}{Environment.NewLine}" +
-                    $"Corp Ticker: {CorpDetailsContent.ticker}{Environment.NewLine}" +
-                    $"CEO: {CEONameContent.name}{Environment.NewLine}" +
-                    $"Alliance Name: {alliance}{Environment.NewLine}" +
-                    $"Member Count: {CorpDetailsContent.member_count}{Environment.NewLine}```" +
-                    $"ZKill: https://zkillboard.com/corporation/{corpContent.corporation[0]}/");
+                await channel.SendMessageAsync($"```Corp Name: {CorpDetailsContent.Corporation_name}{Environment.NewLine}" +
+                        $"Corp Ticker: {CorpDetailsContent.Ticker}{Environment.NewLine}" +
+                        $"CEO: {CEONameContent.Name}{Environment.NewLine}" +
+                        $"Alliance Name: {alliance}{Environment.NewLine}" +
+                        $"Member Count: {CorpDetailsContent.Member_count}{Environment.NewLine}```" +
+                        $"ZKill: https://zkillboard.com/corporation/{corpContent.Corporation[0]}/");
+            }
 
             await Task.CompletedTask;
         }
