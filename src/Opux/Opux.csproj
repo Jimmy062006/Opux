@@ -34,12 +34,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Discord.Addons.EmojiTools">
-      <HintPath>..\..\..\Discord.Addons.EmojiTools\src\Discord.Addons.EmojiTools\bin\Debug\netstandard1.1\Discord.Addons.EmojiTools.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="Opux.def.db">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
