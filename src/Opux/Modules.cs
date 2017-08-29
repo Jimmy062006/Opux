@@ -94,7 +94,7 @@ namespace Opux
         /// 
         /// </summary>
         /// <returns></returns>
-        [Command("dodixe", RunMode = RunMode.Async), Summary("Performs Prices Checks Example: !pc Tritanium")]
+        [Command("dodixie", RunMode = RunMode.Async), Summary("Performs Prices Checks Example: !pc Tritanium")]
         public async Task Dodixe([Remainder] string x)
         {
             var userInfo = Context.Message.Author;
@@ -104,7 +104,7 @@ namespace Opux
             }
             else
             {
-                await Functions.PriceCheck(Context, x, "dodixe");
+                await Functions.PriceCheck(Context, x, "dodixie");
             }
         }
 

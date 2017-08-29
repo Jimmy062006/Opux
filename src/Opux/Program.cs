@@ -6,6 +6,7 @@ using EveLibCore;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.IO;
+using System.Net.Http;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,6 +22,7 @@ namespace Opux
         public static String ApplicationBase { get; private set; }
         public static IServiceProvider ServiceCollection { get; private set; }
         public static IConfigurationRoot Settings { get; private set; }
+        internal static readonly HttpClient _httpClient = new HttpClient();
 
         static AutoResetEvent autoEvent = new AutoResetEvent(true);
 

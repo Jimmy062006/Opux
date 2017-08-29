@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Opux
 {
@@ -9,6 +8,11 @@ namespace Opux
         public class CharacterID
         {
             public int[] character { get; set; }
+        }
+
+        public class SearchInventoryType
+        {
+            public int[] inventorytype { get; set; }
         }
 
         public class CharacterData
@@ -179,6 +183,387 @@ namespace Opux
         {
             public int planet_id { get; set; }
             public int[] moons { get; set; }
+        }
+
+        //zKill Classes
+
+        public class zKillboardRedisq
+        {
+            public Package package { get; set; }
+        }
+
+        public class Package
+        {
+            public int killID { get; set; }
+            public KillmailRedisq killmail { get; set; }
+            public ZkbRedisq zkb { get; set; }
+        }
+
+        public class KillmailRedisq
+        {
+            public Solarsystem solarSystem { get; set; }
+            public int killID { get; set; }
+            public string killTime { get; set; }
+            public AttackerRedisq[] attackers { get; set; }
+            public int attackerCount { get; set; }
+            public VictimRedisq victim { get; set; }
+            public string killID_str { get; set; }
+            public string attackerCount_str { get; set; }
+            public War war { get; set; }
+        }
+
+
+        public class SolarSystemSearch
+        {
+            public int[] solarsystem { get; set; }
+        }
+
+
+        public class Solarsystem
+        {
+            public string id_str { get; set; }
+            public string href { get; set; }
+            public int id { get; set; }
+            public string name { get; set; }
+        }
+
+        public class VictimRedisq
+        {
+            public AllianceRedisq alliance { get; set; }
+            public int damageTaken { get; set; }
+            public ItemRedisq[] items { get; set; }
+            public string damageTaken_str { get; set; }
+            public CharacterRedisq character { get; set; }
+            public Shiptype shipType { get; set; }
+            public Corporation corporation { get; set; }
+            public Position position { get; set; }
+        }
+
+        public class AllianceRedisq
+        {
+            public string id_str { get; set; }
+            public string href { get; set; }
+            public int id { get; set; }
+            public string name { get; set; }
+            public Icon icon { get; set; }
+        }
+
+        public class Icon
+        {
+            public string href { get; set; }
+        }
+
+        public class CharacterRedisq
+        {
+            public string id_str { get; set; }
+            public string href { get; set; }
+            public int id { get; set; }
+            public string name { get; set; }
+            public Icon1 icon { get; set; }
+        }
+
+        public class Icon1
+        {
+            public string href { get; set; }
+        }
+
+        public class Shiptype
+        {
+            public string id_str { get; set; }
+            public string href { get; set; }
+            public int id { get; set; }
+            public string name { get; set; }
+            public Icon2 icon { get; set; }
+        }
+
+        public class Icon2
+        {
+            public string href { get; set; }
+        }
+
+        public class Corporation
+        {
+            public string id_str { get; set; }
+            public string href { get; set; }
+            public int id { get; set; }
+            public string name { get; set; }
+            public Icon3 icon { get; set; }
+        }
+
+
+        public class CorporationSearch
+        {
+            public int[] corporation { get; set; }
+        }
+
+        public class Icon3
+        {
+            public string href { get; set; }
+        }
+
+        public class Position
+        {
+            public float y { get; set; }
+            public float x { get; set; }
+            public float z { get; set; }
+        }
+
+        public class ItemRedisq
+        {
+            public int singleton { get; set; }
+            public Itemtype itemType { get; set; }
+            public string quantityDestroyed_str { get; set; }
+            public int flag { get; set; }
+            public string flag_str { get; set; }
+            public string singleton_str { get; set; }
+            public int quantityDestroyed { get; set; }
+            public string quantityDropped_str { get; set; }
+            public int quantityDropped { get; set; }
+        }
+
+        public class Itemtype
+        {
+            public string id_str { get; set; }
+            public string href { get; set; }
+            public int id { get; set; }
+            public string name { get; set; }
+            public Icon4 icon { get; set; }
+        }
+
+        public class Icon4
+        {
+            public string href { get; set; }
+        }
+
+        public class War
+        {
+            public string href { get; set; }
+            public int id { get; set; }
+            public string id_str { get; set; }
+        }
+
+        public class AttackerRedisq
+        {
+            public Alliance1 alliance { get; set; }
+            public Shiptype1 shipType { get; set; }
+            public Corporation1 corporation { get; set; }
+            public Character1 character { get; set; }
+            public string damageDone_str { get; set; }
+            public Weapontype weaponType { get; set; }
+            public bool finalBlow { get; set; }
+            public float securityStatus { get; set; }
+            public int damageDone { get; set; }
+        }
+
+        public class Alliance1
+        {
+            public string id_str { get; set; }
+            public string href { get; set; }
+            public int id { get; set; }
+            public string name { get; set; }
+            public Icon5 icon { get; set; }
+        }
+
+        public class Icon5
+        {
+            public string href { get; set; }
+        }
+
+        public class Shiptype1
+        {
+            public string id_str { get; set; }
+            public string href { get; set; }
+            public int id { get; set; }
+            public string name { get; set; }
+            public Icon6 icon { get; set; }
+        }
+
+        public class Icon6
+        {
+            public string href { get; set; }
+        }
+
+        public class Corporation1
+        {
+            public string id_str { get; set; }
+            public string href { get; set; }
+            public int id { get; set; }
+            public string name { get; set; }
+            public Icon7 icon { get; set; }
+        }
+
+        public class Icon7
+        {
+            public string href { get; set; }
+        }
+
+        public class Character1
+        {
+            public string id_str { get; set; }
+            public string href { get; set; }
+            public int id { get; set; }
+            public string name { get; set; }
+            public Icon8 icon { get; set; }
+        }
+
+        public class Icon8
+        {
+            public string href { get; set; }
+        }
+
+        public class Weapontype
+        {
+            public string id_str { get; set; }
+            public string href { get; set; }
+            public int id { get; set; }
+            public string name { get; set; }
+            public Icon9 icon { get; set; }
+        }
+
+        public class Icon9
+        {
+            public string href { get; set; }
+        }
+
+        public class ZkbRedisq
+        {
+            public int locationID { get; set; }
+            public string hash { get; set; }
+            public float fittedValue { get; set; }
+            public float totalValue { get; set; }
+            public int points { get; set; }
+            public bool npc { get; set; }
+            public string href { get; set; }
+        }
+
+        //EVE Central
+
+        public class EveCentralApi
+        {
+            public Items[] Property1 { get; set; }
+        }
+
+        public class Items
+        {
+            public Buy buy { get; set; }
+            public All all { get; set; }
+            public Sell sell { get; set; }
+        }
+
+        public class Buy
+        {
+            public Forquery forQuery { get; set; }
+            public int volume { get; set; }
+            public float wavg { get; set; }
+            public float avg { get; set; }
+            public float variance { get; set; }
+            public float stdDev { get; set; }
+            public float median { get; set; }
+            public float fivePercent { get; set; }
+            public float max { get; set; }
+            public float min { get; set; }
+            public bool highToLow { get; set; }
+            public long generated { get; set; }
+        }
+
+        public class Forquery
+        {
+            public bool bid { get; set; }
+            public int[] types { get; set; }
+            public object[] regions { get; set; }
+            public object[] systems { get; set; }
+            public int hours { get; set; }
+            public int minq { get; set; }
+        }
+
+        public class All
+        {
+            public Forquery1 forQuery { get; set; }
+            public int volume { get; set; }
+            public float wavg { get; set; }
+            public float avg { get; set; }
+            public float variance { get; set; }
+            public float stdDev { get; set; }
+            public float median { get; set; }
+            public float fivePercent { get; set; }
+            public float max { get; set; }
+            public float min { get; set; }
+            public bool highToLow { get; set; }
+            public long generated { get; set; }
+        }
+
+        public class Forquery1
+        {
+            public object bid { get; set; }
+            public int[] types { get; set; }
+            public object[] regions { get; set; }
+            public object[] systems { get; set; }
+            public int hours { get; set; }
+            public int minq { get; set; }
+        }
+
+        public class Sell
+        {
+            public Forquery2 forQuery { get; set; }
+            public int volume { get; set; }
+            public float wavg { get; set; }
+            public float avg { get; set; }
+            public float variance { get; set; }
+            public float stdDev { get; set; }
+            public float median { get; set; }
+            public float fivePercent { get; set; }
+            public float max { get; set; }
+            public float min { get; set; }
+            public bool highToLow { get; set; }
+            public long generated { get; set; }
+        }
+
+        public class Forquery2
+        {
+            public bool bid { get; set; }
+            public int[] types { get; set; }
+            public object[] regions { get; set; }
+            public object[] systems { get; set; }
+            public int hours { get; set; }
+            public int minq { get; set; }
+        }
+
+        public class SystemList
+        {
+            public int[] systemList { get; set; }
+        }
+
+        //Fleetup
+
+        public class Fleetupapi
+        {
+            public bool Success { get; set; }
+            public string Message { get; set; }
+            public DateTime CachedUntilUTC { get; set; }
+            public string CachedUntilString { get; set; }
+            public int Code { get; set; }
+            public Datum[] Data { get; set; }
+        }
+
+        public class Datum
+        {
+            public int Id { get; set; }
+            public int OperationId { get; set; }
+            public string Subject { get; set; }
+            public DateTime Start { get; set; }
+            public DateTime End { get; set; }
+            public string StartString { get; set; }
+            public string EndString { get; set; }
+            public string Location { get; set; }
+            public int LocationId { get; set; }
+            public string LocationInfo { get; set; }
+            public string Details { get; set; }
+            public string Url { get; set; }
+            public string Organizer { get; set; }
+            public string Category { get; set; }
+            public string Group { get; set; }
+            public int GroupId { get; set; }
+            public object[] Doctrines { get; set; }
         }
     }
 }
