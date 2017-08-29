@@ -947,11 +947,13 @@ namespace Opux
                     {
                         var rroles = new List<SocketRole>();
                         var rrolesOrig = new List<SocketRole>(u.Roles);
-                        foreach (var role in exemptRoles)
+                        foreach (var rrole in rrolesOrig)
                         {
-                            var exemptRole = u.Roles.FirstOrDefault(x => x.Name == role.Key);
-                            if (exemptRole != null)
-                                rroles.Remove(exemptRole);
+                            var exemptRole = exemptRoles.FirstOrDefault(x => x.Key == rrole.Name);
+                            if (exemptRole == null)
+                            {
+                                rroles.Add(rrole);
+                            }
                         }
 
                         rrolesOrig.Remove(u.Roles.FirstOrDefault(x => x.Name == "@everyone"));
@@ -973,6 +975,7 @@ namespace Opux
                         if (rchanged)
                         {
                             var channel = discordGuild.GetTextChannel(logchan);
+                            rroles.Remove(u.Roles.FirstOrDefault(X => X.Name == "@everyone"));
                             await channel.SendMessageAsync($"Resetting roles for {u.Username}");
                             await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Resetting roles for {u.Username}"));
                             await u.RemoveRolesAsync(rroles);
