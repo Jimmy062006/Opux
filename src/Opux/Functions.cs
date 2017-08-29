@@ -973,10 +973,17 @@ namespace Opux
 
                         if (rchanged)
                         {
-                            var channel = discordGuild.GetTextChannel(logchan);
-                            await channel.SendMessageAsync($"Resetting roles for {u.Username}");
-                            await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Resetting roles for {u.Username}"));
-                            await u.RemoveRolesAsync(rroles);
+                            try
+                            {
+                                var channel = discordGuild.GetTextChannel(logchan);
+                                await channel.SendMessageAsync($"Resetting roles for {u.Username}");
+                                await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Resetting roles for {u.Username}"));
+                                await u.RemoveRolesAsync(rroles);
+                            }
+                            catch (Exception ex)
+                            {
+                                await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Error removing roles: {ex.Message}", ex));
+                            }
                         }
                     }
                 }
