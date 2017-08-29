@@ -306,6 +306,7 @@ namespace Opux
                         }
                         else if (request.Url.LocalPath == "/callback.php")
                         {
+                            try { 
                             var assembly = Assembly.GetEntryAssembly();
                             var temp = assembly.GetManifestResourceNames();
                             var resource = assembly.GetManifestResourceStream("Opux.Discord-01.png");
@@ -319,308 +320,313 @@ namespace Opux
                             var code = "";
                             var add = false;
 
-                            if (!String.IsNullOrWhiteSpace(request.Url.Query))
-                            {
-                                code = request.Url.Query.TrimStart('?').Split('=')[1];
-
-                                using (HttpClient tokenclient = new HttpClient())
+                                if (!String.IsNullOrWhiteSpace(request.Url.Query))
                                 {
-                                    var values = new Dictionary<string, string>
+                                    code = request.Url.Query.TrimStart('?').Split('=')[1];
+
+                                    using (HttpClient tokenclient = new HttpClient())
+                                    {
+                                        var values = new Dictionary<string, string>
                                     {
                                         { "grant_type", "authorization_code" },
                                         { "code", $"{code}"}
                                     };
-                                    tokenclient.DefaultRequestHeaders.Add("Authorization", $"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes(client_id + ":" + secret))}");
-                                    var content = new FormUrlEncodedContent(values);
-                                    var tokenresponse = await tokenclient.PostAsync("https://login.eveonline.com/oauth/token", content);
-                                    responseString = await tokenresponse.Content.ReadAsStringAsync();
-                                    accessToken = (string)JObject.Parse(responseString)["access_token"];
-                                }
-                                using (HttpClient verifyclient = new HttpClient())
-                                {
-                                    verifyclient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
-                                    var tokenresponse = await verifyclient.GetAsync("https://login.eveonline.com/oauth/verify");
-                                    verifyString = await tokenresponse.Content.ReadAsStringAsync();
-
-                                    var authgroups = Program.Settings.GetSection("auth").GetSection("authgroups").GetChildren().ToList();
-                                    var corps = new Dictionary<string, string>();
-                                    var alliance = new Dictionary<string, string>();
-
-                                    foreach (var config in authgroups)
-                                    {
-                                        var configChildren = config.GetChildren();
-
-                                        var corpID = configChildren.FirstOrDefault(x => x.Key == "corpID").Value ?? "";
-                                        var allianceID = configChildren.FirstOrDefault(x => x.Key == "allianceID").Value ?? "";
-                                        var corpMemberRole = configChildren.FirstOrDefault(x => x.Key == "corpMemberRole").Value ?? "";
-                                        var allianceMemberRole = configChildren.FirstOrDefault(x => x.Key == "allianceMemberRole").Value ?? "";
-
-                                        if (Convert.ToInt32(corpID) != 0)
-                                        {
-                                            corps.Add(corpID, corpMemberRole);
-                                        }
-                                        if (Convert.ToInt32(allianceID) != 0)
-                                        {
-                                            alliance.Add(allianceID, allianceMemberRole);
-                                        }
-
+                                        tokenclient.DefaultRequestHeaders.Add("Authorization", $"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes(client_id + ":" + secret))}");
+                                        var content = new FormUrlEncodedContent(values);
+                                        var tokenresponse = await tokenclient.PostAsync("https://login.eveonline.com/oauth/token", content);
+                                        responseString = await tokenresponse.Content.ReadAsStringAsync();
+                                        accessToken = (string)JObject.Parse(responseString)["access_token"];
                                     }
-
-                                    var CharacterID = JObject.Parse(verifyString)["CharacterID"];
-                                    JObject characterDetails;
-                                    JObject corporationDetails;
-                                    JObject allianceDetails;
-
-                                    using (HttpClient webclient = new HttpClient())
-                                    using (HttpResponseMessage _characterDetails = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{CharacterID}"))
-                                    using (HttpContent _characterDetailsContent = _characterDetails.Content)
+                                    using (HttpClient verifyclient = new HttpClient())
                                     {
-                                        var allianceID = "";
-                                        var corpID = "";
-                                        characterDetails = JObject.Parse(await _characterDetailsContent.ReadAsStringAsync());
-                                        characterDetails.TryGetValue("corporation_id", out JToken corporationid);
-                                        using (HttpResponseMessage _corporationDetails = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corporationid}"))
-                                        using (HttpContent _corporationDetailsContent = _corporationDetails.Content)
+                                        verifyclient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
+                                        var tokenresponse = await verifyclient.GetAsync("https://login.eveonline.com/oauth/verify");
+                                        verifyString = await tokenresponse.Content.ReadAsStringAsync();
+
+                                        var authgroups = Program.Settings.GetSection("auth").GetSection("authgroups").GetChildren().ToList();
+                                        var corps = new Dictionary<string, string>();
+                                        var alliance = new Dictionary<string, string>();
+
+                                        foreach (var config in authgroups)
                                         {
-                                            corporationDetails = JObject.Parse(await _corporationDetailsContent.ReadAsStringAsync());
-                                            corporationDetails.TryGetValue("alliance_id", out JToken allianceid);
-                                            string i = (allianceid.HasValues ? "0" : allianceid.ToString());
-                                            string c = (corporationid.HasValues ? "0" : corporationid.ToString());
-                                            allianceID = i;
-                                            corpID = c;
-                                            if (allianceID != "0")
+                                            var configChildren = config.GetChildren();
+
+                                            var corpID = configChildren.FirstOrDefault(x => x.Key == "corpID").Value ?? "";
+                                            var allianceID = configChildren.FirstOrDefault(x => x.Key == "allianceID").Value ?? "";
+                                            var corpMemberRole = configChildren.FirstOrDefault(x => x.Key == "corpMemberRole").Value ?? "";
+                                            var allianceMemberRole = configChildren.FirstOrDefault(x => x.Key == "allianceMemberRole").Value ?? "";
+
+                                            if (Convert.ToInt32(corpID) != 0)
                                             {
-                                                using (HttpResponseMessage _allianceDetails = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{allianceid}"))
-                                                using (HttpContent _allianceDetailsContent = _allianceDetails.Content)
+                                                corps.Add(corpID, corpMemberRole);
+                                            }
+                                            if (Convert.ToInt32(allianceID) != 0)
+                                            {
+                                                alliance.Add(allianceID, allianceMemberRole);
+                                            }
+
+                                        }
+
+                                        var CharacterID = JObject.Parse(verifyString)["CharacterID"];
+                                        JObject characterDetails;
+                                        JObject corporationDetails;
+                                        JObject allianceDetails;
+
+                                        using (HttpClient webclient = new HttpClient())
+                                        using (HttpResponseMessage _characterDetails = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{CharacterID}"))
+                                        using (HttpContent _characterDetailsContent = _characterDetails.Content)
+                                        {
+                                            var allianceID = "";
+                                            var corpID = "";
+                                            characterDetails = JObject.Parse(await _characterDetailsContent.ReadAsStringAsync());
+                                            characterDetails.TryGetValue("corporation_id", out JToken corporationid);
+                                            using (HttpResponseMessage _corporationDetails = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corporationid}"))
+                                            using (HttpContent _corporationDetailsContent = _corporationDetails.Content)
+                                            {
+                                                corporationDetails = JObject.Parse(await _corporationDetailsContent.ReadAsStringAsync());
+                                                corporationDetails.TryGetValue("alliance_id", out JToken allianceid);
+                                                string i = (allianceid.HasValues ? "0" : allianceid.ToString());
+                                                string c = (corporationid.HasValues ? "0" : corporationid.ToString());
+                                                allianceID = i;
+                                                corpID = c;
+                                                if (allianceID != "0")
                                                 {
-                                                    allianceDetails = JObject.Parse(await _allianceDetailsContent.ReadAsStringAsync());
+                                                    using (HttpResponseMessage _allianceDetails = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{allianceid}"))
+                                                    using (HttpContent _allianceDetailsContent = _allianceDetails.Content)
+                                                    {
+                                                        allianceDetails = JObject.Parse(await _allianceDetailsContent.ReadAsStringAsync());
+                                                    }
                                                 }
                                             }
-                                        }
 
-                                        if (corps.ContainsKey(corpID))
-                                        {
-                                            add = true;
+                                            if (corps.ContainsKey(corpID))
+                                            {
+                                                add = true;
+                                            }
+                                            if (alliance.ContainsKey(allianceID))
+                                            {
+                                                add = true;
+                                            }
                                         }
-                                        if (alliance.ContainsKey(allianceID))
+                                        if (add && (string)JObject.Parse(responseString)["error"] != "invalid_request" && (string)JObject.Parse(verifyString)["error"] != "invalid_token")
                                         {
-                                            add = true;
-                                        }
-                                    }
-                                    if (add && (string)JObject.Parse(responseString)["error"] != "invalid_request" && (string)JObject.Parse(verifyString)["error"] != "invalid_token")
-                                    {
-                                        var characterID = CharacterID;
-                                        characterDetails.TryGetValue("corporation_id", out JToken corporationid);
-                                        corporationDetails.TryGetValue("alliance_id", out JToken allianceid);
-                                        var authString = uid;
-                                        var active = "1";
-                                        var dateCreated = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                                            var characterID = CharacterID;
+                                            characterDetails.TryGetValue("corporation_id", out JToken corporationid);
+                                            corporationDetails.TryGetValue("alliance_id", out JToken allianceid);
+                                            var authString = uid;
+                                            var active = "1";
+                                            var dateCreated = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
-                                        var query = "INSERT INTO pendingUsers(characterID, corporationID, allianceID, authString, groups, active, dateCreated) " +
-                                        $"VALUES (\"{characterID}\", \"{corporationid}\", \"{allianceid}\", \"{authString}\", \"[]\", \"{active}\", \"{dateCreated}\") ON DUPLICATE KEY UPDATE " +
-                                        $"corporationID = \"{corporationid}\", allianceID = \"{allianceid}\", authString = \"{authString}\", groups = \"[]\", active = \"{active}\", dateCreated = \"{dateCreated}\"";
-                                        var responce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query);
-                                        await response.WriteContentAsync("<!doctype html>" +
-                                            "<html>" +
-                                            "<head>" +
-                                            "    <title>Discord Authenticator</title>" +
-                                            "    <meta name=\"viewport\" content=\"width=device-width\">" +
-                                            "    <link rel=\"stylesheet\" href=\"https://djyhxgczejc94.cloudfront.net/frameworks/bootstrap/3.0.0/themes/cirrus/bootstrap.min.css\">" +
-                                            "    <script type=\"text/javascript\" src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js\"></script>" +
-                                            "    <script type=\"text/javascript\" src=\"https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js\"></script>" +
-                                            "    <style type=\"text/css\">" +
-                                            "        /* Space out content a bit */" +
-                                            "        body {" +
-                                            "            padding-top: 20px;" +
-                                            "            padding-bottom: 20px;" +
-                                            "        }" +
-                                            "        /* Everything but the jumbotron gets side spacing for mobile first views */" +
-                                            "        .header, .marketing, .footer {" +
-                                            "            padding-left: 15px;" +
-                                            "            padding-right: 15px;" +
-                                            "        }" +
-                                            "        /* Custom page header */" +
-                                            "        .header {" +
-                                            "            border-bottom: 1px solid #e5e5e5;" +
-                                            "        }" +
-                                            "        /* Make the masthead heading the same height as the navigation */" +
-                                            "        .header h3 {" +
-                                            "            margin-top: 0;" +
-                                            "            margin-bottom: 0;" +
-                                            "            line-height: 40px;" +
-                                            "            padding-bottom: 19px;" +
-                                            "        }" +
-                                            "        /* Custom page footer */" +
-                                            "        .footer {" +
-                                            "            padding-top: 19px;" +
-                                            "            color: #777;" +
-                                            "            border-top: 1px solid #e5e5e5;" +
-                                            "        }" +
-                                            "        /* Customize container */" +
-                                            "        @media(min-width: 768px) {" +
-                                            "            .container {" +
-                                            "                max-width: 730px;" +
-                                            "            }" +
-                                            "        }" +
-                                            "        .container-narrow > hr {" +
-                                            "            margin: 30px 0;" +
-                                            "        }" +
-                                            "        /* Main marketing message and sign up button */" +
-                                            "        .jumbotron {" +
-                                            "            text-align: center;" +
-                                            "            border-bottom: 1px solid #e5e5e5;" +
-                                            "            color: #0D191D;" +
-                                            "        }" +
-                                            "        .jumbotron .btn {" +
-                                            "            font-size: 21px;" +
-                                            "            padding: 14px 24px;" +
-                                            "        }" +
-                                            "        /* Supporting marketing content */" +
-                                            "        .marketing {" +
-                                            "            margin: 40px 0;" +
-                                            "        }" +
-                                            "        .marketing p + h4 {" +
-                                            "            margin-top: 28px;" +
-                                            "        }" +
-                                            "        /* Responsive: Portrait tablets and up */" +
-                                            "        @media screen and(min-width: 768px) {" +
-                                            "            /* Remove the padding we set earlier */" +
-                                            "            .header, .marketing, .footer {" +
-                                            "                padding-left: 0;" +
-                                            "                padding-right: 0;" +
-                                            "            }" +
-                                            "            /* Space out the masthead */" +
-                                            "            .header {" +
-                                            "                margin-bottom: 30px;" +
-                                            "            }" +
-                                            "            /* Remove the bottom border on the jumbotron for visual effect */" +
-                                            "            .jumbotron {" +
-                                            "                border-bottom: 0;" +
-                                            "            }" +
-                                            "        }" +
-                                            "    </style>" +
-                                            "</head>" +
-                                            "<body>" +
-                                            "<div class=\"container\">" +
-                                            "    <div class=\"header\">" +
-                                            "        <ul class=\"nav nav-pills pull-right\"></ul>" +
-                                            "    </div>" +
-                                            "    <div class=\"jumbotron\">" +
-                                            "        <h1>Discord</h1>" +
-                                            "        <p class=\"lead\">Sign in complete.</p>" +
-                                            "        <p>If you're not already signed into the server use the link below to get invited. (or right click and copy-link for the Windows/OSX Client)</p>" +
-                                            "        <p><a href=\"" + url + "\" target=\"_blank\"><img src=\"data:image/png;base64," + image + "\" width=\"350px\"/></a></p>" +
-                                            "        <p>Once you're in chat copy and paste the entire line below to have the bot add you to the correct roles.</p>" +
-                                            "        <p><b>!auth " + uid + "</b></p>" +
-                                            "    </div>" +
-                                            "</div>" +
-                                            "<!-- /container -->" +
-                                            "</body>" +
-                                            "</html>");
-                                    }
-                                    else
-                                    {
-                                        var message = "ERROR";
-                                        if (!add)
-                                        {
-                                            message = "You are not Corp/Alliance or Blue";
+                                            var query = "INSERT INTO pendingUsers(characterID, corporationID, allianceID, authString, groups, active, dateCreated) " +
+                                            $"VALUES (\"{characterID}\", \"{corporationid}\", \"{allianceid}\", \"{authString}\", \"[]\", \"{active}\", \"{dateCreated}\") ON DUPLICATE KEY UPDATE " +
+                                            $"corporationID = \"{corporationid}\", allianceID = \"{allianceid}\", authString = \"{authString}\", groups = \"[]\", active = \"{active}\", dateCreated = \"{dateCreated}\"";
+                                            var responce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query);
+                                            await response.WriteContentAsync("<!doctype html>" +
+                                                "<html>" +
+                                                "<head>" +
+                                                "    <title>Discord Authenticator</title>" +
+                                                "    <meta name=\"viewport\" content=\"width=device-width\">" +
+                                                "    <link rel=\"stylesheet\" href=\"https://djyhxgczejc94.cloudfront.net/frameworks/bootstrap/3.0.0/themes/cirrus/bootstrap.min.css\">" +
+                                                "    <script type=\"text/javascript\" src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js\"></script>" +
+                                                "    <script type=\"text/javascript\" src=\"https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js\"></script>" +
+                                                "    <style type=\"text/css\">" +
+                                                "        /* Space out content a bit */" +
+                                                "        body {" +
+                                                "            padding-top: 20px;" +
+                                                "            padding-bottom: 20px;" +
+                                                "        }" +
+                                                "        /* Everything but the jumbotron gets side spacing for mobile first views */" +
+                                                "        .header, .marketing, .footer {" +
+                                                "            padding-left: 15px;" +
+                                                "            padding-right: 15px;" +
+                                                "        }" +
+                                                "        /* Custom page header */" +
+                                                "        .header {" +
+                                                "            border-bottom: 1px solid #e5e5e5;" +
+                                                "        }" +
+                                                "        /* Make the masthead heading the same height as the navigation */" +
+                                                "        .header h3 {" +
+                                                "            margin-top: 0;" +
+                                                "            margin-bottom: 0;" +
+                                                "            line-height: 40px;" +
+                                                "            padding-bottom: 19px;" +
+                                                "        }" +
+                                                "        /* Custom page footer */" +
+                                                "        .footer {" +
+                                                "            padding-top: 19px;" +
+                                                "            color: #777;" +
+                                                "            border-top: 1px solid #e5e5e5;" +
+                                                "        }" +
+                                                "        /* Customize container */" +
+                                                "        @media(min-width: 768px) {" +
+                                                "            .container {" +
+                                                "                max-width: 730px;" +
+                                                "            }" +
+                                                "        }" +
+                                                "        .container-narrow > hr {" +
+                                                "            margin: 30px 0;" +
+                                                "        }" +
+                                                "        /* Main marketing message and sign up button */" +
+                                                "        .jumbotron {" +
+                                                "            text-align: center;" +
+                                                "            border-bottom: 1px solid #e5e5e5;" +
+                                                "            color: #0D191D;" +
+                                                "        }" +
+                                                "        .jumbotron .btn {" +
+                                                "            font-size: 21px;" +
+                                                "            padding: 14px 24px;" +
+                                                "        }" +
+                                                "        /* Supporting marketing content */" +
+                                                "        .marketing {" +
+                                                "            margin: 40px 0;" +
+                                                "        }" +
+                                                "        .marketing p + h4 {" +
+                                                "            margin-top: 28px;" +
+                                                "        }" +
+                                                "        /* Responsive: Portrait tablets and up */" +
+                                                "        @media screen and(min-width: 768px) {" +
+                                                "            /* Remove the padding we set earlier */" +
+                                                "            .header, .marketing, .footer {" +
+                                                "                padding-left: 0;" +
+                                                "                padding-right: 0;" +
+                                                "            }" +
+                                                "            /* Space out the masthead */" +
+                                                "            .header {" +
+                                                "                margin-bottom: 30px;" +
+                                                "            }" +
+                                                "            /* Remove the bottom border on the jumbotron for visual effect */" +
+                                                "            .jumbotron {" +
+                                                "                border-bottom: 0;" +
+                                                "            }" +
+                                                "        }" +
+                                                "    </style>" +
+                                                "</head>" +
+                                                "<body>" +
+                                                "<div class=\"container\">" +
+                                                "    <div class=\"header\">" +
+                                                "        <ul class=\"nav nav-pills pull-right\"></ul>" +
+                                                "    </div>" +
+                                                "    <div class=\"jumbotron\">" +
+                                                "        <h1>Discord</h1>" +
+                                                "        <p class=\"lead\">Sign in complete.</p>" +
+                                                "        <p>If you're not already signed into the server use the link below to get invited. (or right click and copy-link for the Windows/OSX Client)</p>" +
+                                                "        <p><a href=\"" + url + "\" target=\"_blank\"><img src=\"data:image/png;base64," + image + "\" width=\"350px\"/></a></p>" +
+                                                "        <p>Once you're in chat copy and paste the entire line below to have the bot add you to the correct roles.</p>" +
+                                                "        <p><b>!auth " + uid + "</b></p>" +
+                                                "    </div>" +
+                                                "</div>" +
+                                                "<!-- /container -->" +
+                                                "</body>" +
+                                                "</html>");
                                         }
-                                        await response.WriteContentAsync("<!doctype html>" +
-                                           "<html>" +
-                                           "<head>" +
-                                           "    <title>Discord Authenticator</title>" +
-                                           "    <meta name=\"viewport\" content=\"width=device-width\">" +
-                                           "    <link rel=\"stylesheet\" href=\"https://djyhxgczejc94.cloudfront.net/frameworks/bootstrap/3.0.0/themes/cirrus/bootstrap.min.css\">" +
-                                           "    <script type=\"text/javascript\" src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js\"></script>" +
-                                           "    <script type=\"text/javascript\" src=\"https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js\"></script>" +
-                                           "    <style type=\"text/css\">" +
-                                           "        /* Space out content a bit */" +
-                                           "        body {" +
-                                           "            padding-top: 20px;" +
-                                           "            padding-bottom: 20px;" +
-                                           "        }" +
-                                           "        /* Everything but the jumbotron gets side spacing for mobile first views */" +
-                                           "        .header, .marketing, .footer {" +
-                                           "            padding-left: 15px;" +
-                                           "            padding-right: 15px;" +
-                                           "        }" +
-                                           "        /* Custom page header */" +
-                                           "        .header {" +
-                                           "            border-bottom: 1px solid #e5e5e5;" +
-                                           "        }" +
-                                           "        /* Make the masthead heading the same height as the navigation */" +
-                                           "        .header h3 {" +
-                                           "            margin-top: 0;" +
-                                           "            margin-bottom: 0;" +
-                                           "            line-height: 40px;" +
-                                           "            padding-bottom: 19px;" +
-                                           "        }" +
-                                           "        /* Custom page footer */" +
-                                           "        .footer {" +
-                                           "            padding-top: 19px;" +
-                                           "            color: #777;" +
-                                           "            border-top: 1px solid #e5e5e5;" +
-                                           "        }" +
-                                           "        /* Customize container */" +
-                                           "        @media(min-width: 768px) {" +
-                                           "            .container {" +
-                                           "                max-width: 730px;" +
-                                           "            }" +
-                                           "        }" +
-                                           "        .container-narrow > hr {" +
-                                           "            margin: 30px 0;" +
-                                           "        }" +
-                                           "        /* Main marketing message and sign up button */" +
-                                           "        .jumbotron {" +
-                                           "            text-align: center;" +
-                                           "            border-bottom: 1px solid #e5e5e5;" +
-                                           "            color: #0D191D;" +
-                                           "        }" +
-                                           "        .jumbotron .btn {" +
-                                           "            font-size: 21px;" +
-                                           "            padding: 14px 24px;" +
-                                           "        }" +
-                                           "        /* Supporting marketing content */" +
-                                           "        .marketing {" +
-                                           "            margin: 40px 0;" +
-                                           "        }" +
-                                           "        .marketing p + h4 {" +
-                                           "            margin-top: 28px;" +
-                                           "        }" +
-                                           "        /* Responsive: Portrait tablets and up */" +
-                                           "        @media screen and(min-width: 768px) {" +
-                                           "            /* Remove the padding we set earlier */" +
-                                           "            .header, .marketing, .footer {" +
-                                           "                padding-left: 0;" +
-                                           "                padding-right: 0;" +
-                                           "            }" +
-                                           "            /* Space out the masthead */" +
-                                           "            .header {" +
-                                           "                margin-bottom: 30px;" +
-                                           "            }" +
-                                           "            /* Remove the bottom border on the jumbotron for visual effect */" +
-                                           "            .jumbotron {" +
-                                           "                border-bottom: 0;" +
-                                           "            }" +
-                                           "        }" +
-                                           "    </style>" +
-                                           "</head>" +
-                                           "<body>" +
-                                           "<div class=\"container\">" +
-                                           "    <div class=\"header\">" +
-                                           "        <ul class=\"nav nav-pills pull-right\"></ul>" +
-                                           "    </div>" +
-                                           "    <div class=\"jumbotron\">" +
-                                           "        <h1>Discord</h1>" +
-                                           "        <p class=\"lead\">Sign in ERROR.</p>" +
-                                           "        <p>" + message + "</p>" +
-                                           "    </div>" +
-                                           "</div>" +
-                                           "<!-- /container -->" +
-                                           "</body>" +
-                                           "</html>");
+                                        else
+                                        {
+                                            var message = "ERROR";
+                                            if (!add)
+                                            {
+                                                message = "You are not Corp/Alliance or Blue";
+                                            }
+                                            await response.WriteContentAsync("<!doctype html>" +
+                                               "<html>" +
+                                               "<head>" +
+                                               "    <title>Discord Authenticator</title>" +
+                                               "    <meta name=\"viewport\" content=\"width=device-width\">" +
+                                               "    <link rel=\"stylesheet\" href=\"https://djyhxgczejc94.cloudfront.net/frameworks/bootstrap/3.0.0/themes/cirrus/bootstrap.min.css\">" +
+                                               "    <script type=\"text/javascript\" src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js\"></script>" +
+                                               "    <script type=\"text/javascript\" src=\"https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js\"></script>" +
+                                               "    <style type=\"text/css\">" +
+                                               "        /* Space out content a bit */" +
+                                               "        body {" +
+                                               "            padding-top: 20px;" +
+                                               "            padding-bottom: 20px;" +
+                                               "        }" +
+                                               "        /* Everything but the jumbotron gets side spacing for mobile first views */" +
+                                               "        .header, .marketing, .footer {" +
+                                               "            padding-left: 15px;" +
+                                               "            padding-right: 15px;" +
+                                               "        }" +
+                                               "        /* Custom page header */" +
+                                               "        .header {" +
+                                               "            border-bottom: 1px solid #e5e5e5;" +
+                                               "        }" +
+                                               "        /* Make the masthead heading the same height as the navigation */" +
+                                               "        .header h3 {" +
+                                               "            margin-top: 0;" +
+                                               "            margin-bottom: 0;" +
+                                               "            line-height: 40px;" +
+                                               "            padding-bottom: 19px;" +
+                                               "        }" +
+                                               "        /* Custom page footer */" +
+                                               "        .footer {" +
+                                               "            padding-top: 19px;" +
+                                               "            color: #777;" +
+                                               "            border-top: 1px solid #e5e5e5;" +
+                                               "        }" +
+                                               "        /* Customize container */" +
+                                               "        @media(min-width: 768px) {" +
+                                               "            .container {" +
+                                               "                max-width: 730px;" +
+                                               "            }" +
+                                               "        }" +
+                                               "        .container-narrow > hr {" +
+                                               "            margin: 30px 0;" +
+                                               "        }" +
+                                               "        /* Main marketing message and sign up button */" +
+                                               "        .jumbotron {" +
+                                               "            text-align: center;" +
+                                               "            border-bottom: 1px solid #e5e5e5;" +
+                                               "            color: #0D191D;" +
+                                               "        }" +
+                                               "        .jumbotron .btn {" +
+                                               "            font-size: 21px;" +
+                                               "            padding: 14px 24px;" +
+                                               "        }" +
+                                               "        /* Supporting marketing content */" +
+                                               "        .marketing {" +
+                                               "            margin: 40px 0;" +
+                                               "        }" +
+                                               "        .marketing p + h4 {" +
+                                               "            margin-top: 28px;" +
+                                               "        }" +
+                                               "        /* Responsive: Portrait tablets and up */" +
+                                               "        @media screen and(min-width: 768px) {" +
+                                               "            /* Remove the padding we set earlier */" +
+                                               "            .header, .marketing, .footer {" +
+                                               "                padding-left: 0;" +
+                                               "                padding-right: 0;" +
+                                               "            }" +
+                                               "            /* Space out the masthead */" +
+                                               "            .header {" +
+                                               "                margin-bottom: 30px;" +
+                                               "            }" +
+                                               "            /* Remove the bottom border on the jumbotron for visual effect */" +
+                                               "            .jumbotron {" +
+                                               "                border-bottom: 0;" +
+                                               "            }" +
+                                               "        }" +
+                                               "    </style>" +
+                                               "</head>" +
+                                               "<body>" +
+                                               "<div class=\"container\">" +
+                                               "    <div class=\"header\">" +
+                                               "        <ul class=\"nav nav-pills pull-right\"></ul>" +
+                                               "    </div>" +
+                                               "    <div class=\"jumbotron\">" +
+                                               "        <h1>Discord</h1>" +
+                                               "        <p class=\"lead\">Sign in ERROR.</p>" +
+                                               "        <p>" + message + "</p>" +
+                                               "    </div>" +
+                                               "</div>" +
+                                               "<!-- /container -->" +
+                                               "</body>" +
+                                               "</html>");
+                                        }
                                     }
                                 }
+                            }
+                            catch (Exception ex)
+                            {
+                                await Client_Log(new LogMessage(LogSeverity.Error, "AuthWeb", $"Error: {ex.Message}", ex));
                             }
                         }
                     }
@@ -652,146 +658,153 @@ namespace Opux
         #region AuthUser
         internal async static Task AuthUser(ICommandContext context, string remainder)
         {
-            var query = $"SELECT * FROM pendingUsers WHERE authString=\"{remainder}\"";
-            var responce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query);
-            if (responce.Count() == 0)
+            try
             {
-                await context.Channel.SendMessageAsync($"{context.Message.Author.Mention} Key Invalid! Please auth using !auth");
+                var query = $"SELECT * FROM pendingUsers WHERE authString=\"{remainder}\"";
+                var responce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query);
+                if (responce.Count() == 0)
+                {
+                    await context.Channel.SendMessageAsync($"{context.Message.Author.Mention} Key Invalid! Please auth using !auth");
+                }
+                else if (responce[0]["active"].ToString() == "0")
+                {
+                    await context.Channel.SendMessageAsync($"{context.Message.Author.Mention} Key is not active Please re-auth using !auth");
+                }
+                else if (responce[0]["active"].ToString() == "1")
+                {
+                    var authgroups = Program.Settings.GetSection("auth").GetSection("authgroups").GetChildren().ToList();
+                    var corps = new Dictionary<string, string>();
+                    var alliance = new Dictionary<string, string>();
+
+                    foreach (var config in authgroups)
+                    {
+                        var configChildren = config.GetChildren();
+
+                        var corpID2 = configChildren.FirstOrDefault(x => x.Key == "corpID").Value ?? "";
+                        var allianceID2 = configChildren.FirstOrDefault(x => x.Key == "allianceID").Value ?? "";
+                        var corpMemberRole = configChildren.FirstOrDefault(x => x.Key == "corpMemberRole").Value ?? "";
+                        var allianceMemberRole = configChildren.FirstOrDefault(x => x.Key == "allianceMemberRole").Value ?? "";
+
+                        if (Convert.ToInt32(corpID2) != 0)
+                        {
+                            corps.Add(corpID2, corpMemberRole);
+                        }
+                        if (Convert.ToInt32(allianceID2) != 0)
+                        {
+                            alliance.Add(allianceID2, allianceMemberRole);
+                        }
+                    }
+
+                    var characterID = responce[0]["characterID"].ToString();
+
+                    var responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{characterID}/?datasource=tranquility");
+                    var characterData = JsonConvert.DeserializeObject<CharacterData>(await responceMessage.Content.ReadAsStringAsync());
+
+                    responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.Corporation_id}/?datasource=tranquility");
+                    var corporationData = JsonConvert.DeserializeObject<CorporationData>(await responceMessage.Content.ReadAsStringAsync());
+
+                    responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{corporationData.Alliance_id}/?datasource=tranquility");
+                    var allianceData = JsonConvert.DeserializeObject<AllianceData>(await responceMessage.Content.ReadAsStringAsync());
+
+                    var allianceID = (corporationData.Alliance_id.ToString() == "" ? "0" : corporationData.Alliance_id.ToString());
+                    var corpID = (characterData.Corporation_id.ToString() == "" ? "0" : characterData.Corporation_id.ToString());
+
+                    var enable = false;
+
+                    if (corps.ContainsKey(corpID))
+                    {
+                        enable = true;
+                    }
+                    if (alliance.ContainsKey(allianceID))
+                    {
+                        enable = true;
+                    }
+
+                    if (enable)
+                    {
+                        var rolesToAdd = new List<SocketRole>();
+                        var rolesToTake = new List<SocketRole>();
+
+                        try
+                        {
+                            var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
+                            var alertChannel = Convert.ToUInt64(Program.Settings.GetSection("auth")["alertChannel"]);
+
+                            var discordGuild = Program.Client.GetGuild(guildID);
+                            var discordUser = Program.Client.GetGuild(guildID).GetUser(context.Message.Author.Id);
+
+                            //Check for Corp roles
+                            if (corps.ContainsKey(corpID))
+                            {
+                                var cinfo = corps.FirstOrDefault(x => x.Key == corpID);
+                                rolesToAdd.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == cinfo.Value));
+                            }
+
+                            //Check for Alliance roles
+                            if (alliance.ContainsKey(allianceID))
+                            {
+                                var ainfo = alliance.FirstOrDefault(x => x.Key == allianceID);
+                                rolesToAdd.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == ainfo.Value));
+                            }
+
+                            foreach (var r in rolesToAdd)
+                            {
+                                if (discordUser.Roles.FirstOrDefault(x => x.Id == r.Id) == null)
+                                {
+                                    var channel = discordGuild.GetTextChannel(alertChannel);
+                                    await channel.SendMessageAsync($"Granting Roles to {characterData.Name}");
+                                    await discordUser.AddRolesAsync(rolesToAdd);
+                                }
+                            }
+                            var query2 = $"UPDATE pendingUsers SET active=\"0\" WHERE authString=\"{remainder}\"";
+                            var responce2 = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query2);
+
+                            await context.Channel.SendMessageAsync($"{context.Message.Author.Mention},:white_check_mark: **Success**: " +
+                                $"{characterData.Name} has been successfully authed.");
+
+                            var eveName = characterData.Name;
+                            var discordID = discordUser.Id;
+                            var active = "yes";
+                            var addedOn = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+                            query2 = "INSERT INTO authUsers(eveName, characterID, discordID, role, active, addedOn) " +
+                            $"VALUES (\"{eveName}\", \"{characterID}\", \"{discordID}\", \"[]\", \"{active}\", \"{addedOn}\") ON DUPLICATE KEY UPDATE " +
+                            $"eveName = \"{eveName}\", discordID = \"{discordID}\", role = \"[]\", active = \"{active}\", addedOn = \"{addedOn}\"";
+
+                            responce2 = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query2);
+
+                            var corpTickers = Convert.ToBoolean(Program.Settings.GetSection("auth")["corpTickers"]);
+                            var nameEnforce = Convert.ToBoolean(Program.Settings.GetSection("auth")["nameEnforce"]);
+
+                            if (corpTickers || nameEnforce)
+                            {
+                                var Nickname = "";
+                                if (corpTickers)
+                                {
+                                    Nickname = $"[{corporationData.Ticker}] ";
+                                }
+                                if (nameEnforce)
+                                {
+                                    Nickname += $"{eveName}";
+                                }
+                                else
+                                {
+                                    Nickname += $"{discordUser.Username}";
+                                }
+                                await discordUser.ModifyAsync(x => x.Nickname = Nickname);
+                            }
+                        }
+
+                        catch (Exception ex)
+                        {
+                            await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Failed adding Roles to User {characterData.Name}, Reason: {ex.Message}", ex));
+                        }
+                    }
+                }
             }
-            else if (responce[0]["active"].ToString() == "0")
+            catch (Exception ex)
             {
-                await context.Channel.SendMessageAsync($"{context.Message.Author.Mention} Key is not active Please re-auth using !auth");
-            }
-            else if (responce[0]["active"].ToString() == "1")
-            {
-                var authgroups = Program.Settings.GetSection("auth").GetSection("authgroups").GetChildren().ToList();
-                var corps = new Dictionary<string, string>();
-                var alliance = new Dictionary<string, string>();
-
-                foreach (var config in authgroups)
-                {
-                    var configChildren = config.GetChildren();
-
-                    var corpID2 = configChildren.FirstOrDefault(x => x.Key == "corpID").Value ?? "";
-                    var allianceID2 = configChildren.FirstOrDefault(x => x.Key == "allianceID").Value ?? "";
-                    var corpMemberRole = configChildren.FirstOrDefault(x => x.Key == "corpMemberRole").Value ?? "";
-                    var allianceMemberRole = configChildren.FirstOrDefault(x => x.Key == "allianceMemberRole").Value ?? "";
-
-                    if (Convert.ToInt32(corpID2) != 0)
-                    {
-                        corps.Add(corpID2, corpMemberRole);
-                    }
-                    if (Convert.ToInt32(allianceID2) != 0)
-                    {
-                        alliance.Add(allianceID2, allianceMemberRole);
-                    }
-                }
-
-                var characterID = responce[0]["characterID"].ToString();
-
-                var responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{characterID}/?datasource=tranquility");
-                var characterData = JsonConvert.DeserializeObject<CharacterData>(await responceMessage.Content.ReadAsStringAsync());
-
-                responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.Corporation_id}/?datasource=tranquility");
-                var corporationData = JsonConvert.DeserializeObject<CorporationData>(await responceMessage.Content.ReadAsStringAsync());
-
-                responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{corporationData.Alliance_id}/?datasource=tranquility");
-                var allianceData = JsonConvert.DeserializeObject<AllianceData>(await responceMessage.Content.ReadAsStringAsync());
-
-                var allianceID = (corporationData.Alliance_id.ToString() == "" ? "0" : corporationData.Alliance_id.ToString());
-                var corpID = (characterData.Corporation_id.ToString() == "" ? "0" : characterData.Corporation_id.ToString());
-
-                var enable = false;
-
-                if (corps.ContainsKey(corpID))
-                {
-                    enable = true;
-                }
-                if (alliance.ContainsKey(allianceID))
-                {
-                    enable = true;
-                }
-
-                if (enable)
-                {
-                    var rolesToAdd = new List<SocketRole>();
-                    var rolesToTake = new List<SocketRole>();
-
-                    try
-                    {
-                        var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
-                        var alertChannel = Convert.ToUInt64(Program.Settings.GetSection("auth")["alertChannel"]);
-
-                        var discordGuild = Program.Client.GetGuild(guildID);
-                        var discordUser = Program.Client.GetGuild(guildID).GetUser(context.Message.Author.Id);
-
-                        //Check for Corp roles
-                        if (corps.ContainsKey(corpID))
-                        {
-                            var cinfo = corps.FirstOrDefault(x => x.Key == corpID);
-                            rolesToAdd.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == cinfo.Value));
-                        }
-
-                        //Check for Alliance roles
-                        if (alliance.ContainsKey(allianceID))
-                        {
-                            var ainfo = alliance.FirstOrDefault(x => x.Key == allianceID);
-                            rolesToAdd.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == ainfo.Value));
-                        }
-
-                        foreach (var r in rolesToAdd)
-                        {
-                            if (discordUser.Roles.FirstOrDefault(x => x.Id == r.Id) == null)
-                            {
-                                var channel = discordGuild.GetTextChannel(alertChannel);
-                                await channel.SendMessageAsync($"Granting Roles to {characterData.Name}");
-                                await discordUser.AddRolesAsync(rolesToAdd);
-                            }
-                        }
-                        var query2 = $"UPDATE pendingUsers SET active=\"0\" WHERE authString=\"{remainder}\"";
-                        var responce2 = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query2);
-
-                        await context.Channel.SendMessageAsync($"{context.Message.Author.Mention},:white_check_mark: **Success**: " +
-                            $"{characterData.Name} has been successfully authed.");
-
-                        var eveName = characterData.Name;
-                        var discordID = discordUser.Id;
-                        var active = "yes";
-                        var addedOn = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-
-                        query2 = "INSERT INTO authUsers(eveName, characterID, discordID, role, active, addedOn) " +
-                        $"VALUES (\"{eveName}\", \"{characterID}\", \"{discordID}\", \"[]\", \"{active}\", \"{addedOn}\") ON DUPLICATE KEY UPDATE " +
-                        $"eveName = \"{eveName}\", discordID = \"{discordID}\", role = \"[]\", active = \"{active}\", addedOn = \"{addedOn}\"";
-
-                        responce2 = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query2);
-
-                        var corpTickers = Convert.ToBoolean(Program.Settings.GetSection("auth")["corpTickers"]);
-                        var nameEnforce = Convert.ToBoolean(Program.Settings.GetSection("auth")["nameEnforce"]);
-
-                        if (corpTickers || nameEnforce)
-                        {
-                            var Nickname = "";
-                            if (corpTickers)
-                            {
-                                Nickname = $"[{corporationData.Ticker}] ";
-                            }
-                            if (nameEnforce)
-                            {
-                                Nickname += $"{eveName}";
-                            }
-                            else
-                            {
-                                Nickname += $"{discordUser.Username}";
-                            }
-                            await discordUser.ModifyAsync(x => x.Nickname = Nickname);
-                        }
-                    }
-
-                    catch (Exception ex)
-                    {
-                        await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Failed adding Roles to User {characterData.Name}, Reason: {ex.Message}", ex));
-                    }
-                }
+                await Client_Log(new LogMessage(LogSeverity.Error, "AuthUser", $"Error: {ex.Message}", ex));
             }
         }
         #endregion
