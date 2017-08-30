@@ -1793,7 +1793,7 @@ namespace Opux
                         var eveCentralReply = await Program._httpClient.GetStringAsync($"http://api.eve-central.com/api/marketstat/json?typeid={searchResults.Inventorytype[0]}&usesystem=30000142");
                         var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
                         await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
-                        await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Universe**{Environment.NewLine}" +
+                        await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Jita**{Environment.NewLine}" +
                             $"**Buy:**{Environment.NewLine}" +
                             $"```Low: {centralreply.Buy.Min:n2}{Environment.NewLine}" +
                             $"Avg: {centralreply.Buy.Avg:n2}{Environment.NewLine}" +
@@ -1809,7 +1809,7 @@ namespace Opux
                         var eveCentralReply = await Program._httpClient.GetStringAsync($"http://api.eve-central.com/api/marketstat/json?typeid={searchResults.Inventorytype[0]}&usesystem=30002187");
                         var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
                         await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
-                        await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Universe**{Environment.NewLine}" +
+                        await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Amarr**{Environment.NewLine}" +
                             $"**Buy:**{Environment.NewLine}" +
                             $"```Low: {centralreply.Buy.Min:n2}{Environment.NewLine}" +
                             $"Avg: {centralreply.Buy.Avg:n2}{Environment.NewLine}" +
@@ -1825,7 +1825,7 @@ namespace Opux
                         var eveCentralReply = await Program._httpClient.GetStringAsync($"http://api.eve-central.com/api/marketstat/json?typeid={searchResults.Inventorytype[0]}&usesystem=30002510");
                         var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
                         await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
-                        await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Universe**{Environment.NewLine}" +
+                        await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Rens**{Environment.NewLine}" +
                             $"**Buy:**{Environment.NewLine}" +
                             $"```Low: {centralreply.Buy.Min:n2}{Environment.NewLine}" +
                             $"Avg: {centralreply.Buy.Avg:n2}{Environment.NewLine}" +
@@ -1841,7 +1841,7 @@ namespace Opux
                         var eveCentralReply = await Program._httpClient.GetStringAsync($"http://api.eve-central.com/api/marketstat/json?typeid={searchResults.Inventorytype[0]}&usesystem=30002659");
                         var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
                         await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
-                        await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Universe**{Environment.NewLine}" +
+                        await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Dodixie**{Environment.NewLine}" +
                             $"**Buy:**{Environment.NewLine}" +
                             $"```Low: {centralreply.Buy.Min:n2}{Environment.NewLine}" +
                             $"Avg: {centralreply.Buy.Avg:n2}{Environment.NewLine}" +

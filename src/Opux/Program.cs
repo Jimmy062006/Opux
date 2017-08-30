@@ -33,8 +33,8 @@ namespace Opux
             try
             {
                 ApplicationBase = Path.GetDirectoryName(new Uri(Assembly.GetEntryAssembly().CodeBase).LocalPath);
-                if (!File.Exists(ApplicationBase + "/Opux.db"))
-                    File.Copy(ApplicationBase + "/Opux.def.db", ApplicationBase + "/Opux.db");
+                if (!File.Exists(Path.Combine(Program.ApplicationBase, "Opux.db")))
+                    File.Copy(ApplicationBase + "/Opux.def.db", Path.Combine(Program.ApplicationBase, "Opux.db"));
 
                 UpdateSettings();
 
