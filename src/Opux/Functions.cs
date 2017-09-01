@@ -28,7 +28,7 @@ namespace Opux
     internal class Functions
     {
         static DateTime _lastAuthCheck = DateTime.Now;
-        static DateTime _lastFeedCheck = DateTime.Now;
+        private static bool killfeedrunning;
         internal static DateTime _nextNotificationCheck = DateTime.FromFileTime(0);
         static int _lastNotification;
         static bool _avaliable = false;
@@ -864,9 +864,19 @@ namespace Opux
 
                         var responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{characterID}/?datasource=tranquility");
                         var characterData = JsonConvert.DeserializeObject<CharacterData>(await responceMessage.Content.ReadAsStringAsync());
+                        if (characterData == null)
+                        {
+                            await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential characterData ESI Failure for {u.Nickname}");
+                            return;
+                        }
 
                         responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.Corporation_id}/?datasource=tranquility");
                         var corporationData = JsonConvert.DeserializeObject<CorporationData>(await responceMessage.Content.ReadAsStringAsync());
+                        if (corporationData == null)
+                        {
+                            await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential corpData ESI Failure for {u.Nickname}");
+                            return;
+                        }
 
                         responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{corporationData.Alliance_id}/?datasource=tranquility");
                         var allianceData = JsonConvert.DeserializeObject<AllianceData>(await responceMessage.Content.ReadAsStringAsync());
@@ -1013,113 +1023,93 @@ namespace Opux
         #region killFeed
         private static async Task KillFeed(CommandContext Context)
         {
+            ZKillboardRedisq kill = new ZKillboardRedisq();
             try
             {
-                _lastFeedCheck = DateTime.Now;
-                Dictionary<string, IEnumerable<IConfigurationSection>> feedGroups = new Dictionary<string, IEnumerable<IConfigurationSection>>();
-
-                UInt64 guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
-                UInt64 logchan = Convert.ToUInt64(Program.Settings.GetSection("auth")["alertChannel"]);
-                var discordGuild = Program.Client.Guilds.FirstOrDefault(X => X.Id == guildID);
-                var redisQID = Program.Settings.GetSection("killFeed")["reDisqID"].ToString();
-                ITextChannel channel = null;
-                var redisqResponse = await (await Program._httpClient.GetAsync(String.IsNullOrEmpty(redisQID) ?
-                    $"https://redisq.zkillboard.com/listen.php" : $"https://redisq.zkillboard.com/listen.php?queueID={redisQID}")).Content.ReadAsStringAsync();
-                var kill = JsonConvert.DeserializeObject<ZKillboardRedisq>(redisqResponse).Package;
-
-                if (kill == null)
+                if (!killfeedrunning)
                 {
-                    return;
-                }
+                    killfeedrunning = true;
+                    Dictionary<string, IEnumerable<IConfigurationSection>> feedGroups = new Dictionary<string, IEnumerable<IConfigurationSection>>();
 
-                var bigKillGlobal = Convert.ToInt64(Program.Settings.GetSection("killFeed")["bigKill"]);
-                var bigKillGlobalChan = Convert.ToUInt64(Program.Settings.GetSection("killFeed")["bigKillChannel"]);
-                var iD = kill.Killmail.KillID_str;
-                var killTime = kill.Killmail.KillTime;
-                var ship = kill.Killmail.Victim.ShipType.Name;
-                var value = kill.Zkb.TotalValue;
-                var victimCharacter = kill.Killmail.Victim.Character;
-                var victimCorp = kill.Killmail.Victim.Corporation;
-                var victimAlliance = kill.Killmail.Victim.Alliance;
-                var attackers = kill.Killmail.Attackers;
-                var sysName = kill.Killmail.SolarSystem.Name;
-                var systemId = kill.Killmail.SolarSystem.Id_str;
-                var losses = Convert.ToBoolean(Program.Settings.GetSection("killFeed")["losses"]);
-                var radius = Convert.ToInt16(Program.Settings.GetSection("killFeed")["radius"]);
-                var radiusSystem = Program.Settings.GetSection("killFeed")["radiusSystem"];
-                var radiusChannel = Convert.ToUInt64(Program.Settings.GetSection("killFeed")["radiusChannel"]);
+                    UInt64 guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
+                    UInt64 logchan = Convert.ToUInt64(Program.Settings.GetSection("auth")["alertChannel"]);
+                    var discordGuild = Program.Client.Guilds.FirstOrDefault(X => X.Id == guildID);
+                    var redisQID = Program.Settings.GetSection("killFeed")["reDisqID"].ToString();
+                    ITextChannel channel = null;
+                    var redisqResponse = await (await Program._httpClient.GetAsync(String.IsNullOrEmpty(redisQID) ?
+                        $"https://redisq.zkillboard.com/listen.php" : $"https://redisq.zkillboard.com/listen.php?queueID={redisQID}")).Content.ReadAsStringAsync();
+                    kill = JsonConvert.DeserializeObject<ZKillboardRedisq>(redisqResponse);
 
-                var post = false;
-                var globalBigKill = false;
-                var bigKill = false;
-                var radiusKill = false;
-                var jumpsAway = 0;
-
-                foreach (var i in Program.Settings.GetSection("killFeed").GetSection("groupsConfig").GetChildren().ToList())
-                {
-                    var minimumValue = Convert.ToInt64(i["minimumValue"]);
-                    var minimumLossValue = Convert.ToInt64(i["minimumLossValue"]);
-                    var allianceID = Convert.ToInt32(i["allianceID"]);
-                    var corpID = Convert.ToInt32(i["corpID"]);
-                    var channelGroup = Convert.ToUInt64(i["channel"]);
-                    var bigKillValue = Convert.ToInt64(i["bigKill"]);
-                    var bigKillChannel = Convert.ToUInt64(i["bigKillChannel"]);
-                    var SystemID = "0";
-
-                    if (radius > 0)
+                    if (kill.Package != null)
                     {
 
-                        var SystemName = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/search/?categories=solarsystem&strict=true&datasource=tranquility" +
-                            $"&language=en-us&search={radiusSystem}&strict=true");
-                        var SystemNameContent = SystemName.Content;
-                        var httpresult = JsonConvert.DeserializeObject<SolarSystemSearch>(await SystemNameContent.ReadAsStringAsync());
+                        var bigKillGlobal = Convert.ToInt64(Program.Settings.GetSection("killFeed")["bigKill"]);
+                    var bigKillGlobalChan = Convert.ToUInt64(Program.Settings.GetSection("killFeed")["bigKillChannel"]);
+                    var iD = kill.Package.Killmail.KillID_str;
+                    var killTime = kill.Package.Killmail.KillTime;
+                    var ship = kill.Package.Killmail.Victim.ShipType.Name;
+                    var value = kill.Package.Zkb.TotalValue;
+                    var victimCharacter = kill.Package.Killmail.Victim.Character;
+                    var victimCorp = kill.Package.Killmail.Victim.Corporation;
+                    var victimAlliance = kill.Package.Killmail.Victim.Alliance;
+                    var attackers = kill.Package.Killmail.Attackers;
+                    var sysName = kill.Package.Killmail.SolarSystem.Name;
+                    var systemId = kill.Package.Killmail.SolarSystem.Id_str;
+                    var losses = Convert.ToBoolean(Program.Settings.GetSection("killFeed")["losses"]);
+                    var radius = Convert.ToInt16(Program.Settings.GetSection("killFeed")["radius"]);
+                    var radiusSystem = Program.Settings.GetSection("killFeed")["radiusSystem"];
+                    var radiusChannel = Convert.ToUInt64(Program.Settings.GetSection("killFeed")["radiusChannel"]);
 
-                        SystemID = httpresult.Solarsystem[0].ToString();
-                        var systemID = kill.Killmail.SolarSystem.Id_str;
+                    var post = false;
+                    var globalBigKill = false;
+                    var bigKill = false;
+                    var radiusKill = false;
+                    var jumpsAway = 0;
 
-                        var radiusSystems = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/route/{SystemID}/{systemId}/?datasource=tranquility&flag=shortest");
 
-                        var data = JArray.Parse(radiusSystems);
-
-                        var gg = data.Count() - 1;
-                        if (gg < radius)
+                        foreach (var i in Program.Settings.GetSection("killFeed").GetSection("groupsConfig").GetChildren().ToList())
                         {
-                            jumpsAway = gg;
-                            radiusKill = true;
-                        }
-                    }
+                            var minimumValue = Convert.ToInt64(i["minimumValue"]);
+                            var minimumLossValue = Convert.ToInt64(i["minimumLossValue"]);
+                            var allianceID = Convert.ToInt32(i["allianceID"]);
+                            var corpID = Convert.ToInt32(i["corpID"]);
+                            var channelGroup = Convert.ToUInt64(i["channel"]);
+                            var bigKillValue = Convert.ToInt64(i["bigKill"]);
+                            var bigKillChannel = Convert.ToUInt64(i["bigKillChannel"]);
+                            var SystemID = "0";
 
-                    if (bigKillGlobal != 0 && value >= bigKillGlobal)
-                    {
-                        channel = discordGuild.GetTextChannel(bigKillGlobalChan);
-                        globalBigKill = true;
-                        post = true;
-                    }
-                    else if (allianceID == 0 && corpID == 0)
-                    {
-                        if (bigKillValue != 0 && value >= bigKillValue && !globalBigKill)
-                        {
-                            channel = discordGuild.GetTextChannel(bigKillChannel);
-                            bigKill = true;
-                            post = true;
-                        }
-                        else
-                        {
-                            channel = discordGuild.GetTextChannel(channelGroup);
-                            var totalValue = value;
-                            if (minimumValue == 0 || minimumValue <= totalValue)
-                                post = true;
-                        }
-                    }
-                    else if (!globalBigKill)
-                    {
-                        channel = discordGuild.GetTextChannel(channelGroup);
-                        if (victimAlliance != null)
-                        {
-                            if (victimAlliance.Id == allianceID && losses == true ||
-                                victimCorp.Id == corpID && losses == true)
+                            if (!sysName.StartsWith("J") && radius > 0)
                             {
-                                if (bigKillValue != 0 && value >= bigKillValue)
+                                var SystemName = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/search/?categories=solarsystem&strict=true&datasource=tranquility" +
+                                    $"&language=en-us&search={radiusSystem}&strict=true");
+                                var SystemNameContent = SystemName.Content;
+                                var httpresult = JsonConvert.DeserializeObject<SolarSystemSearch>(await SystemNameContent.ReadAsStringAsync());
+
+                                SystemID = httpresult.Solarsystem[0].ToString();
+                                var systemID = kill.Package.Killmail.SolarSystem.Id_str;
+                                string radiusSystems = "";
+
+                                radiusSystems = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/route/{SystemID}/{systemId}/?datasource=tranquility&flag=shortest");
+
+                                var data = JArray.Parse(radiusSystems);
+
+                                var gg = data.Count() - 1;
+                                if (gg < radius)
+                                {
+                                    jumpsAway = gg;
+                                    radiusKill = true;
+                                }
+                            }
+
+                            if (bigKillGlobal != 0 && value >= bigKillGlobal)
+                            {
+                                channel = discordGuild.GetTextChannel(bigKillGlobalChan);
+                                globalBigKill = true;
+                                post = true;
+                            }
+                            else if (allianceID == 0 && corpID == 0)
+                            {
+                                if (bigKillValue != 0 && value >= bigKillValue && !globalBigKill)
                                 {
                                     channel = discordGuild.GetTextChannel(bigKillChannel);
                                     bigKill = true;
@@ -1127,31 +1117,34 @@ namespace Opux
                                 }
                                 else
                                 {
-                                    if (minimumLossValue == 0 || minimumLossValue <= value)
+                                    channel = discordGuild.GetTextChannel(channelGroup);
+                                    var totalValue = value;
+                                    if (minimumValue == 0 || minimumValue <= totalValue)
                                         post = true;
                                 }
                             }
-                        }
-                        else if (victimCorp.Id == corpID && losses == true)
-                        {
-                            if (bigKillValue != 0 && value >= bigKillValue)
+                            else if (!globalBigKill)
                             {
-                                channel = discordGuild.GetTextChannel(bigKillChannel);
-                                bigKill = true;
-                                post = true;
-                            }
-                            else
-                            {
-                                if (minimumLossValue == 0 || minimumLossValue <= value)
-                                    post = true;
-                            }
-                        }
-                        foreach (var attacker in attackers.ToList())
-                        {
-                            if (attacker.Alliance != null)
-                            {
-                                if (attacker.Alliance.Id == allianceID ||
-                                    attacker.Corporation.Id == corpID)
+                                channel = discordGuild.GetTextChannel(channelGroup);
+                                if (victimAlliance != null)
+                                {
+                                    if (victimAlliance.Id == allianceID && losses == true ||
+                                        victimCorp.Id == corpID && losses == true)
+                                    {
+                                        if (bigKillValue != 0 && value >= bigKillValue)
+                                        {
+                                            channel = discordGuild.GetTextChannel(bigKillChannel);
+                                            bigKill = true;
+                                            post = true;
+                                        }
+                                        else
+                                        {
+                                            if (minimumLossValue == 0 || minimumLossValue <= value)
+                                                post = true;
+                                        }
+                                    }
+                                }
+                                else if (victimCorp.Id == corpID && losses == true)
                                 {
                                     if (bigKillValue != 0 && value >= bigKillValue)
                                     {
@@ -1161,155 +1154,178 @@ namespace Opux
                                     }
                                     else
                                     {
-                                        if (minimumValue == 0 || minimumValue <= value)
+                                        if (minimumLossValue == 0 || minimumLossValue <= value)
                                             post = true;
                                     }
                                 }
-                                else if (attacker.Corporation.Id == corpID)
+                                foreach (var attacker in attackers.ToList())
                                 {
-                                    if (bigKillValue != 0 && value >= bigKillValue)
+                                    if (attacker.Alliance != null)
                                     {
-                                        channel = discordGuild.GetTextChannel(bigKillChannel);
-                                        bigKill = true;
-                                        post = true;
-                                    }
-                                    else
-                                    {
-                                        if (minimumValue == 0 || minimumValue <= value)
-                                            post = true;
+                                        if (attacker.Alliance.Id == allianceID ||
+                                            attacker.Corporation.Id == corpID)
+                                        {
+                                            if (bigKillValue != 0 && value >= bigKillValue)
+                                            {
+                                                channel = discordGuild.GetTextChannel(bigKillChannel);
+                                                bigKill = true;
+                                                post = true;
+                                            }
+                                            else
+                                            {
+                                                if (minimumValue == 0 || minimumValue <= value)
+                                                    post = true;
+                                            }
+                                        }
+                                        else if (attacker.Corporation.Id == corpID)
+                                        {
+                                            if (bigKillValue != 0 && value >= bigKillValue)
+                                            {
+                                                channel = discordGuild.GetTextChannel(bigKillChannel);
+                                                bigKill = true;
+                                                post = true;
+                                            }
+                                            else
+                                            {
+                                                if (minimumValue == 0 || minimumValue <= value)
+                                                    post = true;
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
 
-                    if (post || bigKill || globalBigKill || radiusKill)
-                    {
-                        if (victimCharacter == null)// Kill is probably a structure.
+                        if (post || bigKill || globalBigKill || radiusKill)
                         {
-                            if (victimAlliance == null)
+                            if (victimCharacter == null)// Kill is probably a structure.
                             {
-                                if (radiusKill)
+                                if (victimAlliance == null)
                                 {
-                                    var _radiusChannel = discordGuild.GetTextChannel(radiusChannel);
-                                    var radiusMessage = "";
-                                    radiusMessage = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]}{Environment.NewLine}";
-                                    radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
-                                        $" [{victimCorp.Name}]** killed in **{sysName}** {Environment.NewLine} https://zkillboard.com/kill/{iD}/";
-                                    await _radiusChannel.SendMessageAsync(radiusMessage);
+                                    if (radiusKill)
+                                    {
+                                        var _radiusChannel = discordGuild.GetTextChannel(radiusChannel);
+                                        var radiusMessage = "";
+                                        radiusMessage = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]}{Environment.NewLine}";
+                                        radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
+                                            $" [{victimCorp.Name}]** killed in **{sysName}** {Environment.NewLine} https://zkillboard.com/kill/{iD}/";
+                                        await _radiusChannel.SendMessageAsync(radiusMessage);
+                                    }
+                                    var message = "";
+                                    if (globalBigKill)
+                                    {
+                                        message = $"**Global Big Kill**{Environment.NewLine}";
+                                    }
+                                    else if (bigKill)
+                                    {
+                                        message = $"**Big Kill**{Environment.NewLine}";
+                                    }
+                                    if (post)
+                                    {
+                                        message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
+                                            $" [{victimCorp.Name}]** killed in **{sysName}** {Environment.NewLine} " +
+                                            $"https://zkillboard.com/kill/{iD}/";
+                                        await channel.SendMessageAsync(message);
+                                    }
                                 }
-                                var message = "";
-                                if (globalBigKill)
+                                else
                                 {
-                                    message = $"**Global Big Kill**{Environment.NewLine}";
-                                }
-                                else if (bigKill)
-                                {
-                                    message = $"**Big Kill**{Environment.NewLine}";
-                                }
-                                if (post)
-                                {
-                                    message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
-                                        $" [{victimCorp.Name}]** killed in **{sysName}** {Environment.NewLine} " +
-                                        $"https://zkillboard.com/kill/{iD}/";
-                                    await channel.SendMessageAsync(message);
-                                }
-                            }
-                            else
-                            {
-                                if (radiusKill)
-                                {
-                                    var _radiusChannel = discordGuild.GetTextChannel(radiusChannel);
-                                    var radiusMessage = "";
-                                    radiusMessage = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]}{Environment.NewLine}";
-                                    radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
-                                    $" {victimCorp.Name} | [{victimAlliance.Name}]** killed in **{sysName}** {Environment.NewLine} " +
-                                    $"https://zkillboard.com/kill/{iD}/";
-                                    await _radiusChannel.SendMessageAsync(radiusMessage);
-                                }
-                                var message = "";
-                                if (globalBigKill)
-                                {
-                                    message = $"**Global Big Kill**{Environment.NewLine}";
-                                }
-                                else if (bigKill)
-                                {
-                                    message = $"**Big Kill**{Environment.NewLine}";
-                                }
-                                if (post)
-                                {
-                                    message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
+                                    if (radiusKill)
+                                    {
+                                        var _radiusChannel = discordGuild.GetTextChannel(radiusChannel);
+                                        var radiusMessage = "";
+                                        radiusMessage = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]}{Environment.NewLine}";
+                                        radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
                                         $" {victimCorp.Name} | [{victimAlliance.Name}]** killed in **{sysName}** {Environment.NewLine} " +
                                         $"https://zkillboard.com/kill/{iD}/";
+                                        await _radiusChannel.SendMessageAsync(radiusMessage);
+                                    }
+                                    var message = "";
+                                    if (globalBigKill)
+                                    {
+                                        message = $"**Global Big Kill**{Environment.NewLine}";
+                                    }
+                                    else if (bigKill)
+                                    {
+                                        message = $"**Big Kill**{Environment.NewLine}";
+                                    }
+                                    if (post)
+                                    {
+                                        message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
+                                            $" {victimCorp.Name} | [{victimAlliance.Name}]** killed in **{sysName}** {Environment.NewLine} " +
+                                            $"https://zkillboard.com/kill/{iD}/";
+                                        await channel.SendMessageAsync(message);
+                                    }
+                                }
+                            }
+                            else if (victimAlliance != null)
+                            {
+                                if (radiusKill)
+                                {
+                                    var _radiusChannel = discordGuild.GetTextChannel(radiusChannel);
+                                    var radiusMessage = "";
+                                    radiusMessage = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]}{Environment.NewLine}";
+                                    radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
+                                    $"** ISK flown by **{victimCharacter.Name} |**  **[{victimCorp.Name}] | <{victimAlliance.Name}>** killed in **{sysName}** {Environment.NewLine} " +
+                                    $"https://zkillboard.com/kill/{iD}/";
+                                    await _radiusChannel.SendMessageAsync(radiusMessage);
+                                }
+                                var message = "";
+                                if (globalBigKill)
+                                {
+                                    message = $"**Global Big Kill**{Environment.NewLine}";
+                                }
+                                else if (bigKill)
+                                {
+                                    message = $"**Big Kill**{Environment.NewLine}";
+                                }
+                                if (post)
+                                {
+                                    message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
+                                        $"** ISK flown by **{victimCharacter.Name} |**  **[{victimCorp.Name}] | <{victimAlliance.Name}>** killed in **{sysName}** {Environment.NewLine} " +
+                                        $"https://zkillboard.com/kill/{iD}/";
                                     await channel.SendMessageAsync(message);
                                 }
                             }
-                        }
-                        else if (victimAlliance != null)
-                        {
-                            if (radiusKill)
+                            else
                             {
-                                var _radiusChannel = discordGuild.GetTextChannel(radiusChannel);
-                                var radiusMessage = "";
-                                radiusMessage = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]}{Environment.NewLine}";
-                                radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
-                                $"** ISK flown by **{victimCharacter.Name} |**  **[{victimCorp.Name}] | <{victimAlliance.Name}>** killed in **{sysName}** {Environment.NewLine} " +
-                                $"https://zkillboard.com/kill/{iD}/";
-                                await _radiusChannel.SendMessageAsync(radiusMessage);
-                            }
-                            var message = "";
-                            if (globalBigKill)
-                            {
-                                message = $"**Global Big Kill**{Environment.NewLine}";
-                            }
-                            else if (bigKill)
-                            {
-                                message = $"**Big Kill**{Environment.NewLine}";
-                            }
-                            if (post)
-                            {
-                                message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
-                                    $"** ISK flown by **{victimCharacter.Name} |**  **[{victimCorp.Name}] | <{victimAlliance.Name}>** killed in **{sysName}** {Environment.NewLine} " +
-                                    $"https://zkillboard.com/kill/{iD}/";
-                                await channel.SendMessageAsync(message);
-                            }
-                        }
-                        else
-                        {
-                            if (radiusKill)
-                            {
-                                var _radiusChannel = discordGuild.GetTextChannel(radiusChannel);
-                                var radiusMessage = "";
-                                radiusMessage = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]}{Environment.NewLine}";
-                                radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
-                                $"** ISK flown by **{victimCharacter.Name} |** **[{victimCorp.Name}]** killed in **{sysName}** {Environment.NewLine} " +
-                                $"https://zkillboard.com/kill/{iD}/";
-                                await _radiusChannel.SendMessageAsync(radiusMessage);
-                            }
-                            var message = "";
-                            if (globalBigKill)
-                            {
-                                message = $"**Global Big Kill**{Environment.NewLine}";
-                            }
-                            else if (bigKill)
-                            {
-                                message = $"**Big Kill**{Environment.NewLine}";
-                            }
-                            if (post)
-                            {
-                                message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
+                                if (radiusKill)
+                                {
+                                    var _radiusChannel = discordGuild.GetTextChannel(radiusChannel);
+                                    var radiusMessage = "";
+                                    radiusMessage = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]}{Environment.NewLine}";
+                                    radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
                                     $"** ISK flown by **{victimCharacter.Name} |** **[{victimCorp.Name}]** killed in **{sysName}** {Environment.NewLine} " +
                                     $"https://zkillboard.com/kill/{iD}/";
-                                await channel.SendMessageAsync(message);
+                                    await _radiusChannel.SendMessageAsync(radiusMessage);
+                                }
+                                var message = "";
+                                if (globalBigKill)
+                                {
+                                    message = $"**Global Big Kill**{Environment.NewLine}";
+                                }
+                                else if (bigKill)
+                                {
+                                    message = $"**Big Kill**{Environment.NewLine}";
+                                }
+                                if (post)
+                                {
+                                    message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
+                                        $"** ISK flown by **{victimCharacter.Name} |** **[{victimCorp.Name}]** killed in **{sysName}** {Environment.NewLine} " +
+                                        $"https://zkillboard.com/kill/{iD}/";
+                                    await channel.SendMessageAsync(message);
+                                }
                             }
+                            await Client_Log(new LogMessage(LogSeverity.Info, "killFeed", $"POSTING Kill/Loss ID:{kill.Package.Killmail.KillID_str} Value:{string.Format("{0:n0}", value)}"));
                         }
-                        await Client_Log(new LogMessage(LogSeverity.Info, "killFeed", $"POSTING Kill/Loss ID:{kill.Killmail.KillID_str} Value:{string.Format("{0:n0}", value)}"));
                     }
+                    killfeedrunning = false;
                 }
             }
             catch (Exception ex)
             {
-                await Client_Log(new LogMessage(LogSeverity.Error, "killFeed", ex.Message, ex));
+                await Client_Log(new LogMessage(LogSeverity.Error, $"killFeed", ex.Message, ex));
+                killfeedrunning = false;
             }
         }
         #endregion
@@ -2215,11 +2231,11 @@ namespace Opux
             }
             else
             {
-                responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/characters/{characterID}/?datasource=tranquility");
+                responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/characters/{characterID.Character[0]}/?datasource=tranquility");
                 var characterData = JsonConvert.DeserializeObject<CharacterData>(responceMessage);
                 responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.Corporation_id}/?datasource=tranquility");
                 var corporationData = JsonConvert.DeserializeObject<CorporationData>(responceMessage);
-                responceMessage = await Program._httpClient.GetStringAsync($"https://zkillboard.com/api/kills/characterID/{characterID}/");
+                responceMessage = await Program._httpClient.GetStringAsync($"https://zkillboard.com/api/kills/characterID/{characterID.Character[0]}/");
                 var zkillContent = JsonConvert.DeserializeObject<List<Kill>>(responceMessage);
                 Kill zkillLast = zkillContent.Count > 0 ? zkillContent[0] : new Kill();
                 SystemData systemData = new SystemData();
@@ -2283,7 +2299,7 @@ namespace Opux
                     $"Last System: {systemData.Name}{Environment.NewLine}" +
                     $"Last Ship: {lastShip.Name}{Environment.NewLine}" +
                     $"Last Seen: {lastSeen}{Environment.NewLine}```" +
-                    $"ZKill: https://zkillboard.com/character/{characterID}/");
+                    $"ZKill: https://zkillboard.com/character/{characterID.Character[0]}/");
             }
 
             await Task.CompletedTask;
