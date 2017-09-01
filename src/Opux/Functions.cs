@@ -866,7 +866,7 @@ namespace Opux
                         var characterData = JsonConvert.DeserializeObject<CharacterData>(await responceMessage.Content.ReadAsStringAsync());
                         if (characterData == null)
                         {
-                            await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential characterData ESI Failure for {u.Nickname}");
+                            await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential characterData ESI Failure for {u.Nickname}"));
                             return;
                         }
 
@@ -874,7 +874,7 @@ namespace Opux
                         var corporationData = JsonConvert.DeserializeObject<CorporationData>(await responceMessage.Content.ReadAsStringAsync());
                         if (corporationData == null)
                         {
-                            await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential corpData ESI Failure for {u.Nickname}");
+                            await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential corpData ESI Failure for {u.Nickname}"));
                             return;
                         }
 
