@@ -2032,7 +2032,7 @@ namespace Opux
                 var result = JsonConvert.DeserializeObject<Fleetupapi>(Json);
                 foreach (var operation in result.Data)
                 {
-                    if ((int)operation.OperationId > Convert.ToInt32(lastopid))
+                    if (operation.OperationId > Convert.ToInt32(lastopid))
                     {
                         var name = operation.Subject;
                         var startTime = operation.Start;
@@ -2046,7 +2046,7 @@ namespace Opux
                         var message = $"@everyone {Environment.NewLine}{Environment.NewLine}" +
                             $"**New Operation Posted** {Environment.NewLine}{Environment.NewLine}" +
                             $"```Title - {name} {Environment.NewLine}" +
-                            $"Form Up Time - {startTime} {Environment.NewLine}" +
+                            $"Form Up Time - {startTime.ToString(Program.Settings.GetSection("config")["timeformat"])} {Environment.NewLine}" +
                             $"Form Up System - {location} - {locationinfo} {Environment.NewLine}" +
                             $"Details - {details}{Environment.NewLine}" +
                             $"```{Environment.NewLine}{url}";
