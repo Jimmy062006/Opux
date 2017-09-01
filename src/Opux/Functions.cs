@@ -195,15 +195,25 @@ namespace Opux
             var url = Program.Settings.GetSection("auth")["url"];
             var port = Convert.ToInt32(Program.Settings.GetSection("auth")["port"]);
 
+
+
             if (listener == null || !listener.IsListening)
             {
+
                 await Client_Log(new LogMessage(LogSeverity.Info, "AuthWeb", "Starting AuthWeb Server"));
                 listener = new System.Net.Http.HttpListener(IPAddress.Any, port);
 
                 listener.Request += async (sender, context) =>
                 {
+
+                    var allianceID = "";
+                    var corpID = "";
+                    JToken corporationid;
+                    JToken allianceid;
+
                     var request = context.Request;
                     var response = context.Response;
+
                     if (request.HttpMethod == HttpMethod.Get.ToString())
                     {
                         if (request.Url.LocalPath == "/")
@@ -306,113 +316,107 @@ namespace Opux
                         }
                         else if (request.Url.LocalPath == "/callback.php")
                         {
-                            try { 
-                            var assembly = Assembly.GetEntryAssembly();
-                            var temp = assembly.GetManifestResourceNames();
-                            var resource = assembly.GetManifestResourceStream("Opux.Discord-01.png");
-                            var buffer = new byte[resource.Length];
-                            resource.Read(buffer, 0, Convert.ToInt32(resource.Length));
-                            var image = Convert.ToBase64String(buffer);
-                            string accessToken = "";
-                            string responseString;
-                            string verifyString;
-                            var uid = GetUniqID();
-                            var code = "";
-                            var add = false;
+                            try
+                            {
+                                var assembly = Assembly.GetEntryAssembly();
+                                var temp = assembly.GetManifestResourceNames();
+                                var resource = assembly.GetManifestResourceStream("Opux.Discord-01.png");
+                                var buffer = new byte[resource.Length];
+                                resource.Read(buffer, 0, Convert.ToInt32(resource.Length));
+                                var image = Convert.ToBase64String(buffer);
+                                string accessToken = "";
+                                string responseString;
+                                string verifyString;
+                                var uid = GetUniqID();
+                                var code = "";
+                                var add = false;
 
                                 if (!String.IsNullOrWhiteSpace(request.Url.Query))
                                 {
                                     code = request.Url.Query.TrimStart('?').Split('=')[1];
 
-                                    using (HttpClient tokenclient = new HttpClient())
+
+                                    var values = new Dictionary<string, string> { { "grant_type", "authorization_code" }, { "code", $"{code}" } };
+
+                                    Program._httpClient.DefaultRequestHeaders.Add("Authorization", $"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes(client_id + ":" + secret))}");
+                                    var content = new FormUrlEncodedContent(values);
+                                    var tokenresponse = await Program._httpClient.PostAsync("https://login.eveonline.com/oauth/token", content);
+                                    responseString = await tokenresponse.Content.ReadAsStringAsync();
+                                    accessToken = (string)JObject.Parse(responseString)["access_token"];
+                                    Program._httpClient.DefaultRequestHeaders.Clear();
+
+                                    Program._httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
+                                    tokenresponse = await Program._httpClient.GetAsync("https://login.eveonline.com/oauth/verify");
+                                    verifyString = await tokenresponse.Content.ReadAsStringAsync();
+                                    Program._httpClient.DefaultRequestHeaders.Clear();
+
+                                    var authgroups = Program.Settings.GetSection("auth").GetSection("authgroups").GetChildren().ToList();
+                                    var corps = new Dictionary<string, string>();
+                                    var alliance = new Dictionary<string, string>();
+
+                                    foreach (var config in authgroups)
                                     {
-                                        var values = new Dictionary<string, string>
-                                    {
-                                        { "grant_type", "authorization_code" },
-                                        { "code", $"{code}"}
-                                    };
-                                        tokenclient.DefaultRequestHeaders.Add("Authorization", $"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes(client_id + ":" + secret))}");
-                                        var content = new FormUrlEncodedContent(values);
-                                        var tokenresponse = await tokenclient.PostAsync("https://login.eveonline.com/oauth/token", content);
-                                        responseString = await tokenresponse.Content.ReadAsStringAsync();
-                                        accessToken = (string)JObject.Parse(responseString)["access_token"];
+                                        var configChildren = config.GetChildren();
+
+                                        corpID = configChildren.FirstOrDefault(x => x.Key == "corpID").Value ?? "";
+                                        allianceID = configChildren.FirstOrDefault(x => x.Key == "allianceID").Value ?? "";
+                                        var corpMemberRole = configChildren.FirstOrDefault(x => x.Key == "corpMemberRole").Value ?? "";
+                                        var allianceMemberRole = configChildren.FirstOrDefault(x => x.Key == "allianceMemberRole").Value ?? "";
+
+                                        if (Convert.ToInt32(corpID) != 0)
+                                        {
+                                            corps.Add(corpID, corpMemberRole);
+                                        }
+                                        if (Convert.ToInt32(allianceID) != 0)
+                                        {
+                                            alliance.Add(allianceID, allianceMemberRole);
+                                        }
+
                                     }
-                                    using (HttpClient verifyclient = new HttpClient())
+
+                                    var CharacterID = JObject.Parse(verifyString)["CharacterID"];
+                                    JObject characterDetails;
+                                    JObject corporationDetails;
+                                    JObject allianceDetails;
+
+                                    var _characterDetails = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{CharacterID}");
+                                    var _characterDetailsContent = _characterDetails.Content;
+
+                                    characterDetails = JObject.Parse(await _characterDetailsContent.ReadAsStringAsync());
+                                    characterDetails.TryGetValue("corporation_id", out corporationid);
+                                    var _corporationDetails = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corporationid}");
+                                    var _corporationDetailsContent = _corporationDetails.Content;
                                     {
-                                        verifyclient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
-                                        var tokenresponse = await verifyclient.GetAsync("https://login.eveonline.com/oauth/verify");
-                                        verifyString = await tokenresponse.Content.ReadAsStringAsync();
-
-                                        var authgroups = Program.Settings.GetSection("auth").GetSection("authgroups").GetChildren().ToList();
-                                        var corps = new Dictionary<string, string>();
-                                        var alliance = new Dictionary<string, string>();
-
-                                        foreach (var config in authgroups)
+                                        corporationDetails = JObject.Parse(await _corporationDetailsContent.ReadAsStringAsync());
+                                        corporationDetails.TryGetValue("alliance_id", out allianceid);
+                                        string i = (allianceid == null ? "0" : allianceid.ToString());
+                                        string c = (allianceid == null ? "0" : corporationid.ToString());
+                                        allianceID = i;
+                                        corpID = c;
+                                        if (allianceID != "0")
                                         {
-                                            var configChildren = config.GetChildren();
+                                            var _allianceDetails = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{allianceid}");
+                                            var _allianceDetailsContent = _allianceDetails.Content;
 
-                                            var corpID = configChildren.FirstOrDefault(x => x.Key == "corpID").Value ?? "";
-                                            var allianceID = configChildren.FirstOrDefault(x => x.Key == "allianceID").Value ?? "";
-                                            var corpMemberRole = configChildren.FirstOrDefault(x => x.Key == "corpMemberRole").Value ?? "";
-                                            var allianceMemberRole = configChildren.FirstOrDefault(x => x.Key == "allianceMemberRole").Value ?? "";
-
-                                            if (Convert.ToInt32(corpID) != 0)
-                                            {
-                                                corps.Add(corpID, corpMemberRole);
-                                            }
-                                            if (Convert.ToInt32(allianceID) != 0)
-                                            {
-                                                alliance.Add(allianceID, allianceMemberRole);
-                                            }
+                                            allianceDetails = JObject.Parse(await _allianceDetailsContent.ReadAsStringAsync());
 
                                         }
 
-                                        var CharacterID = JObject.Parse(verifyString)["CharacterID"];
-                                        JObject characterDetails;
-                                        JObject corporationDetails;
-                                        JObject allianceDetails;
 
-                                        using (HttpClient webclient = new HttpClient())
-                                        using (HttpResponseMessage _characterDetails = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{CharacterID}"))
-                                        using (HttpContent _characterDetailsContent = _characterDetails.Content)
+                                        if (corps.ContainsKey(corpID))
                                         {
-                                            var allianceID = "";
-                                            var corpID = "";
-                                            characterDetails = JObject.Parse(await _characterDetailsContent.ReadAsStringAsync());
-                                            characterDetails.TryGetValue("corporation_id", out JToken corporationid);
-                                            using (HttpResponseMessage _corporationDetails = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corporationid}"))
-                                            using (HttpContent _corporationDetailsContent = _corporationDetails.Content)
-                                            {
-                                                corporationDetails = JObject.Parse(await _corporationDetailsContent.ReadAsStringAsync());
-                                                corporationDetails.TryGetValue("alliance_id", out JToken allianceid);
-                                                string i = (allianceid == null ? "0" : allianceid.ToString());
-                                                string c = (allianceid == null ? "0" : corporationid.ToString());
-                                                allianceID = i;
-                                                corpID = c;
-                                                if (allianceID != "0")
-                                                {
-                                                    using (HttpResponseMessage _allianceDetails = await webclient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{allianceid}"))
-                                                    using (HttpContent _allianceDetailsContent = _allianceDetails.Content)
-                                                    {
-                                                        allianceDetails = JObject.Parse(await _allianceDetailsContent.ReadAsStringAsync());
-                                                    }
-                                                }
-                                            }
-
-                                            if (corps.ContainsKey(corpID))
-                                            {
-                                                add = true;
-                                            }
-                                            if (alliance.ContainsKey(allianceID))
-                                            {
-                                                add = true;
-                                            }
+                                            add = true;
                                         }
+                                        if (alliance.ContainsKey(allianceID))
+                                        {
+                                            add = true;
+                                        }
+
                                         if (add && (string)JObject.Parse(responseString)["error"] != "invalid_request" && (string)JObject.Parse(verifyString)["error"] != "invalid_token")
                                         {
                                             var characterID = CharacterID;
-                                            characterDetails.TryGetValue("corporation_id", out JToken corporationid);
-                                            corporationDetails.TryGetValue("alliance_id", out JToken allianceid);
+                                            characterDetails.TryGetValue("corporation_id", out corporationid);
+                                            corporationDetails.TryGetValue("alliance_id", out allianceid);
                                             var authString = uid;
                                             var active = "1";
                                             var dateCreated = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
