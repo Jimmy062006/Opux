@@ -84,7 +84,7 @@
       //}
     },
     "filters": {
-      "1": 268303207371898880 //Notification ID and Channel ID
+      "1": 0 //Notification ID and Channel ID
     },
     "motd": {
       "motdkeyID": "",
@@ -98,7 +98,8 @@
       "UserId": "",
       "APICode": "",
       "GroupID": "",
-      "channel": 0
+      "channel": 0,
+      "announce": [ 5, 60 ] //This will notify at 5 mins and 60 mins and also when the op is due by default
     },
     "jabber": {
       "domain": "example.com",
