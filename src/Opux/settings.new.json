@@ -76,39 +76,41 @@
         "characterID": "",
         "keyID": "",
         "vCode": ""
-      }//,//DO NOT LEAVE EMPTY KEY SECTIONS UNCOMMENT TO USE
+      } //,//DO NOT LEAVE EMPTY KEY SECTIONS UNCOMMENT TO USE
       //"key1": {
       //"characterID": ""
       //  "keyID": "",
       //  "vCode": ""
       //}
-    }
-  },
-  "motd": {
-    "motdkeyID": "",
-    "motdvCode": "",
-    "motdcharid": "",
-    "motdtopicchan": 0,
-    "topicInterval": "30", //In Minutes
-    "MOTDChan": "" //CaSe SenSiTive.
-  },
-  "fleetup": {
-    "UserId": "",
-    "APICode": "",
-    "GroupID": "",
-    "channel": 0
-  },
-  "jabber": {
-    "domain": "example.com",
-    "username": "username",
-    "password": "password",
-    "filter": false,
-    "debug":  false,
-    "defchan": "0000000000000",
-    "filters": {
-      "SUPER": "0000000000000", //Filter - Channel ID
-      "BLOPS": "0000000000000" //Filter - Channel ID
     },
-    "prepend": "@here"
+    "filters": {
+      "1": 268303207371898880 //Notification ID and Channel ID
+    },
+    "motd": {
+      "motdkeyID": "",
+      "motdvCode": "",
+      "motdcharid": "",
+      "motdtopicchan": 0,
+      "topicInterval": "30", //In Minutes
+      "MOTDChan": "" //CaSe SenSiTive.
+    },
+    "fleetup": {
+      "UserId": "",
+      "APICode": "",
+      "GroupID": "",
+      "channel": 0
+    },
+    "jabber": {
+      "domain": "example.com",
+      "username": "username",
+      "password": "password",
+      "filter": false,
+      "debug": false,
+      "defchan": "0000000000000",
+      "filters": {
+        "SUPER": "0000000000000", //Filter - Channel ID
+        "BLOPS": "0000000000000" //Filter - Channel ID
+      },
+      "prepend": "@here"
+    }
   }
-}

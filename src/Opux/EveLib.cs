@@ -122,13 +122,16 @@ namespace EveLibCore
                 {
                     foreach (var r in rowlist)
                     {
-                        var value = r["#cdata-section"].ToString();
-                        var input = new StringReader(value);
-                        var yaml = new YamlStream();
-                        yaml.Load(input);
+                        try
+                        {
+                            var value = r["#cdata-section"].ToString();
+                            var input = new StringReader(value);
+                            var yaml = new YamlStream();
+                            yaml.Load(input);
 
-                        dictionary.Add((int)r["notificationID"], yaml.Documents[0].RootNode);
-
+                            dictionary.Add((int)r["notificationID"], yaml.Documents[0].RootNode);
+                        }
+                        catch { }
                     }
                 }
 

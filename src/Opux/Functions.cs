@@ -88,8 +88,6 @@ namespace Opux
                     await Jabber();
                 }
 
-                //await Client_Log(new LogMessage(LogSeverity.Info, "DETZ",$"{Process.GetCurrentProcess().Id}"));
-
                 _running = false;
             }
             catch (Exception ex)
@@ -871,7 +869,7 @@ namespace Opux
                         if (characterData == null)
                         {
                             await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential characterData ESI Failure for {u.Nickname}"));
-                            return;
+                            continue;
                         }
 
                         responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.Corporation_id}/?datasource=tranquility");
@@ -879,71 +877,73 @@ namespace Opux
                         if (corporationData == null)
                         {
                             await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential corpData ESI Failure for {u.Nickname}"));
-                            return;
+                            continue;
                         }
 
-                        responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{corporationData.Alliance_id}/?datasource=tranquility");
+                        responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.Alliance_id}/?datasource=tranquility");
                         var allianceData = JsonConvert.DeserializeObject<AllianceData>(await responceMessage.Content.ReadAsStringAsync());
-
-                        var allianceID = (corporationData.Alliance_id.ToString() == "" ? "0" : corporationData.Alliance_id.ToString());
-                        var corpID = (characterData.Corporation_id.ToString() == "" ? "0" : characterData.Corporation_id.ToString());
+                        if (characterData.Alliance_id == -1 && corporationData.Alliance_id != 0)
+                        {
+                            await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential allianceData ESI Failure for {u.Nickname}"));
+                            continue;
+                        }
 
                         var roles = new List<SocketRole>();
-                            var rolesOrig = new List<SocketRole>(u.Roles);
-                            var remroles = new List<SocketRole>();
-                            roles.Add(u.Roles.FirstOrDefault(x => x.Name == "@everyone"));
-                            foreach (var role in exemptRoles)
+                        var rolesOrig = new List<SocketRole>(u.Roles);
+                        var remroles = new List<SocketRole>();
+                        roles.Add(u.Roles.FirstOrDefault(x => x.Name == "@everyone"));
+                        foreach (var role in exemptRoles)
+                        {
+                            var exemptRole = u.Roles.FirstOrDefault(x => x.Name == role.Key);
+                            if (exemptRole != null)
+                                roles.Add(exemptRole);
+                        }
+
+                        //Check for Corp roles
+                        if (corps.ContainsKey(characterData.Corporation_id.ToString()))
+                        {
+                            var cinfo = corps.FirstOrDefault(x => x.Key == characterData.Corporation_id.ToString());
+                            roles.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == cinfo.Value));
+                        }
+
+                        //Check for Alliance roles
+                        if (alliance.ContainsKey(characterData.Alliance_id.ToString()))
+                        {
+                            var ainfo = alliance.FirstOrDefault(x => x.Key == characterData.Alliance_id.ToString());
+                            roles.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == ainfo.Value));
+                        }
+
+                        bool changed = false;
+
+                        foreach (var role in rolesOrig)
+                        {
+                            if (roles.FirstOrDefault(x => x.Id == role.Id) == null)
                             {
-                                var exemptRole = u.Roles.FirstOrDefault(x => x.Name == role.Key);
-                                if (exemptRole != null)
-                                    roles.Add(exemptRole);
+                                remroles.Add(role);
+                                changed = true;
                             }
+                        }
 
-                            //Check for Corp roles
-                            if (corps.ContainsKey(corpID))
-                            {
-                                var cinfo = corps.FirstOrDefault(x => x.Key == corpID);
-                                roles.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == cinfo.Value));
-                            }
+                        foreach (var role in roles)
+                        {
+                            if (rolesOrig.FirstOrDefault(x => x.Id == role.Id) == null)
+                                changed = true;
+                        }
 
-                            //Check for Alliance roles
-                            if (alliance.ContainsKey(allianceID))
-                            {
-                                var ainfo = alliance.FirstOrDefault(x => x.Key == allianceID);
-                                roles.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == ainfo.Value));
-                            }
+                        if (changed)
+                        {
+                            roles.Remove(u.Roles.FirstOrDefault(x => x.Name == "@everyone"));
+                            var channel = discordGuild.GetTextChannel(logchan);
+                            await channel.SendMessageAsync($"Adjusting roles for {u.Username}");
+                            await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Adjusting roles for {u.Username}"));
+                            await u.AddRolesAsync(roles);
+                            await u.RemoveRolesAsync(remroles);
+                        }
 
-                            bool changed = false;
+                        var eveName = characterData.Name;
 
-                            foreach (var role in rolesOrig)
-                            {
-                                if (roles.FirstOrDefault(x => x.Id == role.Id) == null)
-                                {
-                                    remroles.Add(role);
-                                    changed = true;
-                                }
-                            }
-
-                            foreach (var role in roles)
-                            {
-                                if (rolesOrig.FirstOrDefault(x => x.Id == role.Id) == null)
-                                    changed = true;
-                            }
-
-                            if (changed)
-                            {
-                                roles.Remove(u.Roles.FirstOrDefault(x => x.Name == "@everyone"));
-                                var channel = discordGuild.GetTextChannel(logchan);
-                                await channel.SendMessageAsync($"Adjusting roles for {u.Username}");
-                                await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Adjusting roles for {u.Username}"));
-                                await u.AddRolesAsync(roles);
-                                await u.RemoveRolesAsync(remroles);
-                            }
-
-                            var eveName = characterData.Name;
-
-                            var corpTickers = Convert.ToBoolean(Program.Settings.GetSection("auth")["corpTickers"]);
-                            var nameEnforce = Convert.ToBoolean(Program.Settings.GetSection("auth")["nameEnforce"]);
+                        var corpTickers = Convert.ToBoolean(Program.Settings.GetSection("auth")["corpTickers"]);
+                        var nameEnforce = Convert.ToBoolean(Program.Settings.GetSection("auth")["nameEnforce"]);
 
                         if (corpTickers || nameEnforce)
                         {
@@ -968,7 +968,7 @@ namespace Opux
                                     await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Changed name of {u.Nickname} to {Nickname}"));
                                 }
                             }
-                        }                     
+                        }
                     }
                     else
                     {
@@ -986,7 +986,7 @@ namespace Opux
 
                         rolesOrig.Remove(u.Roles.FirstOrDefault(x => x.Name == "@everyone"));
                         rroles.Remove(u.Roles.FirstOrDefault(X => X.Name == "@everyone"));
-                        
+
                         bool rchanged = false;
 
                         if (rroles != rolesOrig)
@@ -1044,7 +1044,7 @@ namespace Opux
                         $"https://redisq.zkillboard.com/listen.php" : $"https://redisq.zkillboard.com/listen.php?queueID={redisQID}")).Content.ReadAsStringAsync();
                     kill = JsonConvert.DeserializeObject<ZKillboardRedisq>(redisqResponse);
 
-                    if (kill.Package != null)
+                    if (kill != null && kill.Package != null)
                     {
 
                         var bigKillGlobal = Convert.ToInt64(Program.Settings.GetSection("killFeed")["bigKill"]);
@@ -1525,11 +1525,11 @@ namespace Opux
                     _lastNotification = Convert.ToInt32(await SQLiteDataQuery("cacheData", "data", "lastNotificationID"));
                     var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
                     var channelId = Convert.ToUInt64(Program.Settings.GetSection("notifications")["channelId"]);
-                    var chan = Program.Client.GetGuild(guildID).GetTextChannel(channelId);
                     var keyID = "";
                     var vCode = "";
                     var characterID = "";
                     var keys = Program.Settings.GetSection("notifications").GetSection("keys").GetChildren();
+                    var filters = Program.Settings.GetSection("notifications").GetSection("filters").GetChildren().ToDictionary(x => x.Key, x => x.Value);
                     var keyCount = keys.Count();
                     var nextKey = await SQLiteDataQuery("notifications", "data", "nextKey");
                     var index = 0;
@@ -1537,7 +1537,7 @@ namespace Opux
 
                     foreach (var key in keys)
                     {
-                        if (key.Key != nextKey && String.IsNullOrWhiteSpace(nextKey))
+                        if (key.Key != nextKey && !String.IsNullOrWhiteSpace(nextKey))
                         {
                             index++;
                         }
@@ -1566,8 +1566,12 @@ namespace Opux
 
                                 foreach (var notification in notificationsSort)
                                 {
-                                    if ((int)notification.Value["notificationID"] > _lastNotification)
+                                    if (filters.ContainsKey(notification.Value["typeID"].ToString()) && 
+                                        (int)notification.Value["notificationID"] > _lastNotification)
                                     {
+                                        var chan = Program.Client.GetGuild(guildID).GetTextChannel(Convert.ToUInt64(filters.FirstOrDefault(
+                                            x => x.Key == notification.Value["typeID"].ToString()).Value));
+
                                         var notificationText = notificationsText.FirstOrDefault(x => x.Key == notification.Key).Value;
                                         var notificationType = (int)notification.Value["typeID"];
 
@@ -1736,9 +1740,9 @@ namespace Opux
                                         }
                                         _lastNotification = (int)notification.Value["notificationID"];
                                         await SQLiteDataUpdate("cacheData", "data", "lastNotificationID", _lastNotification.ToString());
-                                        runComplete = true;
                                     }
                                 }
+                                runComplete = true;
                             }
                             if (keyCount > 1 && keyCount != index + 1)
                             {
@@ -1792,9 +1796,10 @@ namespace Opux
             {
                 try
                 {
+                    var url = "https://api.evemarketer.com/ec";
                     if (system == "")
                     {
-                        var eveCentralReply = await Program._httpClient.GetStringAsync($"http://api.eve-central.com/api/marketstat/json?typeid={searchResults.Inventorytype[0]}");
+                        var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.Inventorytype[0]}");
                         var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
                         await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
                         await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Universe**{Environment.NewLine}" +
@@ -1810,7 +1815,7 @@ namespace Opux
                     }
                     if (system == "jita")
                     {
-                        var eveCentralReply = await Program._httpClient.GetStringAsync($"http://api.eve-central.com/api/marketstat/json?typeid={searchResults.Inventorytype[0]}&usesystem=30000142");
+                        var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.Inventorytype[0]}&usesystem=30000142");
                         var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
                         await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
                         await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Jita**{Environment.NewLine}" +
@@ -1826,7 +1831,7 @@ namespace Opux
                     }
                     if (system == "amarr")
                     {
-                        var eveCentralReply = await Program._httpClient.GetStringAsync($"http://api.eve-central.com/api/marketstat/json?typeid={searchResults.Inventorytype[0]}&usesystem=30002187");
+                        var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.Inventorytype[0]}&usesystem=30002187");
                         var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
                         await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
                         await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Amarr**{Environment.NewLine}" +
@@ -1842,7 +1847,7 @@ namespace Opux
                     }
                     if (system == "rens")
                     {
-                        var eveCentralReply = await Program._httpClient.GetStringAsync($"http://api.eve-central.com/api/marketstat/json?typeid={searchResults.Inventorytype[0]}&usesystem=30002510");
+                        var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.Inventorytype[0]}&usesystem=30002510");
                         var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
                         await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
                         await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Rens**{Environment.NewLine}" +
@@ -1858,7 +1863,7 @@ namespace Opux
                     }
                     if (system == "dodixie")
                     {
-                        var eveCentralReply = await Program._httpClient.GetStringAsync($"http://api.eve-central.com/api/marketstat/json?typeid={searchResults.Inventorytype[0]}&usesystem=30002659");
+                        var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.Inventorytype[0]}&usesystem=30002659");
                         var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
                         await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
                         await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Dodixie**{Environment.NewLine}" +
@@ -2059,10 +2064,62 @@ namespace Opux
 
                         await SQLiteDataUpdate("cacheData", "data", "fleetUpLastPostedOperation", operation.OperationId.ToString());
                     }
+
+                    var timeDiff = TimeSpan.FromTicks(operation.Start.Ticks - DateTime.UtcNow.Ticks);
+                    var array = Program.Settings.GetSection("fleetup").GetSection("announce").GetChildren().Select(x => x.Value).ToArray(); ;
+
+                    foreach (var i in array)
+                    {
+                        var epic1 = TimeSpan.FromMinutes(Convert.ToInt16(i));
+                        var epic2 = TimeSpan.FromMinutes(Convert.ToInt16(i) + 1);
+
+                        if (timeDiff >= epic1 && timeDiff <= epic2)
+                        {
+                            var name = operation.Subject;
+                            var startTime = operation.Start;
+                            var locationinfo = operation.LocationInfo;
+                            var location = operation.Location;
+                            var details = operation.Details;
+                            var url = $"http://fleet-up.com/Operation#{operation.OperationId}";
+
+                            var channel = Program.Client.GetGuild(guildId).GetTextChannel(channelid);
+
+                            var message = $"@everyone {Environment.NewLine}{Environment.NewLine}" +
+                                $"**FORMUP in {i} Minutes** {Environment.NewLine}{Environment.NewLine}" +
+                                $"```Title - {name} {Environment.NewLine}" +
+                                $"Form Up Time - {startTime.ToString(Program.Settings.GetSection("config")["timeformat"])} {Environment.NewLine}" +
+                                $"Form Up System - {location} - {locationinfo} {Environment.NewLine}" +
+                                $"Details - {details}{Environment.NewLine}" +
+                                $"```{Environment.NewLine}{url}";
+
+                            var sendres = await channel.SendMessageAsync(message);
+                        }
+                    }
+
+                    if (timeDiff.TotalMinutes < 1 && timeDiff.TotalMinutes > 0)
+                    {
+                        var name = operation.Subject;
+                        var startTime = operation.Start;
+                        var locationinfo = operation.LocationInfo;
+                        var location = operation.Location;
+                        var details = operation.Details;
+                        var url = $"http://fleet-up.com/Operation#{operation.OperationId}";
+
+                        var channel = Program.Client.GetGuild(guildId).GetTextChannel(channelid);
+
+                        var message = $"@everyone {Environment.NewLine}{Environment.NewLine}" +
+                            $"**FORMUP NOW** {Environment.NewLine}{Environment.NewLine}" +
+                            $"```Title - {name} {Environment.NewLine}" +
+                            $"Form Up Time - {startTime.ToString(Program.Settings.GetSection("config")["timeformat"])} {Environment.NewLine}" +
+                            $"Form Up System - {location} - {locationinfo} {Environment.NewLine}" +
+                            $"Details - {details}{Environment.NewLine}" +
+                            $"```{Environment.NewLine}{url}";
+
+                        var sendres = await channel.SendMessageAsync(message);
+                    }
                 }
                 await SQLiteDataUpdate("cacheData", "data", "fleetUpLastChecked", DateTime.Now.ToString());
             }
-
         }
 
         internal static async Task Ops(ICommandContext context)

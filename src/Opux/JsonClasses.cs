@@ -23,7 +23,7 @@ namespace Opux
             public int Race_id { get; set; }
             public int Bloodline_id { get; set; }
             public string Description { get; set; }
-            public int Alliance_id { get; set; }
+            public int Alliance_id { get; set; } = -1;
             public int Ancestry_id { get; set; }
             public float Security_status { get; set; }
         }
