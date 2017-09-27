@@ -38,7 +38,7 @@ namespace Opux
             public float Tax_rate { get; set; }
             public int Creator_id { get; set; }
             public string Url { get; set; }
-            public int Alliance_id { get; set; }
+            public int Alliance_id { get; set; } = -1;
             public DateTime Creation_date { get; set; }
         }
 

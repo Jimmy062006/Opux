@@ -214,7 +214,7 @@ namespace Opux
 
                     if (request.HttpMethod == HttpMethod.Get.ToString())
                     {
-                        if (request.Url.LocalPath == "/")
+                        if (request.Url.LocalPath == "/" || request.Url.LocalPath == $"{port}/")
                         {
                             await response.WriteContentAsync("<!doctype html>" +
                                 "<html>" +
@@ -312,7 +312,7 @@ namespace Opux
                                 "</body>" +
                                 "</html>");
                         }
-                        else if (request.Url.LocalPath == "/callback.php")
+                        else if (request.Url.LocalPath == "/callback.php" || request.Url.LocalPath == $"{port}/callback.php")
                         {
                             try
                             {
@@ -388,7 +388,7 @@ namespace Opux
                                         corporationDetails = JObject.Parse(await _corporationDetailsContent.ReadAsStringAsync());
                                         corporationDetails.TryGetValue("alliance_id", out allianceid);
                                         string i = (allianceid == null ? "0" : allianceid.ToString());
-                                        string c = (allianceid == null ? "0" : corporationid.ToString());
+                                        string c = (corporationid == null ? "0" : corporationid.ToString());
                                         allianceID = i;
                                         corpID = c;
                                         if (allianceID != "0")
@@ -2385,9 +2385,13 @@ namespace Opux
                 var CorpDetailsContent = JsonConvert.DeserializeObject<CorporationData>(responceMessage);
                 responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/characters/{CorpDetailsContent.Ceo_id}/?datasource=tranquility");
                 var CEONameContent = JsonConvert.DeserializeObject<CharacterData>(responceMessage);
-                responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/alliances/{CorpDetailsContent.Alliance_id}/?datasource=tranquility");
-                var allyContent = JsonConvert.DeserializeObject<AllianceData>(responceMessage);
-                var alliance = allyContent.Alliance_name;
+                var alliance = "None";
+                if (CorpDetailsContent.Alliance_id != -1)
+                {
+                    responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/alliances/{CorpDetailsContent.Alliance_id}/?datasource=tranquility");
+                    var allyContent = JsonConvert.DeserializeObject<AllianceData>(responceMessage);
+                    alliance = allyContent.Alliance_name;
+                }
 
                 await channel.SendMessageAsync($"```Corp Name: {CorpDetailsContent.Corporation_name}{Environment.NewLine}" +
                         $"Corp Ticker: {CorpDetailsContent.Ticker}{Environment.NewLine}" +

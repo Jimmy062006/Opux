@@ -30,8 +30,8 @@ namespace Opux
 
         public static void Main(string[] args)
         {
-            try
-            {
+            //try
+            //{
                 ApplicationBase = Path.GetDirectoryName(new Uri(Assembly.GetEntryAssembly().CodeBase).LocalPath);
                 if (!File.Exists(Path.Combine(Program.ApplicationBase, "Opux.db")))
                     File.Copy(ApplicationBase + "/Opux.def.db", Path.Combine(Program.ApplicationBase, "Opux.db"));
@@ -53,11 +53,11 @@ namespace Opux
 
                 Console.ReadKey();
                 Client.StopAsync();
-            }
-            catch (Exception ex)
-            {
-                LoggerAsync(ex).GetAwaiter().GetResult();
-            }
+            //}
+            //catch (Exception ex)
+            //{
+            //    LoggerAsync(ex).GetAwaiter().GetResult();
+            //}
         }
 
         internal static async Task LoggerAsync(Exception args)
