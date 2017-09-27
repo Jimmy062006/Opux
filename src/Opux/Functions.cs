@@ -206,8 +206,6 @@ namespace Opux
 
                     var allianceID = "";
                     var corpID = "";
-                    JToken corporationid;
-                    JToken allianceid;
 
                     var request = context.Request;
                     var response = context.Response;
@@ -381,12 +379,12 @@ namespace Opux
                                     var _characterDetailsContent = _characterDetails.Content;
 
                                     characterDetails = JObject.Parse(await _characterDetailsContent.ReadAsStringAsync());
-                                    characterDetails.TryGetValue("corporation_id", out corporationid);
+                                    characterDetails.TryGetValue("corporation_id", out JToken corporationid);
                                     var _corporationDetails = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corporationid}");
                                     var _corporationDetailsContent = _corporationDetails.Content;
                                     {
                                         corporationDetails = JObject.Parse(await _corporationDetailsContent.ReadAsStringAsync());
-                                        corporationDetails.TryGetValue("alliance_id", out allianceid);
+                                        corporationDetails.TryGetValue("alliance_id", out JToken allianceid);
                                         string i = (allianceid == null ? "0" : allianceid.ToString());
                                         string c = (corporationid == null ? "0" : corporationid.ToString());
                                         allianceID = i;
@@ -2310,7 +2308,7 @@ namespace Opux
                 }
                 catch (HttpRequestException ex)
                 {
-
+                    await Client_Log(new LogMessage(LogSeverity.Error, "char", ex.Message, ex));
                 }
 
                 var lastShipType = "Unknown";
@@ -2337,7 +2335,7 @@ namespace Opux
                 }
                 catch (HttpRequestException ex)
                 {
-
+                    await Client_Log(new LogMessage(LogSeverity.Error, "char", ex.Message, ex));
                 }
 
                 var lastSeen = zkillLast.KillTime;
@@ -2349,7 +2347,7 @@ namespace Opux
                 }
                 catch (HttpRequestException ex)
                 {
-
+                    await Client_Log(new LogMessage(LogSeverity.Error, "char", ex.Message, ex));
                 }
 
                 var alliance = allianceData.Alliance_name ?? "None";
