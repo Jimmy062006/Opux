@@ -2032,12 +2032,13 @@ namespace Opux
                 var channelid = Convert.ToUInt64(Program.Settings.GetSection("fleetup")["channel"]);
                 var guildId = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
                 var lastopid = await SQLiteDataQuery("cacheData", "data", "fleetUpLastPostedOperation");
+                var announce_post = Convert.ToBoolean(Program.Settings.GetSection("fleetup")["announce_post"]);
 
                 var Json = await Program._httpClient.GetStringAsync($"http://api.fleet-up.com/Api.svc/Ohigwbylcsuz56ue3O6Awlw5e/{UserId}/{APICode}/Operations/{GroupID}");
                 var result = JsonConvert.DeserializeObject<Fleetupapi>(Json);
                 foreach (var operation in result.Data)
                 {
-                    if (operation.OperationId > Convert.ToInt32(lastopid))
+                    if (operation.OperationId > Convert.ToInt32(lastopid) && announce_post)
                     {
                         var name = operation.Subject;
                         var startTime = operation.Start;

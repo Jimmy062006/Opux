@@ -99,6 +99,7 @@
       "APICode": "",
       "GroupID": "",
       "channel": 0,
+      "announce_post": true,
       "announce": [ 5, 60 ] //This will notify at 5 mins and 60 mins and also when the op is due by default
     },
     "jabber": {
