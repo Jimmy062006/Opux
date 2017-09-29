@@ -4,6 +4,7 @@ namespace Opux
 {
     class JsonClasses
     {
+        //ESI Classes
         public class CharacterID
         {
             public int[] Character { get; set; }
@@ -42,397 +43,94 @@ namespace Opux
             public DateTime Creation_date { get; set; }
         }
 
-        public class ZKill
-        {
-            public Kill[] Kill { get; set; }
-        }
-
-        public class Kill
-        {
-            public int KillID { get; set; }
-            public int SolarSystemID { get; set; }
-            public string KillTime { get; set; }
-            public int MoonID { get; set; }
-            public Victim Victim { get; set; }
-            public Attacker[] Attackers { get; set; }
-            public Item[] Items { get; set; }
-            public PositionData Position { get; set; }
-            public Zkb Zkb { get; set; }
-        }
-
-        public class Victim
-        {
-            public int ShipTypeID { get; set; }
-            public int CharacterID { get; set; }
-            public string CharacterName { get; set; }
-            public int CorporationID { get; set; }
-            public string CorporationName { get; set; }
-            public int AllianceID { get; set; }
-            public string AllianceName { get; set; }
-            public int FactionID { get; set; }
-            public string FactionName { get; set; }
-            public int DamageTaken { get; set; }
-        }
-
-        public class Zkb
-        {
-            public int LocationID { get; set; }
-            public string Hash { get; set; }
-            public float FittedValue { get; set; }
-            public float TotalValue { get; set; }
-            public int Points { get; set; }
-            public bool Npc { get; set; }
-        }
-
-        public class Attacker
-        {
-            public int CharacterID { get; set; }
-            public string CharacterName { get; set; }
-            public int CorporationID { get; set; }
-            public string CorporationName { get; set; }
-            public int AllianceID { get; set; }
-            public string AllianceName { get; set; }
-            public int FactionID { get; set; }
-            public string FactionName { get; set; }
-            public float SecurityStatus { get; set; }
-            public int DamageDone { get; set; }
-            public int FinalBlow { get; set; }
-            public int WeaponTypeID { get; set; }
-            public int ShipTypeID { get; set; }
-        }
-
-        public class Item
-        {
-            public int TypeID { get; set; }
-            public int Flag { get; set; }
-            public int QtyDropped { get; set; }
-            public int QtyDestroyed { get; set; }
-            public int Singleton { get; set; }
-            public Item1[] Items { get; set; }
-        }
-
-        public class Item1
-        {
-            public int TypeID { get; set; }
-            public int Flag { get; set; }
-            public int QtyDropped { get; set; }
-            public int QtyDestroyed { get; set; }
-            public int Singleton { get; set; }
-        }
-
-
-        public class Ship
-        {
-            public int Type_id { get; set; }
-            public string Name { get; set; }
-            public string Description { get; set; }
-            public bool Published { get; set; }
-            public int Group_id { get; set; }
-            public float Radius { get; set; }
-            public float Volume { get; set; }
-            public float Capacity { get; set; }
-            public int Portion_size { get; set; }
-            public float Mass { get; set; }
-            public int Graphic_id { get; set; }
-            public Dogma_Attributes[] Dogma_attributes { get; set; }
-            public Dogma_Effects[] Dogma_effects { get; set; }
-        }
-
-        public class Dogma_Attributes
-        {
-            public int Attribute_id { get; set; }
-            public float Value { get; set; }
-        }
-
-        public class Dogma_Effects
-        {
-            public int Effect_id { get; set; }
-            public bool Is_default { get; set; }
-        }
-
-
         public class AllianceData
         {
-            public string Alliance_name { get; set; }
-            public string Ticker { get; set; }
-            public DateTime Date_founded { get; set; }
-            public int Executor_corp { get; set; }
+            public string alliance_name { get; set; }
+            public string ticker { get; set; }
+            public DateTime date_founded { get; set; }
+            public int executor_corp { get; set; }
         }
 
-        public class SystemData
+        public class SystemIDSearch
         {
-            public int System_id { get; set; }
-            public string Name { get; set; }
-            public PositionData Position { get; set; }
-            public float Security_status { get; set; }
-            public int Constellation_id { get; set; }
-            public PlanetData[] Planets { get; set; }
-            public int[] Stargates { get; set; }
-            public string Security_class { get; set; }
+            public int[] solarsystem { get; set; }
         }
-
-        public class PositionData
-        {
-            public float X { get; set; }
-            public float Y { get; set; }
-            public float Z { get; set; }
-        }
-
-        public class PlanetData
-        {
-            public int Planet_id { get; set; }
-            public int[] Moons { get; set; }
-        }
-
-        //zKill Classes
-
-        public class ZKillboardRedisq
-        {
-            public Package Package { get; set; }
-        }
-
-        public class Package
-        {
-            public int KillID { get; set; }
-            public KillmailRedisq Killmail { get; set; }
-            public ZkbRedisq Zkb { get; set; }
-        }
-
-        public class KillmailRedisq
-        {
-            public Solarsystem SolarSystem { get; set; }
-            public int KillID { get; set; }
-            public string KillTime { get; set; }
-            public AttackerRedisq[] Attackers { get; set; }
-            public int AttackerCount { get; set; }
-            public VictimRedisq Victim { get; set; }
-            public string KillID_str { get; set; }
-            public string AttackerCount_str { get; set; }
-            public War War { get; set; }
-        }
-
-
-        public class SolarSystemSearch
-        {
-            public int[] Solarsystem { get; set; }
-        }
-
-
-        public class Solarsystem
-        {
-            public string Id_str { get; set; }
-            public string Href { get; set; }
-            public int Id { get; set; }
-            public string Name { get; set; }
-        }
-
-        public class VictimRedisq
-        {
-            public AllianceRedisq Alliance { get; set; }
-            public int DamageTaken { get; set; }
-            public ItemRedisq[] Items { get; set; }
-            public string DamageTaken_str { get; set; }
-            public CharacterRedisq Character { get; set; }
-            public Shiptype ShipType { get; set; }
-            public Corporation Corporation { get; set; }
-            public Position Position { get; set; }
-        }
-
-        public class AllianceRedisq
-        {
-            public string Id_str { get; set; }
-            public string Href { get; set; }
-            public int Id { get; set; }
-            public string Name { get; set; }
-            public Icon Icon { get; set; }
-        }
-
-        public class Icon
-        {
-            public string Href { get; set; }
-        }
-
-        public class CharacterRedisq
-        {
-            public string Id_str { get; set; }
-            public string Href { get; set; }
-            public int Id { get; set; }
-            public string Name { get; set; }
-            public Icon1 Icon { get; set; }
-        }
-
-        public class Icon1
-        {
-            public string Href { get; set; }
-        }
-
-        public class Shiptype
-        {
-            public string Id_str { get; set; }
-            public string Href { get; set; }
-            public int Id { get; set; }
-            public string Name { get; set; }
-            public Icon2 Icon { get; set; }
-        }
-
-        public class Icon2
-        {
-            public string Href { get; set; }
-        }
-
-        public class Corporation
-        {
-            public string Id_str { get; set; }
-            public string Href { get; set; }
-            public int Id { get; set; }
-            public string Name { get; set; }
-            public Icon3 Icon { get; set; }
-        }
-
 
         public class CorporationSearch
         {
-            public int[] Corporation { get; set; }
+            public string corporation_name { get; set; }
+            public string ticker { get; set; }
+            public int member_count { get; set; }
+            public int ceo_id { get; set; }
+            public string corporation_description { get; set; }
+            public float tax_rate { get; set; }
+            public int creator_id { get; set; }
+            public string url { get; set; }
+            public DateTime creation_date { get; set; }
+            public string faction { get; set; }
         }
 
-        public class Icon3
+        public class AllianceSearch
         {
-            public string Href { get; set; }
+            public string alliance_name { get; set; }
+            public string ticker { get; set; }
+            public DateTime date_founded { get; set; }
+            public int executor_corp { get; set; }
+        }
+
+        public class SystemName
+        {
+            public int star_id { get; set; }
+            public int system_id { get; set; }
+            public string name { get; set; }
+            public Position position { get; set; }
+            public float security_status { get; set; }
+            public int constellation_id { get; set; }
+            public Planet[] planets { get; set; }
+            public int[] stargates { get; set; }
+            public int[] stations { get; set; }
         }
 
         public class Position
         {
-            public float Y { get; set; }
-            public float X { get; set; }
-            public float Z { get; set; }
+            public float x { get; set; }
+            public float y { get; set; }
+            public float z { get; set; }
         }
 
-        public class ItemRedisq
+        public class Planet
         {
-            public int Singleton { get; set; }
-            public Itemtype ItemType { get; set; }
-            public string QuantityDestroyed_str { get; set; }
-            public int Flag { get; set; }
-            public string Flag_str { get; set; }
-            public string Singleton_str { get; set; }
-            public int QuantityDestroyed { get; set; }
-            public string QuantityDropped_str { get; set; }
-            public int QuantityDropped { get; set; }
+            public int planet_id { get; set; }
+            public int[] moons { get; set; }
         }
 
-        public class Itemtype
+        public class Type_id
         {
-            public string Id_str { get; set; }
-            public string Href { get; set; }
-            public int Id { get; set; }
-            public string Name { get; set; }
-            public Icon4 Icon { get; set; }
+            public int type_id { get; set; }
+            public string name { get; set; }
+            public string description { get; set; }
+            public bool published { get; set; }
+            public int group_id { get; set; }
+            public float radius { get; set; }
+            public float volume { get; set; }
+            public float capacity { get; set; }
+            public int portion_size { get; set; }
+            public float mass { get; set; }
+            public int graphic_id { get; set; }
+            public Dogma_Attributes[] dogma_attributes { get; set; }
+            public Dogma_Effects[] dogma_effects { get; set; }
         }
 
-        public class Icon4
+        public class Dogma_Attributes
         {
-            public string Href { get; set; }
+            public int attribute_id { get; set; }
+            public float value { get; set; }
         }
 
-        public class War
+        public class Dogma_Effects
         {
-            public string Href { get; set; }
-            public int Id { get; set; }
-            public string Id_str { get; set; }
-        }
-
-        public class AttackerRedisq
-        {
-            public Alliance1 Alliance { get; set; }
-            public Shiptype1 ShipType { get; set; }
-            public Corporation1 Corporation { get; set; }
-            public Character1 Character { get; set; }
-            public string DamageDone_str { get; set; }
-            public Weapontype WeaponType { get; set; }
-            public bool FinalBlow { get; set; }
-            public float SecurityStatus { get; set; }
-            public int DamageDone { get; set; }
-        }
-
-        public class Alliance1
-        {
-            public string Id_str { get; set; }
-            public string Href { get; set; }
-            public int Id { get; set; }
-            public string Name { get; set; }
-            public Icon5 Icon { get; set; }
-        }
-
-        public class Icon5
-        {
-            public string Href { get; set; }
-        }
-
-        public class Shiptype1
-        {
-            public string Id_str { get; set; }
-            public string Href { get; set; }
-            public int Id { get; set; }
-            public string Name { get; set; }
-            public Icon6 Icon { get; set; }
-        }
-
-        public class Icon6
-        {
-            public string Href { get; set; }
-        }
-
-        public class Corporation1
-        {
-            public string Id_str { get; set; }
-            public string Href { get; set; }
-            public int Id { get; set; }
-            public string Name { get; set; }
-            public Icon7 Icon { get; set; }
-        }
-
-        public class Icon7
-        {
-            public string Href { get; set; }
-        }
-
-        public class Character1
-        {
-            public string Id_str { get; set; }
-            public string Href { get; set; }
-            public int Id { get; set; }
-            public string Name { get; set; }
-            public Icon8 Icon { get; set; }
-        }
-
-        public class Icon8
-        {
-            public string Href { get; set; }
-        }
-
-        public class Weapontype
-        {
-            public string Id_str { get; set; }
-            public string Href { get; set; }
-            public int Id { get; set; }
-            public string Name { get; set; }
-            public Icon9 Icon { get; set; }
-        }
-
-        public class Icon9
-        {
-            public string Href { get; set; }
-        }
-
-        public class ZkbRedisq
-        {
-            public int LocationID { get; set; }
-            public string Hash { get; set; }
-            public float FittedValue { get; set; }
-            public float TotalValue { get; set; }
-            public int Points { get; set; }
-            public bool Npc { get; set; }
-            public string Href { get; set; }
+            public int effect_id { get; set; }
+            public bool is_default { get; set; }
         }
 
         //EVE Central
@@ -564,5 +262,138 @@ namespace Opux
             public int GroupId { get; set; }
             public object[] Doctrines { get; set; }
         }
+
+        //zKill Classes
+
+        public class ZKillboard
+        {
+            public Package package { get; set; }
+        }
+
+        public class Package
+        {
+            public int killID { get; set; }
+            public Killmail killmail { get; set; }
+            public Zkb zkb { get; set; }
+        }
+
+        public class Killmail
+        {
+            public int killmail_id { get; set; }
+            public DateTime killmail_time { get; set; }
+            public Victim victim { get; set; }
+            public Attacker[] attackers { get; set; }
+            public int solar_system_id { get; set; }
+        }
+
+        public class Victim
+        {
+            public int damage_taken { get; set; }
+            public int ship_type_id { get; set; }
+            public int character_id { get; set; }
+            public int corporation_id { get; set; }
+            public int alliance_id { get; set; }
+            public int faction_id { get; set; }
+            public Item[] items { get; set; }
+            public Position position { get; set; }
+        }
+
+        public class Item
+        {
+            public int item_type_id { get; set; }
+            public int singleton { get; set; }
+            public int flag { get; set; }
+            public int quantity_dropped { get; set; }
+            public int quantity_destroyed { get; set; }
+        }
+
+        public class Attacker
+        {
+            public float security_status { get; set; }
+            public bool final_blow { get; set; }
+            public int damage_done { get; set; }
+            public int character_id { get; set; }
+            public int corporation_id { get; set; }
+            public int alliance_id { get; set; }
+            public int ship_type_id { get; set; }
+            public int weapon_type_id { get; set; }
+        }
+
+        public class Zkb
+        {
+            public int locationID { get; set; }
+            public string hash { get; set; }
+            public float fittedValue { get; set; }
+            public float totalValue { get; set; }
+            public int points { get; set; }
+            public bool npc { get; set; }
+            public string href { get; set; }
+        }
+
+        public class Kill
+        {
+            public Class1[] Property1 { get; set; }
+        }
+
+        public class Class1
+        {
+            public int killmail_id { get; set; }
+            public DateTime killmail_time { get; set; }
+            public Victim victim { get; set; }
+            public Attacker[] attackers { get; set; }
+            public int solar_system_id { get; set; }
+            public Zkb zkb { get; set; }
+        }
+
+        //public class Victim
+        //{
+        //    public int damage_taken { get; set; }
+        //    public int ship_type_id { get; set; }
+        //    public int character_id { get; set; }
+        //    public int corporation_id { get; set; }
+        //    public int faction_id { get; set; }
+        //    public Item[] items { get; set; }
+        //    public Position position { get; set; }
+        //    public int alliance_id { get; set; }
+        //}
+
+        //public class Position
+        //{
+        //    public float x { get; set; }
+        //    public float y { get; set; }
+        //    public float z { get; set; }
+        //}
+
+        //public class Item
+        //{
+        //    public int item_type_id { get; set; }
+        //    public int singleton { get; set; }
+        //    public int flag { get; set; }
+        //    public int quantity_destroyed { get; set; }
+        //    public int quantity_dropped { get; set; }
+        //}
+
+        //public class Zkb
+        //{
+        //    public int locationID { get; set; }
+        //    public string hash { get; set; }
+        //    public float fittedValue { get; set; }
+        //    public float totalValue { get; set; }
+        //    public int points { get; set; }
+        //}
+
+        //public class Attacker
+        //{
+        //    public float security_status { get; set; }
+        //    public bool final_blow { get; set; }
+        //    public int damage_done { get; set; }
+        //    public int character_id { get; set; }
+        //    public int corporation_id { get; set; }
+        //    public int ship_type_id { get; set; }
+        //    public int weapon_type_id { get; set; }
+        //    public int faction_id { get; set; }
+        //    public int alliance_id { get; set; }
+        //}
+
     }
 }

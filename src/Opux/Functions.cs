@@ -703,7 +703,7 @@ namespace Opux
                     responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.Corporation_id}/?datasource=tranquility");
                     var corporationData = JsonConvert.DeserializeObject<CorporationData>(await responceMessage.Content.ReadAsStringAsync());
 
-                    responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{corporationData.Alliance_id}/?datasource=tranquility");
+                    responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.Alliance_id}/?datasource=tranquility");
                     var allianceData = JsonConvert.DeserializeObject<AllianceData>(await responceMessage.Content.ReadAsStringAsync());
 
                     var allianceID = (corporationData.Alliance_id.ToString() == "" ? "0" : corporationData.Alliance_id.ToString());
@@ -1025,7 +1025,7 @@ namespace Opux
         #region killFeed
         private static async Task KillFeed(CommandContext Context)
         {
-            ZKillboardRedisq kill = new ZKillboardRedisq();
+            ZKillboard kill = new ZKillboard();
             try
             {
                 if (!killfeedrunning)
@@ -1040,34 +1040,52 @@ namespace Opux
                     ITextChannel channel = null;
                     var redisqResponse = await (await Program._httpClient.GetAsync(String.IsNullOrEmpty(redisQID) ?
                         $"https://redisq.zkillboard.com/listen.php" : $"https://redisq.zkillboard.com/listen.php?queueID={redisQID}")).Content.ReadAsStringAsync();
-                    kill = JsonConvert.DeserializeObject<ZKillboardRedisq>(redisqResponse);
+                    kill = JsonConvert.DeserializeObject<ZKillboard>(redisqResponse);
 
-                    if (kill != null && kill.Package != null)
+                    if (kill != null && kill.package != null)
                     {
 
                         var bigKillGlobal = Convert.ToInt64(Program.Settings.GetSection("killFeed")["bigKill"]);
-                    var bigKillGlobalChan = Convert.ToUInt64(Program.Settings.GetSection("killFeed")["bigKillChannel"]);
-                    var iD = kill.Package.Killmail.KillID_str;
-                    var killTime = kill.Package.Killmail.KillTime;
-                    var ship = kill.Package.Killmail.Victim.ShipType.Name;
-                    var value = kill.Package.Zkb.TotalValue;
-                    var victimCharacter = kill.Package.Killmail.Victim.Character;
-                    var victimCorp = kill.Package.Killmail.Victim.Corporation;
-                    var victimAlliance = kill.Package.Killmail.Victim.Alliance;
-                    var attackers = kill.Package.Killmail.Attackers;
-                    var sysName = kill.Package.Killmail.SolarSystem.Name;
-                    var systemId = kill.Package.Killmail.SolarSystem.Id_str;
-                    var losses = Convert.ToBoolean(Program.Settings.GetSection("killFeed")["losses"]);
-                    var radius = Convert.ToInt16(Program.Settings.GetSection("killFeed")["radius"]);
-                    var radiusSystem = Program.Settings.GetSection("killFeed")["radiusSystem"];
-                    var radiusChannel = Convert.ToUInt64(Program.Settings.GetSection("killFeed")["radiusChannel"]);
+                        var bigKillGlobalChan = Convert.ToUInt64(Program.Settings.GetSection("killFeed")["bigKillChannel"]);
+                        var iD = kill.package.killmail.killmail_id;
+                        var killTime = kill.package.killmail.killmail_time;
+                        var shipID = kill.package.killmail.victim.ship_type_id;
+                        var value = kill.package.zkb.totalValue;
+                        var victimCharacterID = kill.package.killmail.victim.character_id;
+                        var victimCorpID = kill.package.killmail.victim.corporation_id;
+                        var victimAllianceID = kill.package.killmail.victim.alliance_id;
+                        var attackers = kill.package.killmail.attackers;
+                        var systemId = kill.package.killmail.solar_system_id;
+                        var losses = Convert.ToBoolean(Program.Settings.GetSection("killFeed")["losses"]);
+                        var radius = Convert.ToInt16(Program.Settings.GetSection("killFeed")["radius"]);
+                        var radiusSystem = Program.Settings.GetSection("killFeed")["radiusSystem"];
+                        var radiusChannel = Convert.ToUInt64(Program.Settings.GetSection("killFeed")["radiusChannel"]);
 
-                    var post = false;
-                    var globalBigKill = false;
-                    var bigKill = false;
-                    var radiusKill = false;
-                    var jumpsAway = 0;
+                        var CharacterResponce = "";
+                        if (victimCharacterID != 0)
+                        {
+                            CharacterResponce = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/characters/{victimCharacterID}/?datasource=tranquility");
+                        }
+                        var SysNameResponce = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/universe/systems/{systemId}/?datasource=tranquility&language=en-us");
+                        var CorpNameResponce = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/corporations/{victimCorpID}/?datasource=tranquility");
+                        var AllyNameResponce = "";
+                        if (victimAllianceID != 0)
+                        {
+                            AllyNameResponce = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/alliances/{victimAllianceID}/?datasource=tranquility");
+                        }
+                        var shipIDResponce = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/universe/types/{shipID}/?datasource=tranquility&language=en-us");
 
+                        var sysName = JsonConvert.DeserializeObject<SystemName>(SysNameResponce).name;
+                        var victimCharacter = JsonConvert.DeserializeObject<CharacterData>(CharacterResponce);
+                        var victimCorp = JsonConvert.DeserializeObject<CorporationSearch>(CorpNameResponce);
+                        var victimAlliance = JsonConvert.DeserializeObject<AllianceSearch>(AllyNameResponce);
+                        var ship = JsonConvert.DeserializeObject<Type_id>(shipIDResponce);
+
+                        var post = false;
+                        var globalBigKill = false;
+                        var bigKill = false;
+                        var radiusKill = false;
+                        var jumpsAway = 0;
 
                         foreach (var i in Program.Settings.GetSection("killFeed").GetSection("groupsConfig").GetChildren().ToList())
                         {
@@ -1082,13 +1100,12 @@ namespace Opux
 
                             if (!sysName.StartsWith("J") && radius > 0)
                             {
-                                var SystemName = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/search/?categories=solarsystem&strict=true&datasource=tranquility" +
+                                var SystemName = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/search/?categories=solarsystem&strict=true&datasource=tranquility" +
                                     $"&language=en-us&search={radiusSystem}&strict=true");
-                                var SystemNameContent = SystemName.Content;
-                                var httpresult = JsonConvert.DeserializeObject<SolarSystemSearch>(await SystemNameContent.ReadAsStringAsync());
+                                var httpresult = JsonConvert.DeserializeObject<SystemIDSearch>(SystemName);
 
-                                SystemID = httpresult.Solarsystem[0].ToString();
-                                var systemID = kill.Package.Killmail.SolarSystem.Id_str;
+                                SystemID = httpresult.solarsystem[0].ToString();
+                                var systemID = kill.package.killmail.solar_system_id;
                                 string radiusSystems = "";
 
                                 radiusSystems = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/route/{SystemID}/{systemId}/?datasource=tranquility&flag=shortest");
@@ -1130,8 +1147,8 @@ namespace Opux
                                 channel = discordGuild.GetTextChannel(channelGroup);
                                 if (victimAlliance != null)
                                 {
-                                    if (victimAlliance.Id == allianceID && losses == true ||
-                                        victimCorp.Id == corpID && losses == true)
+                                    if (victimAllianceID == allianceID && losses == true ||
+                                        victimCorpID == corpID && losses == true)
                                     {
                                         if (bigKillValue != 0 && value >= bigKillValue)
                                         {
@@ -1146,7 +1163,7 @@ namespace Opux
                                         }
                                     }
                                 }
-                                else if (victimCorp.Id == corpID && losses == true)
+                                else if (victimCorpID == corpID && losses == true)
                                 {
                                     if (bigKillValue != 0 && value >= bigKillValue)
                                     {
@@ -1162,10 +1179,10 @@ namespace Opux
                                 }
                                 foreach (var attacker in attackers.ToList())
                                 {
-                                    if (attacker.Alliance != null)
+                                    if (victimAlliance != null)
                                     {
-                                        if (attacker.Alliance.Id == allianceID ||
-                                            attacker.Corporation.Id == corpID)
+                                        if (attacker.alliance_id == allianceID && corpID == 0
+                                            || attacker.corporation_id == corpID && allianceID == 0)
                                         {
                                             if (bigKillValue != 0 && value >= bigKillValue)
                                             {
@@ -1179,7 +1196,7 @@ namespace Opux
                                                     post = true;
                                             }
                                         }
-                                        else if (attacker.Corporation.Id == corpID)
+                                        else if (attacker.corporation_id == corpID && corpID != 0)
                                         {
                                             if (bigKillValue != 0 && value >= bigKillValue)
                                             {
@@ -1209,8 +1226,8 @@ namespace Opux
                                         var _radiusChannel = discordGuild.GetTextChannel(radiusChannel);
                                         var radiusMessage = "";
                                         radiusMessage = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]}{Environment.NewLine}";
-                                        radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
-                                            $" [{victimCorp.Name}]** killed in **{sysName}** {Environment.NewLine} https://zkillboard.com/kill/{iD}/";
+                                        radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship.name}** worth **{string.Format("{0:n0}", value)}" +
+                                            $" [{victimCorp.corporation_name}]** killed in **{sysName}** {Environment.NewLine} https://zkillboard.com/kill/{iD}/";
                                         await _radiusChannel.SendMessageAsync(radiusMessage);
                                     }
                                     var message = "";
@@ -1224,8 +1241,8 @@ namespace Opux
                                     }
                                     if (post)
                                     {
-                                        message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
-                                            $" [{victimCorp.Name}]** killed in **{sysName}** {Environment.NewLine} " +
+                                        message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship.name}** worth **{string.Format("{0:n0}", value)}" +
+                                            $" [{victimCorp.corporation_name}]** killed in **{sysName}** {Environment.NewLine} " +
                                             $"https://zkillboard.com/kill/{iD}/";
                                         await channel.SendMessageAsync(message);
                                     }
@@ -1237,8 +1254,8 @@ namespace Opux
                                         var _radiusChannel = discordGuild.GetTextChannel(radiusChannel);
                                         var radiusMessage = "";
                                         radiusMessage = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]}{Environment.NewLine}";
-                                        radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
-                                        $" {victimCorp.Name} | [{victimAlliance.Name}]** killed in **{sysName}** {Environment.NewLine} " +
+                                        radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship.name}** worth **{string.Format("{0:n0}", value)}" +
+                                        $" {victimCorp.corporation_name} | [{victimAlliance.alliance_name}]** killed in **{sysName}** {Environment.NewLine} " +
                                         $"https://zkillboard.com/kill/{iD}/";
                                         await _radiusChannel.SendMessageAsync(radiusMessage);
                                     }
@@ -1253,8 +1270,8 @@ namespace Opux
                                     }
                                     if (post)
                                     {
-                                        message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
-                                            $" {victimCorp.Name} | [{victimAlliance.Name}]** killed in **{sysName}** {Environment.NewLine} " +
+                                        message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship.name}** worth **{string.Format("{0:n0}", value)}" +
+                                            $" {victimCorp.corporation_name} | [{victimAlliance.alliance_name}]** killed in **{sysName}** {Environment.NewLine} " +
                                             $"https://zkillboard.com/kill/{iD}/";
                                         await channel.SendMessageAsync(message);
                                     }
@@ -1267,8 +1284,8 @@ namespace Opux
                                     var _radiusChannel = discordGuild.GetTextChannel(radiusChannel);
                                     var radiusMessage = "";
                                     radiusMessage = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]}{Environment.NewLine}";
-                                    radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
-                                    $"** ISK flown by **{victimCharacter.Name} |**  **[{victimCorp.Name}] | <{victimAlliance.Name}>** killed in **{sysName}** {Environment.NewLine} " +
+                                    radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship.name}** worth **{string.Format("{0:n0}", value)}" +
+                                    $"** ISK flown by **{victimCharacter.Name} |**  **[{victimCorp.corporation_name}] | <{victimAlliance.alliance_name}>** killed in **{sysName}** {Environment.NewLine} " +
                                     $"https://zkillboard.com/kill/{iD}/";
                                     await _radiusChannel.SendMessageAsync(radiusMessage);
                                 }
@@ -1283,8 +1300,8 @@ namespace Opux
                                 }
                                 if (post)
                                 {
-                                    message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
-                                        $"** ISK flown by **{victimCharacter.Name} |**  **[{victimCorp.Name}] | <{victimAlliance.Name}>** killed in **{sysName}** {Environment.NewLine} " +
+                                    message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship.name}** worth **{string.Format("{0:n0}", value)}" +
+                                        $"** ISK flown by **{victimCharacter.Name} |**  **[{victimCorp.corporation_name}] | <{victimAlliance.alliance_name}>** killed in **{sysName}** {Environment.NewLine} " +
                                         $"https://zkillboard.com/kill/{iD}/";
                                     await channel.SendMessageAsync(message);
                                 }
@@ -1296,8 +1313,8 @@ namespace Opux
                                     var _radiusChannel = discordGuild.GetTextChannel(radiusChannel);
                                     var radiusMessage = "";
                                     radiusMessage = $"Killed {jumpsAway} jumps from {Program.Settings.GetSection("killFeed")["radiusSystem"]}{Environment.NewLine}";
-                                    radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
-                                    $"** ISK flown by **{victimCharacter.Name} |** **[{victimCorp.Name}]** killed in **{sysName}** {Environment.NewLine} " +
+                                    radiusMessage += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship.name}** worth **{string.Format("{0:n0}", value)}" +
+                                    $"** ISK flown by **{victimCharacter.Name} |** **[{victimCorp.corporation_name}]** killed in **{sysName}** {Environment.NewLine} " +
                                     $"https://zkillboard.com/kill/{iD}/";
                                     await _radiusChannel.SendMessageAsync(radiusMessage);
                                 }
@@ -1312,17 +1329,18 @@ namespace Opux
                                 }
                                 if (post)
                                 {
-                                    message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship}** worth **{string.Format("{0:n0}", value)}" +
-                                        $"** ISK flown by **{victimCharacter.Name} |** **[{victimCorp.Name}]** killed in **{sysName}** {Environment.NewLine} " +
+                                    message += $"{killTime}{Environment.NewLine}{Environment.NewLine}**{ship.name}** worth **{string.Format("{0:n0}", value)}" +
+                                        $"** ISK flown by **{victimCharacter.Name} |** **[{victimCorp.corporation_name}]** killed in **{sysName}** {Environment.NewLine} " +
                                         $"https://zkillboard.com/kill/{iD}/";
                                     await channel.SendMessageAsync(message);
                                 }
                             }
-                            await Client_Log(new LogMessage(LogSeverity.Info, "killFeed", $"POSTING Kill/Loss ID:{kill.Package.Killmail.KillID_str} Value:{string.Format("{0:n0}", value)}"));
+                            await Client_Log(new LogMessage(LogSeverity.Info, "killFeed", $"POSTING Kill/Loss ID:{kill.package.killID} Value:{string.Format("{0:n0}", value)}"));
                         }
                     }
                     killfeedrunning = false;
-                }
+                }                   
+                
             }
             catch (Exception ex)
             {
@@ -2282,85 +2300,85 @@ namespace Opux
         #region Char
         internal async static Task Char(ICommandContext context, string x)
         {
-            var channel = context.Channel;
-            var responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/search/?categories=character&datasource=tranquility&language=en-us&search={x}&strict=true");
-            var characterID = JsonConvert.DeserializeObject<CharacterID>(responceMessage);
-            if (characterID.Character == null)
-            {
-                await channel.SendMessageAsync($"{context.User.Mention}, Char not found please try again");
-            }
-            else
-            {
-                responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/characters/{characterID.Character[0]}/?datasource=tranquility");
-                var characterData = JsonConvert.DeserializeObject<CharacterData>(responceMessage);
-                responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.Corporation_id}/?datasource=tranquility");
-                var corporationData = JsonConvert.DeserializeObject<CorporationData>(responceMessage);
-                responceMessage = await Program._httpClient.GetStringAsync($"https://zkillboard.com/api/kills/characterID/{characterID.Character[0]}/");
-                var zkillContent = JsonConvert.DeserializeObject<List<Kill>>(responceMessage);
-                Kill zkillLast = zkillContent.Count > 0 ? zkillContent[0] : new Kill();
-                SystemData systemData = new SystemData();
-                Ship lastShip = new Ship();
-                AllianceData allianceData = new AllianceData();
-                try
-                {
-                    responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/universe/systems/{zkillLast.SolarSystemID}/?datasource=tranquility&language=en-us");
-                    systemData = JsonConvert.DeserializeObject<SystemData>(responceMessage);
-                }
-                catch (HttpRequestException ex)
-                {
-                    await Client_Log(new LogMessage(LogSeverity.Error, "char", ex.Message, ex));
-                }
+            //var channel = context.Channel;
+            //var responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/search/?categories=character&datasource=tranquility&language=en-us&search={x}&strict=true");
+            //var characterID = JsonConvert.DeserializeObject<CharacterID>(responceMessage);
+            //if (characterID.Character == null)
+            //{
+            //    await channel.SendMessageAsync($"{context.User.Mention}, Char not found please try again");
+            //}
+            //else
+            //{
+            //    responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/characters/{characterID.Character[0]}/?datasource=tranquility");
+            //    var characterData = JsonConvert.DeserializeObject<CharacterData>(responceMessage);
+            //    responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.Corporation_id}/?datasource=tranquility");
+            //    var corporationData = JsonConvert.DeserializeObject<CorporationData>(responceMessage);
+            //    responceMessage = await Program._httpClient.GetStringAsync($"https://zkillboard.com/api/kills/characterID/{characterID.Character[0]}/");
+            //    var zkillContent = JsonConvert.DeserializeObject<List<Kill>>(responceMessage);
+            //    Kill zkillLast = zkillContent.Count > 0 ? zkillContent[0] : new Kill();
+            //    SystemData systemData = new SystemData();
+            //    Ship lastShip = new Ship();
+            //    AllianceData allianceData = new AllianceData();
+            //    try
+            //    {
+            //        responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/universe/systems/{zkillLast.SolarSystemID}/?datasource=tranquility&language=en-us");
+            //        systemData = JsonConvert.DeserializeObject<SystemData>(responceMessage);
+            //    }
+            //    catch (HttpRequestException ex)
+            //    {
+            //        await Client_Log(new LogMessage(LogSeverity.Error, "char", ex.Message, ex));
+            //    }
 
-                var lastShipType = "Unknown";
+            //    var lastShipType = "Unknown";
 
-                if (zkillLast.Victim != null && zkillLast.Victim.CharacterID == characterID.Character.FirstOrDefault())
-                {
-                    lastShipType = zkillLast.Victim.ShipTypeID.ToString();
-                }
-                else if (zkillLast.Victim != null)
-                {
-                    foreach (var attacker in zkillLast.Attackers)
-                    {
-                        if (attacker.CharacterID == characterID.Character.FirstOrDefault())
-                        {
-                            lastShipType = attacker.ShipTypeID.ToString();
-                        }
-                    }
-                }
+            //    if (zkillLast.Victim != null && zkillLast.Victim.CharacterID == characterID.Character.FirstOrDefault())
+            //    {
+            //        lastShipType = zkillLast.Victim.ShipTypeID.ToString();
+            //    }
+            //    else if (zkillLast.Victim != null)
+            //    {
+            //        foreach (var attacker in zkillLast.Attackers)
+            //        {
+            //            if (attacker.CharacterID == characterID.Character.FirstOrDefault())
+            //            {
+            //                lastShipType = attacker.ShipTypeID.ToString();
+            //            }
+            //        }
+            //    }
 
-                try
-                {
-                    responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/universe/types/{lastShipType}/?datasource=tranquility&language=en-us");
-                    lastShip = JsonConvert.DeserializeObject<Ship>(responceMessage);
-                }
-                catch (HttpRequestException ex)
-                {
-                    await Client_Log(new LogMessage(LogSeverity.Error, "char", ex.Message, ex));
-                }
+            //    try
+            //    {
+            //        responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/universe/types/{lastShipType}/?datasource=tranquility&language=en-us");
+            //        lastShip = JsonConvert.DeserializeObject<Ship>(responceMessage);
+            //    }
+            //    catch (HttpRequestException ex)
+            //    {
+            //        await Client_Log(new LogMessage(LogSeverity.Error, "char", ex.Message, ex));
+            //    }
 
-                var lastSeen = zkillLast.KillTime;
+            //    var lastSeen = zkillLast.KillTime;
 
-                try
-                {
-                    responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.Alliance_id}/?datasource=tranquility");
-                    allianceData = JsonConvert.DeserializeObject<AllianceData>(responceMessage);
-                }
-                catch (HttpRequestException ex)
-                {
-                    await Client_Log(new LogMessage(LogSeverity.Error, "char", ex.Message, ex));
-                }
+            //    try
+            //    {
+            //        responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.Alliance_id}/?datasource=tranquility");
+            //        allianceData = JsonConvert.DeserializeObject<AllianceData>(responceMessage);
+            //    }
+            //    catch (HttpRequestException ex)
+            //    {
+            //        await Client_Log(new LogMessage(LogSeverity.Error, "char", ex.Message, ex));
+            //    }
 
-                var alliance = allianceData.Alliance_name ?? "None";
+            //    var alliance = allianceData.Alliance_name ?? "None";
 
-                await channel.SendMessageAsync($"```Name: {characterData.Name}{Environment.NewLine}" +
-                    $"DOB: {characterData.Birthday}{Environment.NewLine}{Environment.NewLine}" +
-                    $"Corporation Name: {corporationData.Corporation_name}{Environment.NewLine}" +
-                    $"Alliance Name: {alliance}{Environment.NewLine}{Environment.NewLine}" +
-                    $"Last System: {systemData.Name}{Environment.NewLine}" +
-                    $"Last Ship: {lastShip.Name}{Environment.NewLine}" +
-                    $"Last Seen: {lastSeen}{Environment.NewLine}```" +
-                    $"ZKill: https://zkillboard.com/character/{characterID.Character[0]}/");
-            }
+            //    await channel.SendMessageAsync($"```Name: {characterData.Name}{Environment.NewLine}" +
+            //        $"DOB: {characterData.Birthday}{Environment.NewLine}{Environment.NewLine}" +
+            //        $"Corporation Name: {corporationData.Corporation_name}{Environment.NewLine}" +
+            //        $"Alliance Name: {alliance}{Environment.NewLine}{Environment.NewLine}" +
+            //        $"Last System: {systemData.Name}{Environment.NewLine}" +
+            //        $"Last Ship: {lastShip.Name}{Environment.NewLine}" +
+            //        $"Last Seen: {lastSeen}{Environment.NewLine}```" +
+            //        $"ZKill: https://zkillboard.com/character/{characterID.Character[0]}/");
+            //}
 
             await Task.CompletedTask;
         }
@@ -2370,35 +2388,35 @@ namespace Opux
         #region Corp
         internal async static Task Corp(ICommandContext context, string x)
         {
-            var channel = context.Channel;
-            var responceMessage = await Program._httpClient.GetStringAsync(
-                $"https://esi.tech.ccp.is/latest/search/?categories=corporation&datasource=tranquility&language=en-us&search={x}&strict=true");
-            var corpContent = JsonConvert.DeserializeObject<CorporationSearch>(responceMessage);
-            if (corpContent.Corporation == null)
-            {
-                await channel.SendMessageAsync($"{context.User.Mention}, Corp not found please try again");
-            }
-            else
-            {
-                responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/corporations/{corpContent.Corporation[0]}/?datasource=tranquility");
-                var CorpDetailsContent = JsonConvert.DeserializeObject<CorporationData>(responceMessage);
-                responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/characters/{CorpDetailsContent.Ceo_id}/?datasource=tranquility");
-                var CEONameContent = JsonConvert.DeserializeObject<CharacterData>(responceMessage);
-                var alliance = "None";
-                if (CorpDetailsContent.Alliance_id != -1)
-                {
-                    responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/alliances/{CorpDetailsContent.Alliance_id}/?datasource=tranquility");
-                    var allyContent = JsonConvert.DeserializeObject<AllianceData>(responceMessage);
-                    alliance = allyContent.Alliance_name;
-                }
+            //var channel = context.Channel;
+            //var responceMessage = await Program._httpClient.GetStringAsync(
+            //    $"https://esi.tech.ccp.is/latest/search/?categories=corporation&datasource=tranquility&language=en-us&search={x}&strict=true");
+            //var corpContent = JsonConvert.DeserializeObject<CorporationSearch>(responceMessage);
+            //if (corpContent == null)
+            //{
+            //    await channel.SendMessageAsync($"{context.User.Mention}, Corp not found please try again");
+            //}
+            //else
+            //{
+            //    responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/corporations/{corpContent.Corporation[0]}/?datasource=tranquility");
+            //    var CorpDetailsContent = JsonConvert.DeserializeObject<CorporationData>(responceMessage);
+            //    responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/characters/{CorpDetailsContent.Ceo_id}/?datasource=tranquility");
+            //    var CEONameContent = JsonConvert.DeserializeObject<CharacterData>(responceMessage);
+            //    var alliance = "None";
+            //    if (CorpDetailsContent.Alliance_id != -1)
+            //    {
+            //        responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/alliances/{CorpDetailsContent.Alliance_id}/?datasource=tranquility");
+            //        var allyContent = JsonConvert.DeserializeObject<AllianceData>(responceMessage);
+            //        alliance = allyContent.alliance_name;
+            //    }
 
-                await channel.SendMessageAsync($"```Corp Name: {CorpDetailsContent.Corporation_name}{Environment.NewLine}" +
-                        $"Corp Ticker: {CorpDetailsContent.Ticker}{Environment.NewLine}" +
-                        $"CEO: {CEONameContent.Name}{Environment.NewLine}" +
-                        $"Alliance Name: {alliance}{Environment.NewLine}" +
-                        $"Member Count: {CorpDetailsContent.Member_count}{Environment.NewLine}```" +
-                        $"ZKill: https://zkillboard.com/corporation/{corpContent.Corporation[0]}/");
-            }
+            //    await channel.SendMessageAsync($"```Corp Name: {CorpDetailsContent.Corporation_name}{Environment.NewLine}" +
+            //            $"Corp Ticker: {CorpDetailsContent.Ticker}{Environment.NewLine}" +
+            //            $"CEO: {CEONameContent.Name}{Environment.NewLine}" +
+            //            $"Alliance Name: {alliance}{Environment.NewLine}" +
+            //            $"Member Count: {CorpDetailsContent.Member_count}{Environment.NewLine}```" +
+            //            $"ZKill: https://zkillboard.com/corporation/{corpContent.Corporation[0]}/");
+            //}
 
             await Task.CompletedTask;
         }
