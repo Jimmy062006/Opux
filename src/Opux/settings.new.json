@@ -5,10 +5,10 @@
     "token": "",
     "WS4NetProvider": false,
     "connstring": "datasource=localhost;port=3306;username=discord;password=password;database=discord;",
-    "commandprefix": "!", //Single Character only
+    "commandprefix": "!",
     "logchan": 0,
     "guildId": 0,
-    "loglevel": "Info", //Critical/Warning/Info/Verbose/Debug DEFAULT = Info
+    "loglevel": "Info",
     "authCheck": false,
     "authWeb": false,
     "killFeed": false,
@@ -17,10 +17,10 @@
     "jabber": false,
     "timeformat": "yyyy/MM/dd/ HH:mm:ss",
     "MOTD": false,
-    "updatetopic": false, // MOTD must also be enabled, updated a selected channel's topic with MOTD.
-    "restricted": 0, //Channel the bot will not be allowed to post MOTD and other opsec information.
+    "updatetopic": false,
+    "restricted": 0,
     "notificationFeed": false,
-    "authInterval": "30", //In Minuets
+    "authInterval": "30",
     "adminRoles": {
       "Admin": null
     }
@@ -29,9 +29,9 @@
     "bigKill": 0,
     "bigkillchannel": 0,
     "losses": true,
-    "reDisqID": "", //Set this to a unique string ID if using multiple on one PC
+    "reDisqID": "",
     "radius": 0,
-    "radiusChannel": 0, //Channel ID
+    "radiusChannel": 0,
     "radiusSystem": "Jita",
     "groupsConfig": {
       "group1": {
@@ -47,12 +47,12 @@
     }
   },
   "auth": {
-    "url": "https://discord.gg/XXXXXX", //Discord Invite URL
-    "port": 80, //Port for WebServer
+    "url": "https://discord.gg/XXXXXX",
+    "port": 80,
     "authurl": "http://DOMAIN/IP",
-    "callbackurl": "http://DOMAIN/IP/callback.php", //Callback URL for EVE Dev App
-    "client_id": "", //Client ID from EVE Dev App
-    "secret": "", //Secret From EVE Dev App
+    "callbackurl": "http://DOMAIN/IP/callback.php",
+    "client_id": "",
+    "secret": "",
     "exempt": {
       "Role1": null,
       "Role2": null
@@ -72,48 +72,46 @@
   "notifications": {
     "channelID": 0,
     "keys": {
-      "key1": { //make sure the name is unique
+      "key1": {
         "characterID": "",
         "keyID": "",
         "vCode": ""
-      } //,//DO NOT LEAVE EMPTY KEY SECTIONS UNCOMMENT TO USE
-      //"key1": {
-      //"characterID": ""
-      //  "keyID": "",
-      //  "vCode": ""
-      //}
+      }
     },
     "filters": {
-      "1": 0 //Notification ID and Channel ID
-    },
-    "motd": {
-      "motdkeyID": "",
-      "motdvCode": "",
-      "motdcharid": "",
-      "motdtopicchan": 0,
-      "topicInterval": "30", //In Minutes
-      "MOTDChan": "" //CaSe SenSiTive.
-    },
-    "fleetup": {
-      "UserId": "",
-      "APICode": "",
-      "GroupID": "",
-      "channel": 0,
-      "announce_post": true,
-      "announce": [ 5, 60 ] //This will notify at 5 mins and 60 mins and also when the op is due by default
-    },
-    "jabber": {
-      "domain": "example.com",
-      "username": "username",
-      "password": "password",
-      "filter": false,
-      "debug": false,
-      "defchan": "0000000000000",
-      "filters": {
-        "SUPER": "0000000000000", //Filter - Channel ID
-        "BLOPS": "0000000000000" //Filter - Channel ID
-      },
-      "prepend": "@here"
+      "1": 0
     }
+  },
+  "motd": {
+    "motdkeyID": "",
+    "motdvCode": "",
+    "motdcharid": "",
+    "motdtopicchan": 0,
+    "topicInterval": "30",
+    "MOTDChan": ""
+  },
+  "fleetup": {
+    "UserId": "",
+    "APICode": "",
+    "GroupID": "",
+    "channel": 0,
+    "announce_post": true,
+    "announce": [
+      5,
+      60
+    ]
+  },
+  "jabber": {
+    "domain": "example.com",
+    "username": "username",
+    "password": "password",
+    "filter": false,
+    "debug": false,
+    "defchan": "0000000000000",
+    "filters": {
+      "SUPER": "0000000000000",
+      "BLOPS": "0000000000000"
+    },
+    "prepend": "@here"
   }
 }
