@@ -15,6 +15,12 @@ namespace Opux
             public int[] Inventorytype { get; set; }
         }
 
+
+        public class CorpIDLookup
+        {
+            public int[] corporation { get; set; }
+        }
+
         public class CharacterData
         {
             public int Corporation_id { get; set; }
@@ -230,6 +236,38 @@ namespace Opux
             public int[] System { get; set; }
         }
 
+
+        public class SystemData
+        {
+            public int star_id { get; set; }
+            public int system_id { get; set; }
+            public string name { get; set; }
+            public Position position { get; set; }
+            public float security_status { get; set; }
+            public int constellation_id { get; set; }
+            public Planet[] planets { get; set; }
+            public string security_class { get; set; }
+            public int[] stargates { get; set; }
+            public int[] stations { get; set; }
+        }
+
+        public class ShipType
+        {
+            public int type_id { get; set; }
+            public string name { get; set; }
+            public string description { get; set; }
+            public bool published { get; set; }
+            public int group_id { get; set; }
+            public float radius { get; set; }
+            public float volume { get; set; }
+            public float capacity { get; set; }
+            public int portion_size { get; set; }
+            public float mass { get; set; }
+            public int graphic_id { get; set; }
+            public Dogma_Attributes[] dogma_attributes { get; set; }
+            public Dogma_Effects[] dogma_effects { get; set; }
+        }
+
         //Fleetup
 
         public class Fleetupapi
@@ -331,11 +369,6 @@ namespace Opux
         }
 
         public class Kill
-        {
-            public Class1[] Property1 { get; set; }
-        }
-
-        public class Class1
         {
             public int killmail_id { get; set; }
             public DateTime killmail_time { get; set; }
