@@ -866,7 +866,7 @@ namespace Opux
                         var characterData = JsonConvert.DeserializeObject<CharacterData>(await responceMessage.Content.ReadAsStringAsync());
                         if (characterData == null)
                         {
-                            await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential characterData ESI Failure for {u.Nickname}"));
+                            await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential characterData {responceMessage.StatusCode} ESI Failure for {u.Nickname}"));
                             continue;
                         }
 
@@ -874,7 +874,7 @@ namespace Opux
                         var corporationData = JsonConvert.DeserializeObject<CorporationData>(await responceMessage.Content.ReadAsStringAsync());
                         if (corporationData == null)
                         {
-                            await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential corpData ESI Failure for {u.Nickname}"));
+                            await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential corpData {responceMessage.StatusCode} ESI Failure for {u.Nickname}"));
                             continue;
                         }
 
@@ -882,7 +882,7 @@ namespace Opux
                         var allianceData = JsonConvert.DeserializeObject<AllianceData>(await responceMessage.Content.ReadAsStringAsync());
                         if (characterData.Alliance_id == -1 && corporationData.Alliance_id >= 0)
                         {
-                            await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential allianceData ESI Failure for {u.Nickname}"));
+                            await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential allianceData {responceMessage.StatusCode} ESI Failure for {u.Nickname}"));
                             continue;
                         }
 
