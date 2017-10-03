@@ -880,7 +880,7 @@ namespace Opux
 
                         responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.Alliance_id}/?datasource=tranquility");
                         var allianceData = JsonConvert.DeserializeObject<AllianceData>(await responceMessage.Content.ReadAsStringAsync());
-                        if (characterData.Alliance_id == -1 && corporationData.Alliance_id != 0)
+                        if (characterData.Alliance_id == -1 && corporationData.Alliance_id >= 0)
                         {
                             await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential allianceData ESI Failure for {u.Nickname}"));
                             continue;
