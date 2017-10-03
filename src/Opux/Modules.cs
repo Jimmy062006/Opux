@@ -15,7 +15,7 @@ namespace Opux
         public async Task Help()
         {
             var userInfo = Context.Message.Author;
-            await ReplyAsync($"{userInfo.Mention}, Here is a list of plugins available, **!help | !about | !char | !corp | !jita | !amarr | !dodixe | !rens | !pc**");
+            await ReplyAsync($"{userInfo.Mention}, Here is a list of plugins available, **!help | !about | !char | !corp | !jita | !amarr | !dodixie | !rens | !pc**");
         }
 
         /// <summary>
