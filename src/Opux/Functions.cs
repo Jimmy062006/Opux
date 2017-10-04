@@ -174,10 +174,15 @@ namespace Opux
             }
         }
 
-        internal static Task Ready()
+        internal static async Task Ready()
         {
             _avaliable = true;
-            return Task.CompletedTask;
+
+            await Program.Client.GetGuild(Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]))
+                .CurrentUser.ModifyAsync(x => x.Nickname = Program.Settings.GetSection("config")["name"]);
+            await Program.Client.SetGameAsync(Program.Settings.GetSection("config")["game"]);
+
+            await Task.CompletedTask;
         }
         #endregion
 
