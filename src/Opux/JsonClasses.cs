@@ -156,7 +156,7 @@ namespace Opux
         public class Buy
         {
             public Forquery ForQuery { get; set; }
-            public int Volume { get; set; }
+            public Int64 Volume { get; set; }
             public float Wavg { get; set; }
             public float Avg { get; set; }
             public float Variance { get; set; }
@@ -208,7 +208,7 @@ namespace Opux
         public class Sell
         {
             public Forquery2 ForQuery { get; set; }
-            public int Volume { get; set; }
+            public Int64 Volume { get; set; }
             public float Wavg { get; set; }
             public float Avg { get; set; }
             public float Variance { get; set; }
