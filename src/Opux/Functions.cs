@@ -1804,11 +1804,11 @@ namespace Opux
                 String = "Item Name";
             }
 
-            var result = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/search/?categories=inventorytype&datasource=tranquility&language=en-us&search={String}&strict=true");
+            var result = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/search/?categories=inventorytype&datasource=tranquility&language=en-us&search={String}&strict=true");
 
-            var searchResults = JsonConvert.DeserializeObject<SearchInventoryType>(result);
+            var searchResults = JsonConvert.DeserializeObject<SearchInventoryType>(await result.Content.ReadAsStringAsync());
 
-            if (string.IsNullOrWhiteSpace(searchResults.Inventorytype.ToString()))
+            if (searchResults.Inventorytype == null || string.IsNullOrWhiteSpace(searchResults.Inventorytype.ToString()))
             {
                 await channel.SendMessageAsync($"{context.Message.Author.Mention} Item {String} does not exist please try again");
 
