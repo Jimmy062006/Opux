@@ -197,8 +197,7 @@ namespace Opux
             var secret = Program.Settings.GetSection("auth")["secret"];
             var url = Program.Settings.GetSection("auth")["url"];
             var port = Convert.ToInt32(Program.Settings.GetSection("auth")["port"]);
-
-
+            var ESIFailure = false;
 
             if (listener == null || !listener.IsListening)
             {
@@ -381,11 +380,15 @@ namespace Opux
                                     JObject allianceDetails;
 
                                     var _characterDetails = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{CharacterID}");
+                                    if (!_characterDetails.IsSuccessStatusCode)
+                                        ESIFailure = true;
                                     var _characterDetailsContent = _characterDetails.Content;
 
                                     characterDetails = JObject.Parse(await _characterDetailsContent.ReadAsStringAsync());
                                     characterDetails.TryGetValue("corporation_id", out JToken corporationid);
                                     var _corporationDetails = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corporationid}");
+                                    if (!_corporationDetails.IsSuccessStatusCode)
+                                        ESIFailure = true;
                                     var _corporationDetailsContent = _corporationDetails.Content;
                                     {
                                         corporationDetails = JObject.Parse(await _corporationDetailsContent.ReadAsStringAsync());
@@ -397,6 +400,8 @@ namespace Opux
                                         if (allianceID != "0")
                                         {
                                             var _allianceDetails = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{allianceid}");
+                                            if (!_allianceDetails.IsSuccessStatusCode)
+                                                ESIFailure = true;
                                             var _allianceDetailsContent = _allianceDetails.Content;
 
                                             allianceDetails = JObject.Parse(await _allianceDetailsContent.ReadAsStringAsync());
@@ -413,7 +418,7 @@ namespace Opux
                                             add = true;
                                         }
 
-                                        if (add && (string)JObject.Parse(responseString)["error"] != "invalid_request" && (string)JObject.Parse(verifyString)["error"] != "invalid_token")
+                                        if (!ESIFailure && add && (string)JObject.Parse(responseString)["error"] != "invalid_request" && (string)JObject.Parse(verifyString)["error"] != "invalid_token")
                                         {
                                             var characterID = CharacterID;
                                             characterDetails.TryGetValue("corporation_id", out corporationid);
@@ -524,13 +529,112 @@ namespace Opux
                                                 "</body>" +
                                                 "</html>");
                                         }
-                                        else
+                                        else if (!ESIFailure)
                                         {
                                             var message = "ERROR";
                                             if (!add)
                                             {
                                                 message = "You are not Corp/Alliance or Blue";
                                             }
+                                            await response.WriteContentAsync("<!doctype html>" +
+                                               "<html>" +
+                                               "<head>" +
+                                               "    <title>Discord Authenticator</title>" +
+                                               "    <meta name=\"viewport\" content=\"width=device-width\">" +
+                                               "    <link rel=\"stylesheet\" href=\"https://djyhxgczejc94.cloudfront.net/frameworks/bootstrap/3.0.0/themes/cirrus/bootstrap.min.css\">" +
+                                               "    <script type=\"text/javascript\" src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js\"></script>" +
+                                               "    <script type=\"text/javascript\" src=\"https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js\"></script>" +
+                                               "    <style type=\"text/css\">" +
+                                               "        /* Space out content a bit */" +
+                                               "        body {" +
+                                               "            padding-top: 20px;" +
+                                               "            padding-bottom: 20px;" +
+                                               "        }" +
+                                               "        /* Everything but the jumbotron gets side spacing for mobile first views */" +
+                                               "        .header, .marketing, .footer {" +
+                                               "            padding-left: 15px;" +
+                                               "            padding-right: 15px;" +
+                                               "        }" +
+                                               "        /* Custom page header */" +
+                                               "        .header {" +
+                                               "            border-bottom: 1px solid #e5e5e5;" +
+                                               "        }" +
+                                               "        /* Make the masthead heading the same height as the navigation */" +
+                                               "        .header h3 {" +
+                                               "            margin-top: 0;" +
+                                               "            margin-bottom: 0;" +
+                                               "            line-height: 40px;" +
+                                               "            padding-bottom: 19px;" +
+                                               "        }" +
+                                               "        /* Custom page footer */" +
+                                               "        .footer {" +
+                                               "            padding-top: 19px;" +
+                                               "            color: #777;" +
+                                               "            border-top: 1px solid #e5e5e5;" +
+                                               "        }" +
+                                               "        /* Customize container */" +
+                                               "        @media(min-width: 768px) {" +
+                                               "            .container {" +
+                                               "                max-width: 730px;" +
+                                               "            }" +
+                                               "        }" +
+                                               "        .container-narrow > hr {" +
+                                               "            margin: 30px 0;" +
+                                               "        }" +
+                                               "        /* Main marketing message and sign up button */" +
+                                               "        .jumbotron {" +
+                                               "            text-align: center;" +
+                                               "            border-bottom: 1px solid #e5e5e5;" +
+                                               "            color: #0D191D;" +
+                                               "        }" +
+                                               "        .jumbotron .btn {" +
+                                               "            font-size: 21px;" +
+                                               "            padding: 14px 24px;" +
+                                               "        }" +
+                                               "        /* Supporting marketing content */" +
+                                               "        .marketing {" +
+                                               "            margin: 40px 0;" +
+                                               "        }" +
+                                               "        .marketing p + h4 {" +
+                                               "            margin-top: 28px;" +
+                                               "        }" +
+                                               "        /* Responsive: Portrait tablets and up */" +
+                                               "        @media screen and(min-width: 768px) {" +
+                                               "            /* Remove the padding we set earlier */" +
+                                               "            .header, .marketing, .footer {" +
+                                               "                padding-left: 0;" +
+                                               "                padding-right: 0;" +
+                                               "            }" +
+                                               "            /* Space out the masthead */" +
+                                               "            .header {" +
+                                               "                margin-bottom: 30px;" +
+                                               "            }" +
+                                               "            /* Remove the bottom border on the jumbotron for visual effect */" +
+                                               "            .jumbotron {" +
+                                               "                border-bottom: 0;" +
+                                               "            }" +
+                                               "        }" +
+                                               "    </style>" +
+                                               "</head>" +
+                                               "<body>" +
+                                               "<div class=\"container\">" +
+                                               "    <div class=\"header\">" +
+                                               "        <ul class=\"nav nav-pills pull-right\"></ul>" +
+                                               "    </div>" +
+                                               "    <div class=\"jumbotron\">" +
+                                               "        <h1>Discord</h1>" +
+                                               "        <p class=\"lead\">Sign in ERROR.</p>" +
+                                               "        <p>" + message + "</p>" +
+                                               "    </div>" +
+                                               "</div>" +
+                                               "<!-- /container -->" +
+                                               "</body>" +
+                                               "</html>");
+                                        }
+                                        else if (ESIFailure)
+                                        {
+                                            var message = "ESI Failure, Please try again later";
+
                                             await response.WriteContentAsync("<!doctype html>" +
                                                "<html>" +
                                                "<head>" +
@@ -639,7 +743,6 @@ namespace Opux
                     {
                         response.MethodNotAllowed();
                     }
-                    // Close the HttpResponse to send it back to the client.
                     response.Close();
                 };
                 listener.Start();
@@ -665,6 +768,7 @@ namespace Opux
         {
             try
             {
+                var ESIFailed = false;
                 var query = $"SELECT * FROM pendingUsers WHERE authString=\"{remainder}\"";
                 var responce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query);
                 if (responce.Count() == 0)
@@ -704,12 +808,24 @@ namespace Opux
 
                     var responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{characterID}/?datasource=tranquility");
                     var characterData = JsonConvert.DeserializeObject<CharacterData>(await responceMessage.Content.ReadAsStringAsync());
+                    if (!responceMessage.IsSuccessStatusCode)
+                    {
+                        ESIFailed = true;
+                    }
 
                     responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.Corporation_id}/?datasource=tranquility");
                     var corporationData = JsonConvert.DeserializeObject<CorporationData>(await responceMessage.Content.ReadAsStringAsync());
+                    if (!responceMessage.IsSuccessStatusCode)
+                    {
+                        ESIFailed = true;
+                    }
 
                     responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.Alliance_id}/?datasource=tranquility");
                     var allianceData = JsonConvert.DeserializeObject<AllianceData>(await responceMessage.Content.ReadAsStringAsync());
+                    if (!responceMessage.IsSuccessStatusCode)
+                    {
+                        ESIFailed = true;
+                    }
 
                     var allianceID = (corporationData.Alliance_id.ToString() == "" ? "0" : corporationData.Alliance_id.ToString());
                     var corpID = (characterData.Corporation_id.ToString() == "" ? "0" : characterData.Corporation_id.ToString());
@@ -725,7 +841,7 @@ namespace Opux
                         enable = true;
                     }
 
-                    if (enable)
+                    if (enable && !ESIFailed)
                     {
                         var rolesToAdd = new List<SocketRole>();
                         var rolesToTake = new List<SocketRole>();
@@ -805,6 +921,11 @@ namespace Opux
                             await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Failed adding Roles to User {characterData.Name}, Reason: {ex.Message}", ex));
                         }
                     }
+                    else
+                    {
+                        await context.Channel.SendMessageAsync($"ESI Failure please try again later");
+                        await Client_Log(new LogMessage(LogSeverity.Error, "authUser", "ESI Failure"));
+                    }
                 }
             }
             catch (Exception ex)
@@ -869,7 +990,7 @@ namespace Opux
 
                         var responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{characterID}/?datasource=tranquility");
                         var characterData = JsonConvert.DeserializeObject<CharacterData>(await responceMessage.Content.ReadAsStringAsync());
-                        if (characterData == null)
+                        if (!responceMessage.IsSuccessStatusCode || characterData == null)
                         {
                             await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential characterData {responceMessage.StatusCode} ESI Failure for {u.Nickname}"));
                             continue;
@@ -877,7 +998,7 @@ namespace Opux
 
                         responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.Corporation_id}/?datasource=tranquility");
                         var corporationData = JsonConvert.DeserializeObject<CorporationData>(await responceMessage.Content.ReadAsStringAsync());
-                        if (corporationData == null)
+                        if (!responceMessage.IsSuccessStatusCode || corporationData == null)
                         {
                             await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential corpData {responceMessage.StatusCode} ESI Failure for {u.Nickname}"));
                             continue;
@@ -885,7 +1006,7 @@ namespace Opux
 
                         responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.Alliance_id}/?datasource=tranquility");
                         var allianceData = JsonConvert.DeserializeObject<AllianceData>(await responceMessage.Content.ReadAsStringAsync());
-                        if (characterData.Alliance_id == -1 && corporationData.Alliance_id >= 0)
+                        if (!responceMessage.IsSuccessStatusCode || characterData.Alliance_id == -1 && corporationData.Alliance_id >= 0)
                         {
                             await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential allianceData {responceMessage.StatusCode} ESI Failure for {u.Nickname}"));
                             continue;
@@ -1796,113 +1917,124 @@ namespace Opux
         #region Pricecheck
         internal async static Task PriceCheck(ICommandContext context, string String, string system)
         {
-            //var NametoId = "https://esi.tech.ccp.is/latest/search/?categories=inventorytype&datasource=tranquility&language=en-us&search=Plex&strict=true";
-
             var channel = context.Message.Channel;
             if (String.ToLower() == "short name")
             {
                 String = "Item Name";
             }
 
-            var result = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/search/?categories=inventorytype&datasource=tranquility&language=en-us&search={String}&strict=true");
-
-            var searchResults = JsonConvert.DeserializeObject<SearchInventoryType>(await result.Content.ReadAsStringAsync());
-
-            if (searchResults.Inventorytype == null || string.IsNullOrWhiteSpace(searchResults.Inventorytype.ToString()))
+            try
             {
-                await channel.SendMessageAsync($"{context.Message.Author.Mention} Item {String} does not exist please try again");
+                var result = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/search/?categories=inventorytype&datasource=tranquility&language=en-us&search={String}&strict=true");
 
+                if (!result.IsSuccessStatusCode)
+                {
+                    await channel.SendMessageAsync($"{context.Message.Author.Mention} ESI Failure please try again later");
+                    await Task.CompletedTask;
+                }
+
+                var searchResults = JsonConvert.DeserializeObject<SearchInventoryType>(await result.Content.ReadAsStringAsync());
+
+                if (searchResults.Inventorytype == null || string.IsNullOrWhiteSpace(searchResults.Inventorytype.ToString()))
+                {
+                    await channel.SendMessageAsync($"{context.Message.Author.Mention} Item {String} does not exist please try again");
+                }
+                else
+                {
+                    try
+                    {
+                        var url = "https://api.evemarketer.com/ec";
+                        if (system == "")
+                        {
+                            var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.Inventorytype[0]}");
+                            var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
+                            await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
+                            await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Universe**{Environment.NewLine}" +
+                                $"**Buy:**{Environment.NewLine}" +
+                                $"```Low: {centralreply.Buy.Min:n2}{Environment.NewLine}" +
+                                $"Avg: {centralreply.Buy.Avg:n2}{Environment.NewLine}" +
+                                $"High: {centralreply.Buy.Max:n2}```" +
+                                $"{Environment.NewLine}" +
+                                $"**Sell**:{Environment.NewLine}" +
+                                $"```Low: {centralreply.Sell.Min:n2}{Environment.NewLine}" +
+                                $"Avg: {centralreply.Sell.Avg:n2}{Environment.NewLine}" +
+                                $"High: {centralreply.Sell.Max:n2}```");
+                        }
+                        if (system == "jita")
+                        {
+                            var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.Inventorytype[0]}&usesystem=30000142");
+                            var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
+                            await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
+                            await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Jita**{Environment.NewLine}" +
+                                $"**Buy:**{Environment.NewLine}" +
+                                $"```Low: {centralreply.Buy.Min:n2}{Environment.NewLine}" +
+                                $"Avg: {centralreply.Buy.Avg:n2}{Environment.NewLine}" +
+                                $"High: {centralreply.Buy.Max:n2}```" +
+                                $"{Environment.NewLine}" +
+                                $"**Sell**:{Environment.NewLine}" +
+                                $"```Low: {centralreply.Sell.Min:n2}{Environment.NewLine}" +
+                                $"Avg: {centralreply.Sell.Avg:n2}{Environment.NewLine}" +
+                                $"High: {centralreply.Sell.Max:n2}```");
+                        }
+                        if (system == "amarr")
+                        {
+                            var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.Inventorytype[0]}&usesystem=30002187");
+                            var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
+                            await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
+                            await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Amarr**{Environment.NewLine}" +
+                                $"**Buy:**{Environment.NewLine}" +
+                                $"```Low: {centralreply.Buy.Min:n2}{Environment.NewLine}" +
+                                $"Avg: {centralreply.Buy.Avg:n2}{Environment.NewLine}" +
+                                $"High: {centralreply.Buy.Max:n2}```" +
+                                $"{Environment.NewLine}" +
+                                $"**Sell**:{Environment.NewLine}" +
+                                $"```Low: {centralreply.Sell.Min:n2}{Environment.NewLine}" +
+                                $"Avg: {centralreply.Sell.Avg:n2}{Environment.NewLine}" +
+                                $"High: {centralreply.Sell.Max:n2}```");
+                        }
+                        if (system == "rens")
+                        {
+                            var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.Inventorytype[0]}&usesystem=30002510");
+                            var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
+                            await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
+                            await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Rens**{Environment.NewLine}" +
+                                $"**Buy:**{Environment.NewLine}" +
+                                $"```Low: {centralreply.Buy.Min:n2}{Environment.NewLine}" +
+                                $"Avg: {centralreply.Buy.Avg:n2}{Environment.NewLine}" +
+                                $"High: {centralreply.Buy.Max:n2}```" +
+                                $"{Environment.NewLine}" +
+                                $"**Sell**:{Environment.NewLine}" +
+                                $"```Low: {centralreply.Sell.Min:n2}{Environment.NewLine}" +
+                                $"Avg: {centralreply.Sell.Avg:n2}{Environment.NewLine}" +
+                                $"High: {centralreply.Sell.Max:n2}```");
+                        }
+                        if (system == "dodixie")
+                        {
+                            var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.Inventorytype[0]}&usesystem=30002659");
+                            var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
+                            await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
+                            await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Dodixie**{Environment.NewLine}" +
+                                $"**Buy:**{Environment.NewLine}" +
+                                $"```Low: {centralreply.Buy.Min:n2}{Environment.NewLine}" +
+                                $"Avg: {centralreply.Buy.Avg:n2}{Environment.NewLine}" +
+                                $"High: {centralreply.Buy.Max:n2}```" +
+                                $"{Environment.NewLine}" +
+                                $"**Sell**:{Environment.NewLine}" +
+                                $"```Low: {centralreply.Sell.Min:n2}{Environment.NewLine}" +
+                                $"Avg: {centralreply.Sell.Avg:n2}{Environment.NewLine}" +
+                                $"High: {centralreply.Sell.Max:n2}```");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        await Client_Log(new LogMessage(LogSeverity.Error, "PC", ex.Message, ex));
+                    }
+                }
             }
-            else
+            catch (Exception ex)
             {
-                try
-                {
-                    var url = "https://api.evemarketer.com/ec";
-                    if (system == "")
-                    {
-                        var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.Inventorytype[0]}");
-                        var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
-                        await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
-                        await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Universe**{Environment.NewLine}" +
-                            $"**Buy:**{Environment.NewLine}" +
-                            $"```Low: {centralreply.Buy.Min :n2}{Environment.NewLine}" +
-                            $"Avg: {centralreply.Buy.Avg:n2}{Environment.NewLine}" +
-                            $"High: {centralreply.Buy.Max:n2}```" +
-                            $"{Environment.NewLine}" +
-                            $"**Sell**:{Environment.NewLine}" +
-                            $"```Low: {centralreply.Sell.Min:n2}{Environment.NewLine}" +
-                            $"Avg: {centralreply.Sell.Avg:n2}{Environment.NewLine}" +
-                            $"High: {centralreply.Sell.Max:n2}```");
-                    }
-                    if (system == "jita")
-                    {
-                        var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.Inventorytype[0]}&usesystem=30000142");
-                        var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
-                        await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
-                        await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Jita**{Environment.NewLine}" +
-                            $"**Buy:**{Environment.NewLine}" +
-                            $"```Low: {centralreply.Buy.Min:n2}{Environment.NewLine}" +
-                            $"Avg: {centralreply.Buy.Avg:n2}{Environment.NewLine}" +
-                            $"High: {centralreply.Buy.Max:n2}```" +
-                            $"{Environment.NewLine}" +
-                            $"**Sell**:{Environment.NewLine}" +
-                            $"```Low: {centralreply.Sell.Min:n2}{Environment.NewLine}" +
-                            $"Avg: {centralreply.Sell.Avg:n2}{Environment.NewLine}" +
-                            $"High: {centralreply.Sell.Max:n2}```");
-                    }
-                    if (system == "amarr")
-                    {
-                        var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.Inventorytype[0]}&usesystem=30002187");
-                        var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
-                        await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
-                        await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Amarr**{Environment.NewLine}" +
-                            $"**Buy:**{Environment.NewLine}" +
-                            $"```Low: {centralreply.Buy.Min:n2}{Environment.NewLine}" +
-                            $"Avg: {centralreply.Buy.Avg:n2}{Environment.NewLine}" +
-                            $"High: {centralreply.Buy.Max:n2}```" +
-                            $"{Environment.NewLine}" +
-                            $"**Sell**:{Environment.NewLine}" +
-                            $"```Low: {centralreply.Sell.Min:n2}{Environment.NewLine}" +
-                            $"Avg: {centralreply.Sell.Avg:n2}{Environment.NewLine}" +
-                            $"High: {centralreply.Sell.Max:n2}```");
-                    }
-                    if (system == "rens")
-                    {
-                        var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.Inventorytype[0]}&usesystem=30002510");
-                        var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
-                        await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
-                        await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Rens**{Environment.NewLine}" +
-                            $"**Buy:**{Environment.NewLine}" +
-                            $"```Low: {centralreply.Buy.Min:n2}{Environment.NewLine}" +
-                            $"Avg: {centralreply.Buy.Avg:n2}{Environment.NewLine}" +
-                            $"High: {centralreply.Buy.Max:n2}```" +
-                            $"{Environment.NewLine}" +
-                            $"**Sell**:{Environment.NewLine}" +
-                            $"```Low: {centralreply.Sell.Min:n2}{Environment.NewLine}" +
-                            $"Avg: {centralreply.Sell.Avg:n2}{Environment.NewLine}" +
-                            $"High: {centralreply.Sell.Max:n2}```");
-                    }
-                    if (system == "dodixie")
-                    {
-                        var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.Inventorytype[0]}&usesystem=30002659");
-                        var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
-                        await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
-                        await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Dodixie**{Environment.NewLine}" +
-                            $"**Buy:**{Environment.NewLine}" +
-                            $"```Low: {centralreply.Buy.Min:n2}{Environment.NewLine}" +
-                            $"Avg: {centralreply.Buy.Avg:n2}{Environment.NewLine}" +
-                            $"High: {centralreply.Buy.Max:n2}```" +
-                            $"{Environment.NewLine}" +
-                            $"**Sell**:{Environment.NewLine}" +
-                            $"```Low: {centralreply.Sell.Min:n2}{Environment.NewLine}" +
-                            $"Avg: {centralreply.Sell.Avg:n2}{Environment.NewLine}" +
-                            $"High: {centralreply.Sell.Max:n2}```");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    await Client_Log(new LogMessage(LogSeverity.Error, "PC", ex.Message, ex));
-                }
+                await channel.SendMessageAsync($"{context.Message.Author.Mention}, ERROR Please inform Discord/Bot Owner");
+                await Client_Log(new LogMessage(LogSeverity.Error, "PC", ex.Message, ex));
             }
         }
         #endregion
@@ -2054,48 +2186,15 @@ namespace Opux
                 var guildId = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
                 var lastopid = await SQLiteDataQuery("cacheData", "data", "fleetUpLastPostedOperation");
                 var announce_post = Convert.ToBoolean(Program.Settings.GetSection("fleetup")["announce_post"]);
+                var channel = Program.Client.GetGuild(guildId).GetTextChannel(channelid);
 
-                var Json = await Program._httpClient.GetStringAsync($"http://api.fleet-up.com/Api.svc/Ohigwbylcsuz56ue3O6Awlw5e/{UserId}/{APICode}/Operations/{GroupID}");
-                var result = JsonConvert.DeserializeObject<Fleetupapi>(Json);
-                foreach (var operation in result.Data)
+                var JsonContent = await Program._httpClient.GetAsync($"http://api.fleet-up.com/Api.svc/Ohigwbylcsuz56ue3O6Awlw5e/{UserId}/{APICode}/Operations/{GroupID}");
+                if (JsonContent.IsSuccessStatusCode)
                 {
-                    if (operation.OperationId > Convert.ToInt32(lastopid) && announce_post)
+                    var result = JsonConvert.DeserializeObject<Fleetupapi>(await JsonContent.Content.ReadAsStringAsync());
+                    foreach (var operation in result.Data)
                     {
-                        var name = operation.Subject;
-                        var startTime = operation.Start;
-                        var locationinfo = operation.LocationInfo;
-                        var location = operation.Location;
-                        var details = operation.Details;
-                        var url = $"http://fleet-up.com/Operation#{operation.OperationId}";
-
-                        var channel = Program.Client.GetGuild(guildId).GetTextChannel(channelid);
-
-                        var message = $"@everyone {Environment.NewLine}{Environment.NewLine}" +
-                            $"**New Operation Posted** {Environment.NewLine}{Environment.NewLine}" +
-                            $"```Title - {name} {Environment.NewLine}" +
-                            $"Form Up Time - {startTime.ToString(Program.Settings.GetSection("config")["timeformat"])} {Environment.NewLine}" +
-                            $"Form Up System - {location} - {locationinfo} {Environment.NewLine}" +
-                            $"Details - {details}{Environment.NewLine}" +
-                            $"```{Environment.NewLine}{url}";
-
-                        var sendres = await channel.SendMessageAsync(message);
-
-                        await sendres.AddReactionAsync(new Emoji("✅"));
-                        await sendres.AddReactionAsync(new Emoji("❔"));
-                        await sendres.AddReactionAsync(new Emoji("❌"));
-
-                        await SQLiteDataUpdate("cacheData", "data", "fleetUpLastPostedOperation", operation.OperationId.ToString());
-                    }
-
-                    var timeDiff = TimeSpan.FromTicks(operation.Start.Ticks - DateTime.UtcNow.Ticks);
-                    var array = Program.Settings.GetSection("fleetup").GetSection("announce").GetChildren().Select(x => x.Value).ToArray(); ;
-
-                    foreach (var i in array)
-                    {
-                        var epic1 = TimeSpan.FromMinutes(Convert.ToInt16(i));
-                        var epic2 = TimeSpan.FromMinutes(Convert.ToInt16(i) + 1);
-
-                        if (timeDiff >= epic1 && timeDiff <= epic2)
+                        if (operation.OperationId > Convert.ToInt32(lastopid) && announce_post)
                         {
                             var name = operation.Subject;
                             var startTime = operation.Start;
@@ -2104,10 +2203,8 @@ namespace Opux
                             var details = operation.Details;
                             var url = $"http://fleet-up.com/Operation#{operation.OperationId}";
 
-                            var channel = Program.Client.GetGuild(guildId).GetTextChannel(channelid);
-
                             var message = $"@everyone {Environment.NewLine}{Environment.NewLine}" +
-                                $"**FORMUP in {i} Minutes** {Environment.NewLine}{Environment.NewLine}" +
+                                $"**New Operation Posted** {Environment.NewLine}{Environment.NewLine}" +
                                 $"```Title - {name} {Environment.NewLine}" +
                                 $"Form Up Time - {startTime.ToString(Program.Settings.GetSection("config")["timeformat"])} {Environment.NewLine}" +
                                 $"Form Up System - {location} - {locationinfo} {Environment.NewLine}" +
@@ -2115,32 +2212,75 @@ namespace Opux
                                 $"```{Environment.NewLine}{url}";
 
                             var sendres = await channel.SendMessageAsync(message);
+
+                            await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup OP {name}({operation.OperationId}"));
+
+                            await sendres.AddReactionAsync(new Emoji("✅"));
+                            await sendres.AddReactionAsync(new Emoji("❔"));
+                            await sendres.AddReactionAsync(new Emoji("❌"));
+
+                            await SQLiteDataUpdate("cacheData", "data", "fleetUpLastPostedOperation", operation.OperationId.ToString());
+                        }
+
+                        var timeDiff = TimeSpan.FromTicks(operation.Start.Ticks - DateTime.UtcNow.Ticks);
+                        var array = Program.Settings.GetSection("fleetup").GetSection("announce").GetChildren().Select(x => x.Value).ToArray(); ;
+
+                        foreach (var i in array)
+                        {
+                            var epic1 = TimeSpan.FromMinutes(Convert.ToInt16(i));
+                            var epic2 = TimeSpan.FromMinutes(Convert.ToInt16(i) + 1);
+
+                            if (timeDiff >= epic1 && timeDiff <= epic2)
+                            {
+                                var name = operation.Subject;
+                                var startTime = operation.Start;
+                                var locationinfo = operation.LocationInfo;
+                                var location = operation.Location;
+                                var details = operation.Details;
+                                var url = $"http://fleet-up.com/Operation#{operation.OperationId}";
+
+                                var message = $"@everyone {Environment.NewLine}{Environment.NewLine}" +
+                                    $"**FORMUP in {i} Minutes** {Environment.NewLine}{Environment.NewLine}" +
+                                    $"```Title - {name} {Environment.NewLine}" +
+                                    $"Form Up Time - {startTime.ToString(Program.Settings.GetSection("config")["timeformat"])} {Environment.NewLine}" +
+                                    $"Form Up System - {location} - {locationinfo} {Environment.NewLine}" +
+                                    $"Details - {details}{Environment.NewLine}" +
+                                    $"```{Environment.NewLine}{url}";
+
+                                var sendres = await channel.SendMessageAsync(message);
+
+                                await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup Reminder {name}({operation.OperationId}"));
+                            }
+                        }
+
+                        if (timeDiff.TotalMinutes < 1 && timeDiff.TotalMinutes > 0)
+                        {
+                            var name = operation.Subject;
+                            var startTime = operation.Start;
+                            var locationinfo = operation.LocationInfo;
+                            var location = operation.Location;
+                            var details = operation.Details;
+                            var url = $"http://fleet-up.com/Operation#{operation.OperationId}";
+
+                            var message = $"@everyone {Environment.NewLine}{Environment.NewLine}" +
+                                $"**FORMUP NOW** {Environment.NewLine}{Environment.NewLine}" +
+                                $"```Title - {name} {Environment.NewLine}" +
+                                $"Form Up Time - {startTime.ToString(Program.Settings.GetSection("config")["timeformat"])} {Environment.NewLine}" +
+                                $"Form Up System - {location} - {locationinfo} {Environment.NewLine}" +
+                                $"Details - {details}{Environment.NewLine}" +
+                                $"```{Environment.NewLine}{url}";
+
+                            var sendres = await channel.SendMessageAsync(message);
+
+                            await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup FORMUP Now {name}({operation.OperationId}"));
                         }
                     }
-
-                    if (timeDiff.TotalMinutes < 1 && timeDiff.TotalMinutes > 0)
-                    {
-                        var name = operation.Subject;
-                        var startTime = operation.Start;
-                        var locationinfo = operation.LocationInfo;
-                        var location = operation.Location;
-                        var details = operation.Details;
-                        var url = $"http://fleet-up.com/Operation#{operation.OperationId}";
-
-                        var channel = Program.Client.GetGuild(guildId).GetTextChannel(channelid);
-
-                        var message = $"@everyone {Environment.NewLine}{Environment.NewLine}" +
-                            $"**FORMUP NOW** {Environment.NewLine}{Environment.NewLine}" +
-                            $"```Title - {name} {Environment.NewLine}" +
-                            $"Form Up Time - {startTime.ToString(Program.Settings.GetSection("config")["timeformat"])} {Environment.NewLine}" +
-                            $"Form Up System - {location} - {locationinfo} {Environment.NewLine}" +
-                            $"Details - {details}{Environment.NewLine}" +
-                            $"```{Environment.NewLine}{url}";
-
-                        var sendres = await channel.SendMessageAsync(message);
-                    }
+                    await SQLiteDataUpdate("cacheData", "data", "fleetUpLastChecked", DateTime.Now.ToString());
                 }
-                await SQLiteDataUpdate("cacheData", "data", "fleetUpLastChecked", DateTime.Now.ToString());
+                else
+                {
+                    await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"ERROR In Fleetup API {JsonContent.StatusCode}"));
+                }
             }
         }
 
@@ -2305,29 +2445,43 @@ namespace Opux
         #region Char
         internal async static Task Char(ICommandContext context, string x)
         {
+            var ESIFailure = false;
             var channel = context.Channel;
-            var responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/search/?categories=character&datasource=tranquility&language=en-us&search={x}&strict=true");
-            var characterID = JsonConvert.DeserializeObject<CharacterID>(responceMessage);
+            var responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/search/?categories=character&datasource=tranquility&language=en-us&search={x}&strict=true");
+            if (!responce.IsSuccessStatusCode)
+                ESIFailure = true;
+            var characterID = JsonConvert.DeserializeObject<CharacterID>(await responce.Content.ReadAsStringAsync());
             if (characterID.Character == null)
             {
                 await channel.SendMessageAsync($"{context.User.Mention}, Char not found please try again");
             }
             else
             {
-                responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/characters/{characterID.Character[0]}/?datasource=tranquility");
-                var characterData = JsonConvert.DeserializeObject<CharacterData>(responceMessage);
-                responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.Corporation_id}/?datasource=tranquility");
-                var corporationData = JsonConvert.DeserializeObject<CorporationData>(responceMessage);
-                responceMessage = await Program._httpClient.GetStringAsync($"https://zkillboard.com/api/kills/characterID/{characterID.Character[0]}/");
-                var zkillContent = JsonConvert.DeserializeObject<List<Kill>>(responceMessage);
+                responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{characterID.Character[0]}/?datasource=tranquility");
+                if (!responce.IsSuccessStatusCode)
+                    ESIFailure = true;
+
+                var characterData = JsonConvert.DeserializeObject<CharacterData>(await responce.Content.ReadAsStringAsync());
+                responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.Corporation_id}/?datasource=tranquility");
+                if (!responce.IsSuccessStatusCode)
+                    ESIFailure = true;
+
+                var corporationData = JsonConvert.DeserializeObject<CorporationData>(await responce.Content.ReadAsStringAsync());
+                responce = await Program._httpClient.GetAsync($"https://zkillboard.com/api/kills/characterID/{characterID.Character[0]}/");
+                if (!responce.IsSuccessStatusCode)
+                    ESIFailure = true;
+
+                var zkillContent = JsonConvert.DeserializeObject<List<Kill>>(await responce.Content.ReadAsStringAsync());
                 Kill zkillLast = zkillContent.Count > 0 ? zkillContent[0] : new Kill();
                 SystemData systemData = new SystemData();
                 ShipType lastShip = new ShipType();
                 AllianceData allianceData = new AllianceData();
                 try
                 {
-                    responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/universe/systems/{zkillLast.solar_system_id}/?datasource=tranquility&language=en-us");
-                    systemData = JsonConvert.DeserializeObject<SystemData>(responceMessage);
+                    responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/universe/systems/{zkillLast.solar_system_id}/?datasource=tranquility&language=en-us");
+                    if (!responce.IsSuccessStatusCode)
+                        ESIFailure = true;
+                    systemData = JsonConvert.DeserializeObject<SystemData>(await responce.Content.ReadAsStringAsync());
                 }
                 catch (HttpRequestException ex)
                 {
@@ -2353,8 +2507,10 @@ namespace Opux
 
                 try
                 {
-                    responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/universe/types/{lastShipType}/?datasource=tranquility&language=en-us");
-                    lastShip = JsonConvert.DeserializeObject<ShipType>(responceMessage);
+                    responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/universe/types/{lastShipType}/?datasource=tranquility&language=en-us");
+                    if (!responce.IsSuccessStatusCode)
+                        ESIFailure = true;
+                    lastShip = JsonConvert.DeserializeObject<ShipType>(await responce.Content.ReadAsStringAsync());
                 }
                 catch (HttpRequestException ex)
                 {
@@ -2365,8 +2521,10 @@ namespace Opux
 
                 try
                 {
-                    responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.Alliance_id}/?datasource=tranquility");
-                    allianceData = JsonConvert.DeserializeObject<AllianceData>(responceMessage);
+                    responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.Alliance_id}/?datasource=tranquility");
+                    if (!responce.IsSuccessStatusCode)
+                        ESIFailure = true;
+                    allianceData = JsonConvert.DeserializeObject<AllianceData>(await responce.Content.ReadAsStringAsync());
                 }
                 catch (HttpRequestException ex)
                 {
@@ -2375,14 +2533,21 @@ namespace Opux
 
                 var alliance = allianceData.alliance_name ?? "None";
 
-                await channel.SendMessageAsync($"```Name: {characterData.Name}{Environment.NewLine}" +
-                    $"DOB: {characterData.Birthday}{Environment.NewLine}{Environment.NewLine}" +
-                    $"Corporation Name: {corporationData.Corporation_name}{Environment.NewLine}" +
-                    $"Alliance Name: {alliance}{Environment.NewLine}{Environment.NewLine}" +
-                    $"Last System: {systemData.name}{Environment.NewLine}" +
-                    $"Last Ship: {lastShip.name}{Environment.NewLine}" +
-                    $"Last Seen: {lastSeen}{Environment.NewLine}```" +
-                    $"ZKill: https://zkillboard.com/character/{characterID.Character[0]}/");
+                if (!ESIFailure)
+                {
+                    await channel.SendMessageAsync($"```Name: {characterData.Name}{Environment.NewLine}" +
+                        $"DOB: {characterData.Birthday}{Environment.NewLine}{Environment.NewLine}" +
+                        $"Corporation Name: {corporationData.Corporation_name}{Environment.NewLine}" +
+                        $"Alliance Name: {alliance}{Environment.NewLine}{Environment.NewLine}" +
+                        $"Last System: {systemData.name}{Environment.NewLine}" +
+                        $"Last Ship: {lastShip.name}{Environment.NewLine}" +
+                        $"Last Seen: {lastSeen}{Environment.NewLine}```" +
+                        $"ZKill: https://zkillboard.com/character/{characterID.Character[0]}/");
+                }
+                else
+                {
+                    await channel.SendMessageAsync($"{context.Message.Author.Mention}, ESI Failure try again later");
+                }
             }
 
             await Task.CompletedTask;
@@ -2394,18 +2559,31 @@ namespace Opux
         internal async static Task Corp(ICommandContext context, string x)
         {
             var channel = context.Channel;
-            var responceMessage = await Program._httpClient.GetStringAsync(
+            var responce = await Program._httpClient.GetAsync(
                 $"https://esi.tech.ccp.is/latest/search/?categories=corporation&datasource=tranquility&language=en-us&search={x}&strict=true");
+            var responceMessage = await responce.Content.ReadAsStringAsync();
             var corpContent = JsonConvert.DeserializeObject<CorpIDLookup>(responceMessage);
-            if (corpContent == null)
+            if(!responce.IsSuccessStatusCode)
+            {
+                await channel.SendMessageAsync($"{context.User.Mention}, ESI Failure, Please try again later");
+            }
+            else if (corpContent == null)
             {
                 await channel.SendMessageAsync($"{context.User.Mention}, Corp not found please try again");
             }
             else
             {
-                responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/corporations/{corpContent.corporation[0]}/?datasource=tranquility");
+                var ESIFailure = false;
+
+                responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corpContent.corporation[0]}/?datasource=tranquility");
+                if (!responce.IsSuccessStatusCode)
+                    ESIFailure = true;
+                responceMessage = await responce.Content.ReadAsStringAsync();
                 var CorpDetailsContent = JsonConvert.DeserializeObject<CorporationData>(responceMessage);
-                responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/characters/{CorpDetailsContent.Ceo_id}/?datasource=tranquility");
+                responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{CorpDetailsContent.Ceo_id}/?datasource=tranquility");
+                if (!responce.IsSuccessStatusCode)
+                    ESIFailure = true;
+                responceMessage = await responce.Content.ReadAsStringAsync();
                 var CEONameContent = JsonConvert.DeserializeObject<CharacterData>(responceMessage);
                 var alliance = "None";
                 if (CorpDetailsContent.Alliance_id != -1)
@@ -2414,13 +2592,19 @@ namespace Opux
                     var allyContent = JsonConvert.DeserializeObject<AllianceData>(responceMessage);
                     alliance = allyContent.alliance_name;
                 }
-
-                await channel.SendMessageAsync($"```Corp Name: {CorpDetailsContent.Corporation_name}{Environment.NewLine}" +
-                        $"Corp Ticker: {CorpDetailsContent.Ticker}{Environment.NewLine}" +
-                        $"CEO: {CEONameContent.Name}{Environment.NewLine}" +
-                        $"Alliance Name: {alliance}{Environment.NewLine}" +
-                        $"Member Count: {CorpDetailsContent.Member_count}{Environment.NewLine}```" +
-                        $"ZKill: https://zkillboard.com/corporation/{corpContent.corporation[0]}/");
+                if (ESIFailure)
+                {
+                    await channel.SendMessageAsync($"```Corp Name: {CorpDetailsContent.Corporation_name}{Environment.NewLine}" +
+                            $"Corp Ticker: {CorpDetailsContent.Ticker}{Environment.NewLine}" +
+                            $"CEO: {CEONameContent.Name}{Environment.NewLine}" +
+                            $"Alliance Name: {alliance}{Environment.NewLine}" +
+                            $"Member Count: {CorpDetailsContent.Member_count}{Environment.NewLine}```" +
+                            $"ZKill: https://zkillboard.com/corporation/{corpContent.corporation[0]}/");
+                }
+                else
+                {
+                    await channel.SendMessageAsync($"{context.Message.Author.Mention}, ESI Failure try again later");
+                }
             }
 
             await Task.CompletedTask;
