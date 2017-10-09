@@ -2484,13 +2484,10 @@ namespace Opux
                 AllianceData allianceData = new AllianceData();
                 try
                 {
-                    if (characterData.Alliance_id != -1)
-                    {
-                        responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/universe/systems/{zkillLast.solar_system_id}/?datasource=tranquility&language=en-us");
-                        if (!responce.IsSuccessStatusCode)
-                            ESIFailure = true;
-                        systemData = JsonConvert.DeserializeObject<SystemData>(await responce.Content.ReadAsStringAsync());
-                    }
+                    responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/universe/systems/{zkillLast.solar_system_id}/?datasource=tranquility&language=en-us");
+                    if (!responce.IsSuccessStatusCode)
+                        ESIFailure = true;
+                    systemData = JsonConvert.DeserializeObject<SystemData>(await responce.Content.ReadAsStringAsync());
                 }
                 catch (HttpRequestException ex)
                 {
@@ -2530,10 +2527,13 @@ namespace Opux
 
                 try
                 {
-                    responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.Alliance_id}/?datasource=tranquility");
-                    if (!responce.IsSuccessStatusCode)
-                        ESIFailure = true;
-                    allianceData = JsonConvert.DeserializeObject<AllianceData>(await responce.Content.ReadAsStringAsync());
+                    if (characterData.Alliance_id != -1)
+                    {
+                        responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.Alliance_id}/?datasource=tranquility");
+                        if (!responce.IsSuccessStatusCode)
+                            ESIFailure = true;
+                        allianceData = JsonConvert.DeserializeObject<AllianceData>(await responce.Content.ReadAsStringAsync());
+                    }
                 }
                 catch (HttpRequestException ex)
                 {
