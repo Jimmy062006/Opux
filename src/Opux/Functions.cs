@@ -2646,8 +2646,6 @@ namespace Opux
             var context = new CommandContext(Program.Client, message);
 
             var result = await Program.Commands.ExecuteAsync(context, argPos, Program.ServiceCollection);
-            if (!result.IsSuccess && result.ErrorReason == "Unknown command.")
-                await context.Channel.SendMessageAsync(result.ErrorReason);
         }
         #endregion
 
