@@ -1273,7 +1273,7 @@ namespace Opux
                             var bigKillChannel = Convert.ToUInt64(i["bigKillChannel"]);
                             var SystemID = "0";
 
-                            if (sysName[0] != 'J' && !Int16.TryParse(sysName[1].ToString(), out short disposable) && radius > 0)
+                            if (sysName[0] != 'J' && !Int16.TryParse(sysName[1].ToString(), out short disposable) && !string.IsNullOrWhiteSpace(radiusSystem) && radiusChannel != 0)
                             {
                                 var SystemNameResponce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/search/?categories=solarsystem&strict=true&datasource=tranquility" +
                                     $"&language=en-us&search={radiusSystem}&strict=true");
