@@ -1224,7 +1224,7 @@ namespace Opux
                         }
                         else
                         {
-                            await Client_Log(new LogMessage(LogSeverity.Error, "killFeed", $"CorpNameContent error {CorpNameResponce.StatusCode}"));
+                            await Client_Log(new LogMessage(LogSeverity.Error, "killFeed", $"CorpName error {CorpNameResponce.StatusCode}"));
                         }
                         var AllyNameContent = "";
                         if (victimAllianceID != 0)
@@ -1236,7 +1236,7 @@ namespace Opux
                             }
                             else
                             {
-                                await Client_Log(new LogMessage(LogSeverity.Error, "killFeed", $"AllyNameResponce error {AllyNameResponce.StatusCode}"));
+                                await Client_Log(new LogMessage(LogSeverity.Error, "killFeed", $"AllyName error {AllyNameResponce.StatusCode}"));
                             }
                         }
                         var shipIDResponce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/universe/types/{shipID}/?datasource=tranquility&language=en-us");
@@ -1247,7 +1247,7 @@ namespace Opux
                         }
                         else
                         {
-                            await Client_Log(new LogMessage(LogSeverity.Error, "killFeed", $"shipIDResponce error {shipIDResponce.StatusCode}"));
+                            await Client_Log(new LogMessage(LogSeverity.Error, "killFeed", $"shipID error {shipIDResponce.StatusCode}"));
                         }
 
                         var sysName = JsonConvert.DeserializeObject<SystemName>(SysNameContent).name;
@@ -1275,16 +1275,32 @@ namespace Opux
 
                             if (!sysName.StartsWith("J") && radius > 0)
                             {
-                                var SystemName = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/search/?categories=solarsystem&strict=true&datasource=tranquility" +
+                                var SystemNameResponce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/search/?categories=solarsystem&strict=true&datasource=tranquility" +
                                     $"&language=en-us&search={radiusSystem}&strict=true");
+                                var SystemName = "";
+                                if (SystemNameResponce.IsSuccessStatusCode)
+                                {
+                                    SystemName = await SystemNameResponce.Content.ReadAsStringAsync();
+                                }
+                                else
+                                {
+                                    await Client_Log(new LogMessage(LogSeverity.Error, "killFeed", $"SystemName error {SystemNameResponce.StatusCode}"));
+                                }
                                 var httpresult = JsonConvert.DeserializeObject<SystemIDSearch>(SystemName);
 
                                 SystemID = httpresult.solarsystem[0].ToString();
                                 var systemID = kill.package.killmail.solar_system_id;
                                 string radiusSystems = "";
 
-                                radiusSystems = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/route/{SystemID}/{systemId}/?datasource=tranquility&flag=shortest");
-
+                                var radiusSystemsResponce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/route/{SystemID}/{systemId}/?datasource=tranquility&flag=shortest");
+                                if (radiusSystemsResponce.IsSuccessStatusCode)
+                                {
+                                    radiusSystems = await radiusSystemsResponce.Content.ReadAsStringAsync();
+                                }
+                                else
+                                {
+                                    await Client_Log(new LogMessage(LogSeverity.Error, "killFeed", $"radiusSystems error {radiusSystemsResponce.StatusCode}"));
+                                }
                                 var data = JArray.Parse(radiusSystems);
 
                                 var gg = data.Count() - 1;
