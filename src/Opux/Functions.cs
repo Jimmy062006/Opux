@@ -1196,22 +1196,65 @@ namespace Opux
                         var CharacterResponce = "";
                         if (victimCharacterID != 0)
                         {
-                            CharacterResponce = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/characters/{victimCharacterID}/?datasource=tranquility");
+                            var Responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{victimCharacterID}/?datasource=tranquility");
+                            if (Responce.IsSuccessStatusCode)
+                            {
+                                CharacterResponce = await Responce.Content.ReadAsStringAsync();
+                            }
+                            else
+                            {
+                                await Client_Log(new LogMessage(LogSeverity.Error, "killFeed", $"CharacterResponce error {Responce.StatusCode}"));
+                            }
                         }
-                        var SysNameResponce = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/universe/systems/{systemId}/?datasource=tranquility&language=en-us");
-                        var CorpNameResponce = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/corporations/{victimCorpID}/?datasource=tranquility");
-                        var AllyNameResponce = "";
+                        var SysNameResponce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/universe/systems/{systemId}/?datasource=tranquility&language=en-us");
+                        var SysNameContent = "";
+                        if (SysNameResponce.IsSuccessStatusCode)
+                        {
+                            SysNameContent = await SysNameResponce.Content.ReadAsStringAsync();
+                        }
+                        else
+                        {
+                            await Client_Log(new LogMessage(LogSeverity.Error, "killFeed", $"SysNameContent error {SysNameResponce.StatusCode}"));
+                        }
+                        var CorpNameResponce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{victimCorpID}/?datasource=tranquility");
+                        var CorpNameContent = "";
+                        if (CorpNameResponce.IsSuccessStatusCode)
+                        {
+                            CorpNameContent = await CorpNameResponce.Content.ReadAsStringAsync();
+                        }
+                        else
+                        {
+                            await Client_Log(new LogMessage(LogSeverity.Error, "killFeed", $"CorpNameContent error {CorpNameResponce.StatusCode}"));
+                        }
+                        var AllyNameContent = "";
                         if (victimAllianceID != 0)
                         {
-                            AllyNameResponce = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/alliances/{victimAllianceID}/?datasource=tranquility");
+                            var AllyNameResponce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{victimAllianceID}/?datasource=tranquility");
+                            if (AllyNameResponce.IsSuccessStatusCode)
+                            {
+                                AllyNameContent = await AllyNameResponce.Content.ReadAsStringAsync();
+                            }
+                            else
+                            {
+                                await Client_Log(new LogMessage(LogSeverity.Error, "killFeed", $"AllyNameResponce error {AllyNameResponce.StatusCode}"));
+                            }
                         }
-                        var shipIDResponce = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/universe/types/{shipID}/?datasource=tranquility&language=en-us");
+                        var shipIDResponce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/universe/types/{shipID}/?datasource=tranquility&language=en-us");
+                        var shipIDContent = "";
+                        if (shipIDResponce.IsSuccessStatusCode)
+                        {
+                            shipIDContent = await shipIDResponce.Content.ReadAsStringAsync();
+                        }
+                        else
+                        {
+                            await Client_Log(new LogMessage(LogSeverity.Error, "killFeed", $"shipIDResponce error {shipIDResponce.StatusCode}"));
+                        }
 
-                        var sysName = JsonConvert.DeserializeObject<SystemName>(SysNameResponce).name;
+                        var sysName = JsonConvert.DeserializeObject<SystemName>(SysNameContent).name;
                         var victimCharacter = JsonConvert.DeserializeObject<CharacterData>(CharacterResponce);
-                        var victimCorp = JsonConvert.DeserializeObject<CorporationSearch>(CorpNameResponce);
-                        var victimAlliance = JsonConvert.DeserializeObject<AllianceSearch>(AllyNameResponce);
-                        var ship = JsonConvert.DeserializeObject<Type_id>(shipIDResponce);
+                        var victimCorp = JsonConvert.DeserializeObject<CorporationSearch>(CorpNameContent);
+                        var victimAlliance = JsonConvert.DeserializeObject<AllianceSearch>(AllyNameContent);
+                        var ship = JsonConvert.DeserializeObject<Type_id>(shipIDContent);
 
                         var post = false;
                         var globalBigKill = false;
