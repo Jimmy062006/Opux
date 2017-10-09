@@ -2580,7 +2580,7 @@ namespace Opux
                 {
                     await channel.SendMessageAsync($"{context.User.Mention}, ESI Failure, Please try again later");
                 }
-                else if (corpContent == null)
+                else if (corpContent.corporation == null)
                 {
                     await channel.SendMessageAsync($"{context.User.Mention}, Corp not found please try again");
                 }
@@ -2605,7 +2605,7 @@ namespace Opux
                         var allyContent = JsonConvert.DeserializeObject<AllianceData>(responceMessage);
                         alliance = allyContent.alliance_name;
                     }
-                    if (ESIFailure)
+                    if (!ESIFailure)
                     {
                         await channel.SendMessageAsync($"```Corp Name: {CorpDetailsContent.Corporation_name}{Environment.NewLine}" +
                                 $"Corp Ticker: {CorpDetailsContent.Ticker}{Environment.NewLine}" +
