@@ -820,11 +820,14 @@ namespace Opux
                         ESIFailed = true;
                     }
 
-                    responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.Alliance_id}/?datasource=tranquility");
-                    var allianceData = JsonConvert.DeserializeObject<AllianceData>(await responceMessage.Content.ReadAsStringAsync());
-                    if (!responceMessage.IsSuccessStatusCode)
+                    if (characterData.Alliance_id != -1)
                     {
-                        ESIFailed = true;
+                        responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.Alliance_id}/?datasource=tranquility");
+                        var allianceData = JsonConvert.DeserializeObject<AllianceData>(await responceMessage.Content.ReadAsStringAsync());
+                        if (!responceMessage.IsSuccessStatusCode)
+                        {
+                            ESIFailed = true;
+                        }
                     }
 
                     var allianceID = (corporationData.Alliance_id.ToString() == "" ? "0" : corporationData.Alliance_id.ToString());
@@ -1004,12 +1007,15 @@ namespace Opux
                             continue;
                         }
 
-                        responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.Alliance_id}/?datasource=tranquility");
-                        var allianceData = JsonConvert.DeserializeObject<AllianceData>(await responceMessage.Content.ReadAsStringAsync());
-                        if (!responceMessage.IsSuccessStatusCode || characterData.Alliance_id == -1 && corporationData.Alliance_id >= 0)
+                        if (characterData.Alliance_id != -1)
                         {
-                            await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential allianceData {responceMessage.StatusCode} ESI Failure for {u.Nickname}"));
-                            continue;
+                            responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.Alliance_id}/?datasource=tranquility");
+                            var allianceData = JsonConvert.DeserializeObject<AllianceData>(await responceMessage.Content.ReadAsStringAsync());
+                            if (!responceMessage.IsSuccessStatusCode || characterData.Alliance_id == -1 && corporationData.Alliance_id >= 0)
+                            {
+                                await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential allianceData {responceMessage.StatusCode} ESI Failure for {u.Nickname}"));
+                                continue;
+                            }
                         }
 
                         var roles = new List<SocketRole>();
@@ -2478,10 +2484,13 @@ namespace Opux
                 AllianceData allianceData = new AllianceData();
                 try
                 {
-                    responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/universe/systems/{zkillLast.solar_system_id}/?datasource=tranquility&language=en-us");
-                    if (!responce.IsSuccessStatusCode)
-                        ESIFailure = true;
-                    systemData = JsonConvert.DeserializeObject<SystemData>(await responce.Content.ReadAsStringAsync());
+                    if (characterData.Alliance_id != -1)
+                    {
+                        responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/universe/systems/{zkillLast.solar_system_id}/?datasource=tranquility&language=en-us");
+                        if (!responce.IsSuccessStatusCode)
+                            ESIFailure = true;
+                        systemData = JsonConvert.DeserializeObject<SystemData>(await responce.Content.ReadAsStringAsync());
+                    }
                 }
                 catch (HttpRequestException ex)
                 {
