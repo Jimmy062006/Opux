@@ -9,6 +9,7 @@
     "logchan": 0,
     "guildId": 0,
     "loglevel": "Info",
+    "charcorp":  false,
     "authCheck": false,
     "authWeb": false,
     "killFeed": false,
