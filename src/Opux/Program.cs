@@ -65,10 +65,12 @@ namespace Opux
                         if (!debug)
                         {
                             Console.WriteLine($"Debug mode Active");
+                            debug = true;
                         }
                         else
                         {
                             Console.WriteLine($"Debug mode Disabled");
+                            debug = false;
                         }
                         break;
                 }
