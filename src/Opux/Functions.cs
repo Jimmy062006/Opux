@@ -28,7 +28,7 @@ namespace Opux
     internal class Functions
     {
         static DateTime _lastAuthCheck = DateTime.Now;
-        private static bool killfeedrunning;
+        internal static bool killfeedrunning;
         internal static DateTime _nextNotificationCheck = DateTime.FromFileTime(0);
         static int _lastNotification;
         static bool _avaliable = false;

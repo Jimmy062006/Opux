@@ -23,6 +23,7 @@ namespace Opux
         public static IServiceProvider ServiceCollection { get; private set; }
         public static IConfigurationRoot Settings { get; private set; }
         internal static readonly HttpClient _httpClient = new HttpClient();
+        internal static bool quit = false;
 
         static AutoResetEvent autoEvent = new AutoResetEvent(true);
 
@@ -30,34 +31,41 @@ namespace Opux
 
         public static void Main(string[] args)
         {
-            //try
-            //{
-                ApplicationBase = Path.GetDirectoryName(new Uri(Assembly.GetEntryAssembly().CodeBase).LocalPath);
-                if (!File.Exists(Path.Combine(Program.ApplicationBase, "Opux.db")))
-                    File.Copy(ApplicationBase + "/Opux.def.db", Path.Combine(Program.ApplicationBase, "Opux.db"));
 
-                UpdateSettings();
+            ApplicationBase = Path.GetDirectoryName(new Uri(Assembly.GetEntryAssembly().CodeBase).LocalPath);
+            if (!File.Exists(Path.Combine(Program.ApplicationBase, "Opux.db")))
+                File.Copy(ApplicationBase + "/Opux.def.db", Path.Combine(Program.ApplicationBase, "Opux.db"));
 
-                if (!Convert.ToBoolean(Settings.GetSection("config")["WS4NetProvider"]))
+            UpdateSettings();
+
+            if (!Convert.ToBoolean(Settings.GetSection("config")["WS4NetProvider"]))
+            {
+                Client = new DiscordSocketClient(new DiscordSocketConfig() { });
+            }
+            else
+            {
+                Client = new DiscordSocketClient(new DiscordSocketConfig() { WebSocketProvider = WS4NetProvider.Instance });
+            }
+
+            Commands = new CommandService();
+            EveLib = new EveLib();
+            MainAsync(args).GetAwaiter().GetResult();
+
+            while (!quit)
+            {
+                var command = Console.ReadLine();
+                switch (command)
                 {
-                    Client = new DiscordSocketClient(new DiscordSocketConfig() { });
+                    case "quit":
+                        quit = true;
+                        break;
+                    case "killfeed":
+                        Console.WriteLine($"killFeed Status: {Functions.killfeedrunning}");
+                        break;
                 }
-                else
-                {
-                    Client = new DiscordSocketClient(new DiscordSocketConfig() { WebSocketProvider = WS4NetProvider.Instance });
-                }
-
-                Commands = new CommandService();
-                EveLib = new EveLib();
-                MainAsync(args).GetAwaiter().GetResult();
-
-                Console.ReadKey();
                 Client.StopAsync();
-            //}
-            //catch (Exception ex)
-            //{
-            //    LoggerAsync(ex).GetAwaiter().GetResult();
-            //}
+            }
+
         }
 
         internal static async Task LoggerAsync(Exception args)
