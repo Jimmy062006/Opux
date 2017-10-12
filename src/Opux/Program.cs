@@ -64,7 +64,7 @@ namespace Opux
                     case "debug":
                         if (!debug)
                         {
-                            Console.WriteLine($"Debug mode Active}");
+                            Console.WriteLine($"Debug mode Active");
                         }
                         else
                         {
