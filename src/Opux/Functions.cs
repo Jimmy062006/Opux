@@ -59,32 +59,60 @@ namespace Opux
         {
             try
             {
+                if (Program.debug)
+                    Console.WriteLine($"Checking authWeb Enabled");
                 if (Convert.ToBoolean(Program.Settings.GetSection("config")["authWeb"]))
                 {
+                    if (Program.debug)
+                        Console.WriteLine($"Checking authWeb");
                     await AuthWeb();
                 }
+                if (Program.debug)
+                    Console.WriteLine($"Checking authCheck enabled");
                 if (Convert.ToBoolean(Program.Settings.GetSection("config")["authCheck"]))
                 {
+                    if (Program.debug)
+                        Console.WriteLine($"Checking authCheck");
                     await AuthCheck(null);
                 }
+                if (Program.debug)
+                    Console.WriteLine($"Checking killFeed enabled");
                 if (Convert.ToBoolean(Program.Settings.GetSection("config")["killFeed"]))
                 {
+                    if (Program.debug)
+                        Console.WriteLine($"Checking killFeed");
                     await KillFeed(null);
                 }
+                if (Program.debug)
+                    Console.WriteLine($"Checking notificationFeed Enabled");
                 if (Convert.ToBoolean(Program.Settings.GetSection("config")["notificationFeed"]))
                 {
+                    if (Program.debug)
+                        Console.WriteLine($"Checking notificationFeed");
                     await NotificationFeed(null);
                 }
+                if (Program.debug)
+                    Console.WriteLine($"Checking fleetUp Enabled");
                 if (Convert.ToBoolean(Program.Settings.GetSection("config")["fleetup"]))
                 {
+                    if (Program.debug)
+                        Console.WriteLine($"Cheking fleetUp");
                     await FleetUp();
                 }
+                if (Program.debug)
+                    Console.WriteLine($"Checking update topic Enabled");
                 if (Convert.ToBoolean(Program.Settings.GetSection("config")["updatetopic"]))
                 {
+                    if (Program.debug)
+                        Console.WriteLine($"Checking update topic");
                     await TopicMOTD(null);
                 }
+                if (Program.debug)
+                    Console.WriteLine($"Checking jabber Enabled");
                 if (Convert.ToBoolean(Program.Settings.GetSection("config")["jabber"]))
                 {
+                    if (Program.debug)
+                        Console.WriteLine($"Checking jabber");
                     await Jabber();
                 }
 

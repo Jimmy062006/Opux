@@ -24,6 +24,7 @@ namespace Opux
         public static IConfigurationRoot Settings { get; private set; }
         internal static readonly HttpClient _httpClient = new HttpClient();
         internal static bool quit = false;
+        internal static bool debug = false;
 
         static AutoResetEvent autoEvent = new AutoResetEvent(true);
 
@@ -57,10 +58,18 @@ namespace Opux
                 switch (command)
                 {
                     case "quit":
+                        Console.WriteLine($"Quitting Opux");
                         quit = true;
                         break;
-                    case "killfeed":
-                        Console.WriteLine($"killFeed Status: {Functions.killfeedrunning}");
+                    case "debug":
+                        if (!debug)
+                        {
+                            Console.WriteLine($"Debug mode Active}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Debug mode Disabled");
+                        }
                         break;
                 }
                 Client.StopAsync();
