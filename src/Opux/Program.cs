@@ -72,8 +72,8 @@ namespace Opux
                         }
                         break;
                 }
-                Client.StopAsync();
             }
+            Client.StopAsync();
 
         }
 
