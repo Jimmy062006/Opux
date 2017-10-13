@@ -1980,6 +1980,27 @@ namespace Opux
                                             _lastNotification = (int)notification.Value["notificationID"];
                                             await SQLiteDataUpdate("cacheData", "data", "lastNotificationID", _lastNotification.ToString());
                                         }
+                                        else if ((int)notification.Value["notificationID"] > _lastNotification)
+                                        {
+                                            var chan = Program.Client.GetGuild(guildID).GetTextChannel(Convert.ToUInt64(filters.FirstOrDefault(
+                                                x => x.Key == notification.Value["typeID"].ToString()).Value));
+
+                                            var notificationText = notificationsText.FirstOrDefault(x => x.Key == notification.Key).Value;
+                                            var notificationType = (int)notification.Value["typeID"];
+
+                                            try
+                                            {
+                                                await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Skipping Notification TypeID: {notificationType} " +
+                                                    $"Type: {types[notificationType]} {Environment.NewLine} Text: {notificationText}"));
+                                            }
+                                            catch (KeyNotFoundException)
+                                            {
+                                                await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Skipping **NEW** Notification TypeID: {notificationType} " +
+                                                    $"{Environment.NewLine} Text: {notificationText}"));
+                                            }
+                                            _lastNotification = (int)notification.Value["notificationID"];
+                                            await SQLiteDataUpdate("cacheData", "data", "lastNotificationID", _lastNotification.ToString());
+                                        }
                                     }
                                     catch (Exception ex)
                                     {
