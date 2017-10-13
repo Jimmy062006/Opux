@@ -1870,7 +1870,8 @@ namespace Opux
                                         {
                                             await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
                                                 $"Type: {types[notificationType]}"));
-                                            var aggressorAllianceID = Convert.ToInt64(notificationText["aggressorAllianceID"].AllNodes.ToList()[0].ToString());
+                                            Int64.TryParse(notificationText["aggressorAllianceID"].AllNodes.ToList()[0].ToString(), out long allyResult);
+                                            var aggressorAllianceID = allyResult;
                                             var aggressorCorpID = Convert.ToInt64(notificationText["aggressorCorpID"].AllNodes.ToList()[0].ToString());
                                             var aggressorID = Convert.ToInt64(notificationText["aggressorID"].AllNodes.ToList()[0].ToString());
                                             var typeID = Convert.ToInt64(notificationText["typeID"].AllNodes.ToList()[0].ToString());
