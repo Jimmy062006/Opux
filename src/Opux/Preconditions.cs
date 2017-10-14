@@ -15,10 +15,10 @@ namespace Opux
         {
             var roles = new List<IRole>(context.Guild.Roles);
             var userRoleIDs = context.Guild.GetUserAsync(context.User.Id).Result.RoleIds;
-            var roleMatch = Program.Settings.GetSection("config").GetSection("adminRoles").GetChildren();
+            var roleMatch = Program.Settings.GetSection("config").GetSection("adminRoles").GetChildren().ToArray();
             foreach (var role in roleMatch)
             {
-                var tmp = roles.FirstOrDefault(x => x.Name == role.Key);
+                var tmp = roles.FirstOrDefault(x => x.Name == role.Value);
                 if (tmp != null)
                 {
                     var check = userRoleIDs.FirstOrDefault(x => x == tmp.Id);

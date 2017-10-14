@@ -3,13 +3,12 @@
     "name": "Opux",
     "game": "Status",
     "token": "",
-    "WS4NetProvider": false,
-    "connstring": "datasource=localhost;port=3306;username=discord;password=password;database=discord;",
+    "Windows7Compatable": false,
     "commandprefix": "!",
     "logchan": 0,
     "guildId": 0,
     "loglevel": "Info",
-    "charcorp":  false,
+    "charcorp": false,
     "authCheck": false,
     "authWeb": false,
     "killFeed": false,
@@ -22,9 +21,14 @@
     "restricted": 0,
     "notificationFeed": false,
     "authInterval": "30",
-    "adminRoles": {
-      "Admin": null
-    }
+    "adminRoles": [ "Admin" ]
+  },
+  "mysqlConfig": {
+    "hostname": "localhost",
+    "port": "3306",
+    "username": "discord",
+    "password": "password",
+    "database": "discord"
   },
   "killFeed": {
     "bigKill": 0,
@@ -48,16 +52,13 @@
     }
   },
   "auth": {
-    "url": "https://discord.gg/XXXXXX",
+    "url": "",
     "port": 80,
-    "authurl": "http://DOMAIN/IP",
-    "callbackurl": "http://DOMAIN/IP/callback.php",
+    "authurl": "",
+    "callbackurl": "",
     "client_id": "",
     "secret": "",
-    "exempt": {
-      "Role1": null,
-      "Role2": null
-    },
+    "exempt": [ "Role1", "Role2" ],
     "alertChannel": 0,
     "corpTickers": true,
     "nameEnforce": true,
@@ -97,10 +98,7 @@
     "GroupID": "",
     "channel": 0,
     "announce_post": true,
-    "announce": [
-      5,
-      60
-    ]
+    "announce": [ 5, 60 ]
   },
   "jabber": {
     "domain": "example.com",

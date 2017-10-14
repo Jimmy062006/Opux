@@ -978,7 +978,7 @@ namespace Opux
                 await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Running Auth Check"));
 
                 var authgroups = Program.Settings.GetSection("auth").GetSection("authgroups").GetChildren().ToList();
-                var exemptRoles = Program.Settings.GetSection("auth").GetSection("exempt").GetChildren().ToList();
+                var exemptRoles = Program.Settings.GetSection("auth").GetSection("exempt").GetChildren().ToArray();
                 var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
                 var logchan = Convert.ToUInt64(Program.Settings.GetSection("auth")["alertChannel"]);
                 var discordUsers = Program.Client.GetGuild(guildID).Users;
@@ -1052,7 +1052,7 @@ namespace Opux
                         roles.Add(u.Roles.FirstOrDefault(x => x.Name == "@everyone"));
                         foreach (var role in exemptRoles)
                         {
-                            var exemptRole = u.Roles.FirstOrDefault(x => x.Name == role.Key);
+                            var exemptRole = u.Roles.FirstOrDefault(x => x.Name == role.Value);
                             if (exemptRole != null)
                                 roles.Add(exemptRole);
                         }
@@ -1135,7 +1135,7 @@ namespace Opux
                         var rrolesOrig = rolesOrig;
                         foreach (var rrole in rolesOrig)
                         {
-                            var exemptRole = exemptRoles.FirstOrDefault(x => x.Key == rrole.Name);
+                            var exemptRole = exemptRoles.FirstOrDefault(x => x.Value == rrole.Name);
                             if (exemptRole == null)
                             {
                                 rroles.Add(rrole);
@@ -1151,7 +1151,7 @@ namespace Opux
                         {
                             foreach (var exempt in rroles)
                             {
-                                if (exemptRoles.FirstOrDefault(x => x.Key == exempt.Name) == null)
+                                if (exemptRoles.FirstOrDefault(x => x.Value == exempt.Name) == null)
                                     rchanged = true;
                             }
                         }
@@ -1795,7 +1795,7 @@ namespace Opux
 
                                 foreach (var l in notifications)
                                 {
-                                    notiIDs.Add((int)l.Key);
+                                    notiIDs.Add(l.Key);
                                 }
 
                                 var notificationsText = await EveLib.GetNotificationText(notiIDs);
@@ -2550,15 +2550,11 @@ namespace Opux
             await channel.SendMessageAsync($"{context.User.Mention},{Environment.NewLine}{Environment.NewLine}" +
                 $"```Developer: Jimmy06 (In-game Name: Jimmy06){Environment.NewLine}{Environment.NewLine}" +
                 $"Bot ID: {botid}{Environment.NewLine}{Environment.NewLine}" +
-                //$"Current Version: {repo.Head.Tip.Id}{Environment.NewLine}" +
-                //$"Current Branch: {repo.Head.FriendlyName}{Environment.NewLine}" +
                 $"Run Time: {RunTime.Days}:{RunTime.Hours}:{RunTime.Minutes}:{RunTime.Seconds}{Environment.NewLine}{Environment.NewLine}" +
                 $"Statistics:{Environment.NewLine}" +
                 $"Memory Used: {Math.Round(MemoryUsed.LargestWholeNumberValue, 2)} {MemoryUsed.LargestWholeNumberSymbol}{Environment.NewLine}" +
                 $"Total Connected Guilds: {Guilds}{Environment.NewLine}" +
                 $"Total Users Seen: {TotalUsers}```");
-            //$"GitHub URL: <{repo.Config.ToList().FirstOrDefault(x => x.Key == "remote.origin.url").Value}>");
-            //}
 
             await Task.CompletedTask;
         }
@@ -2777,7 +2773,10 @@ namespace Opux
                 cmd.CommandText = query;
                 try
                 {
-                    conn.ConnectionString = connstring;
+                    var mysqlConfig = Program.Settings.GetSection("mysqlCOnfig");
+
+                    conn.ConnectionString = $"datasource={mysqlConfig["hostname"]};port={mysqlConfig["port"]};" +
+                        $"username={mysqlConfig["username"]};password={mysqlConfig["password"]};database={mysqlConfig["database"]};";
                     conn.Open();
                     using (MySqlDataReader reader = cmd.ExecuteReader())
                     {

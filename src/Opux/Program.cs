@@ -5,7 +5,9 @@ using Discord.WebSocket;
 using EveLibCore;
 using Microsoft.Extensions.Configuration;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading;
@@ -39,7 +41,7 @@ namespace Opux
 
             UpdateSettings();
 
-            if (!Convert.ToBoolean(Settings.GetSection("config")["WS4NetProvider"]))
+            if (!Convert.ToBoolean(Settings.GetSection("config")["Windows7Compatable"]))
             {
                 Client = new DiscordSocketClient(new DiscordSocketConfig() { });
             }
@@ -55,7 +57,7 @@ namespace Opux
             while (!quit)
             {
                 var command = Console.ReadLine();
-                switch (command)
+                switch (command.Split(" ")[0])
                 {
                     case "quit":
                         Console.WriteLine($"Quitting Opux");
@@ -72,6 +74,12 @@ namespace Opux
                             Console.WriteLine($"Debug mode Disabled");
                             debug = false;
                         }
+                        break;
+                    case "admin":
+                        var guild = Client.GetGuild(Convert.ToUInt64(Settings.GetSection("config")["guildId"]));
+                        var rolesToAdd = new List<SocketRole>();
+                        var GuildRoles = guild.Roles;
+                        guild.GetUser(Convert.ToUInt64(command.Split(" ")[2])).AddRoleAsync(GuildRoles.FirstOrDefault(x => x.Name == command.Split(" ")[1]));
                         break;
                 }
             }
