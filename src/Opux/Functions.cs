@@ -2589,10 +2589,12 @@ namespace Opux
 
                     var corporationData = JsonConvert.DeserializeObject<CorporationData>(await responce.Content.ReadAsStringAsync());
                     responce = await Program._httpClient.GetAsync($"https://zkillboard.com/api/kills/characterID/{characterID.Character[0]}/");
-                    if (!responce.IsSuccessStatusCode)
-                        ESIFailure = true;
 
-                    var zkillContent = JsonConvert.DeserializeObject<List<Kill>>(await responce.Content.ReadAsStringAsync());
+                    List<Kill> zkillContent = new List<Kill>();
+                    if (responce.IsSuccessStatusCode)
+                    {
+                        zkillContent = JsonConvert.DeserializeObject<List<Kill>>(await responce.Content.ReadAsStringAsync());
+                    }
                     Kill zkillLast = zkillContent.Count > 0 ? zkillContent[0] : new Kill();
                     SystemData systemData = new SystemData();
                     ShipType lastShip = new ShipType();

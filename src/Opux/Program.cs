@@ -121,6 +121,7 @@ namespace Opux
         {
             try
             {
+                _httpClient.DefaultRequestHeaders.Add("User-Agent", "OpuxBot");
                 Settings = new ConfigurationBuilder()
                 .SetBasePath(ApplicationBase)
                 .AddJsonFile("settings.json", optional: true, reloadOnChange: true).Build();
