@@ -2574,107 +2574,112 @@ namespace Opux
             {
                 await channel.SendMessageAsync($"{context.User.Mention}, Character ESI Failure, Please try again later");
             }
-            else if (characterID.Character == null)
-            {
-                await channel.SendMessageAsync($"{context.User.Mention}, Char not found please try again");
-            }
             else
             {
-                responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{characterID.Character[0]}/?datasource=tranquility");
-                CharacterData characterData = new CharacterData();
-                if (responce.IsSuccessStatusCode)
-                {
-                    characterData = JsonConvert.DeserializeObject<CharacterData>(await responce.Content.ReadAsStringAsync());
-                }
-                responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.Corporation_id}/?datasource=tranquility");
-                CorporationData corporationData = new CorporationData();
-                if (responce.IsSuccessStatusCode)
-                {
-                    corporationData = JsonConvert.DeserializeObject<CorporationData>(await responce.Content.ReadAsStringAsync());
-                }
-                responce = await Program._httpClient.GetAsync($"https://zkillboard.com/api/kills/characterID/{characterID.Character[0]}/");
+                characterID = JsonConvert.DeserializeObject<CharacterID>(await responce.Content.ReadAsStringAsync());
 
-                List<Kill> zkillContent = new List<Kill>();
-                if (responce.IsSuccessStatusCode)
+                if (characterID.Character == null)
                 {
-                    zkillContent = JsonConvert.DeserializeObject<List<Kill>>(await responce.Content.ReadAsStringAsync());
+                    await channel.SendMessageAsync($"{context.User.Mention}, Char not found please try again");
                 }
-                Kill zkillLast = zkillContent.Count > 0 ? zkillContent[0] : new Kill();
-                SystemData systemData = new SystemData();
-                ShipType lastShip = new ShipType();
-                AllianceData allianceData = new AllianceData();
-                try
+                else
                 {
-                    responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/universe/systems/{zkillLast.solar_system_id}/?datasource=tranquility&language=en-us");
+                    responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{characterID.Character[0]}/?datasource=tranquility");
+                    CharacterData characterData = new CharacterData();
                     if (responce.IsSuccessStatusCode)
                     {
-                        systemData = JsonConvert.DeserializeObject<SystemData>(await responce.Content.ReadAsStringAsync());
+                        characterData = JsonConvert.DeserializeObject<CharacterData>(await responce.Content.ReadAsStringAsync());
                     }
-                }
-                catch (HttpRequestException ex)
-                {
-                    await Client_Log(new LogMessage(LogSeverity.Error, "char", ex.Message, ex));
-                }
-
-                var lastShipType = "Unknown";
-
-                if (zkillLast.victim != null && zkillLast.victim.character_id == characterID.Character.FirstOrDefault())
-                {
-                    lastShipType = zkillLast.victim.ship_type_id.ToString();
-                }
-                else if (zkillLast.victim != null)
-                {
-                    foreach (var attacker in zkillLast.attackers)
-                    {
-                        if (attacker.character_id == characterID.Character.FirstOrDefault())
-                        {
-                            lastShipType = attacker.ship_type_id.ToString();
-                        }
-                    }
-                }
-
-                try
-                {
-                    responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/universe/types/{lastShipType}/?datasource=tranquility&language=en-us");
+                    responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.Corporation_id}/?datasource=tranquility");
+                    CorporationData corporationData = new CorporationData();
                     if (responce.IsSuccessStatusCode)
                     {
-                        lastShip = JsonConvert.DeserializeObject<ShipType>(await responce.Content.ReadAsStringAsync());
+                        corporationData = JsonConvert.DeserializeObject<CorporationData>(await responce.Content.ReadAsStringAsync());
                     }
-                }
-                catch (HttpRequestException ex)
-                {
-                    await Client_Log(new LogMessage(LogSeverity.Error, "char", ex.Message, ex));
-                }
+                    responce = await Program._httpClient.GetAsync($"https://zkillboard.com/api/kills/characterID/{characterID.Character[0]}/");
 
-                var lastSeen = zkillLast.killmail_time;
-
-                try
-                {
-                    if (characterData.Alliance_id != -1)
+                    List<Kill> zkillContent = new List<Kill>();
+                    if (responce.IsSuccessStatusCode)
                     {
-                        responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.Alliance_id}/?datasource=tranquility");
+                        zkillContent = JsonConvert.DeserializeObject<List<Kill>>(await responce.Content.ReadAsStringAsync());
+                    }
+                    Kill zkillLast = zkillContent.Count > 0 ? zkillContent[0] : new Kill();
+                    SystemData systemData = new SystemData();
+                    ShipType lastShip = new ShipType();
+                    AllianceData allianceData = new AllianceData();
+                    try
+                    {
+                        responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/universe/systems/{zkillLast.solar_system_id}/?datasource=tranquility&language=en-us");
                         if (responce.IsSuccessStatusCode)
                         {
-                            allianceData = JsonConvert.DeserializeObject<AllianceData>(await responce.Content.ReadAsStringAsync());
+                            systemData = JsonConvert.DeserializeObject<SystemData>(await responce.Content.ReadAsStringAsync());
                         }
                     }
+                    catch (HttpRequestException ex)
+                    {
+                        await Client_Log(new LogMessage(LogSeverity.Error, "char", ex.Message, ex));
+                    }
+
+                    var lastShipType = "Unknown";
+
+                    if (zkillLast.victim != null && zkillLast.victim.character_id == characterID.Character.FirstOrDefault())
+                    {
+                        lastShipType = zkillLast.victim.ship_type_id.ToString();
+                    }
+                    else if (zkillLast.victim != null)
+                    {
+                        foreach (var attacker in zkillLast.attackers)
+                        {
+                            if (attacker.character_id == characterID.Character.FirstOrDefault())
+                            {
+                                lastShipType = attacker.ship_type_id.ToString();
+                            }
+                        }
+                    }
+
+                    try
+                    {
+                        responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/universe/types/{lastShipType}/?datasource=tranquility&language=en-us");
+                        if (responce.IsSuccessStatusCode)
+                        {
+                            lastShip = JsonConvert.DeserializeObject<ShipType>(await responce.Content.ReadAsStringAsync());
+                        }
+                    }
+                    catch (HttpRequestException ex)
+                    {
+                        await Client_Log(new LogMessage(LogSeverity.Error, "char", ex.Message, ex));
+                    }
+
+                    var lastSeen = zkillLast.killmail_time;
+
+                    try
+                    {
+                        if (characterData.Alliance_id != -1)
+                        {
+                            responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.Alliance_id}/?datasource=tranquility");
+                            if (responce.IsSuccessStatusCode)
+                            {
+                                allianceData = JsonConvert.DeserializeObject<AllianceData>(await responce.Content.ReadAsStringAsync());
+                            }
+                        }
+                    }
+                    catch (HttpRequestException ex)
+                    {
+                        await Client_Log(new LogMessage(LogSeverity.Error, "char", ex.Message, ex));
+                    }
+
+                    var alliance = allianceData.alliance_name ?? "None";
+
+
+                    await channel.SendMessageAsync($"```Name: {characterData.Name}{Environment.NewLine}" +
+                        $"DOB: {characterData.Birthday}{Environment.NewLine}{Environment.NewLine}" +
+                        $"Corporation Name: {corporationData.Corporation_name}{Environment.NewLine}" +
+                        $"Alliance Name: {alliance}{Environment.NewLine}{Environment.NewLine}" +
+                        $"Last System: {systemData.name}{Environment.NewLine}" +
+                        $"Last Ship: {lastShip.name}{Environment.NewLine}" +
+                        $"Last Seen: {lastSeen}{Environment.NewLine}```" +
+                        $"ZKill: https://zkillboard.com/character/{characterID.Character[0]}/");
                 }
-                catch (HttpRequestException ex)
-                {
-                    await Client_Log(new LogMessage(LogSeverity.Error, "char", ex.Message, ex));
-                }
-
-                var alliance = allianceData.alliance_name ?? "None";
-
-
-                await channel.SendMessageAsync($"```Name: {characterData.Name}{Environment.NewLine}" +
-                    $"DOB: {characterData.Birthday}{Environment.NewLine}{Environment.NewLine}" +
-                    $"Corporation Name: {corporationData.Corporation_name}{Environment.NewLine}" +
-                    $"Alliance Name: {alliance}{Environment.NewLine}{Environment.NewLine}" +
-                    $"Last System: {systemData.name}{Environment.NewLine}" +
-                    $"Last Ship: {lastShip.name}{Environment.NewLine}" +
-                    $"Last Seen: {lastSeen}{Environment.NewLine}```" +
-                    $"ZKill: https://zkillboard.com/character/{characterID.Character[0]}/");
             }
             await Task.CompletedTask;
         }
@@ -2687,39 +2692,40 @@ namespace Opux
             var channel = context.Channel;
             var responce = await Program._httpClient.GetAsync(
                 $"https://esi.tech.ccp.is/latest/search/?categories=corporation&datasource=tranquility&language=en-us&search={x}&strict=true");
-            var responceMessage = await responce.Content.ReadAsStringAsync();
-            var corpContent = JsonConvert.DeserializeObject<CorpIDLookup>(responceMessage);
+            CorpIDLookup corpContent = new CorpIDLookup();
             if (!responce.IsSuccessStatusCode)
             {
                 await channel.SendMessageAsync($"{context.User.Mention}, Corporation ESI Failure, Please try again later");
             }
-            else if (corpContent.corporation == null)
-            {
-                await channel.SendMessageAsync($"{context.User.Mention}, Corp not found please try again");
-            }
             else
             {
-                responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corpContent.corporation[0]}/?datasource=tranquility");
-                if (responce.IsSuccessStatusCode)
-                { responceMessage = await responce.Content.ReadAsStringAsync(); }
-                var CorpDetailsContent = JsonConvert.DeserializeObject<CorporationData>(responceMessage);
-                responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{CorpDetailsContent.Ceo_id}/?datasource=tranquility");
-                if (responce.IsSuccessStatusCode)
-                { responceMessage = await responce.Content.ReadAsStringAsync(); }
-                var CEONameContent = JsonConvert.DeserializeObject<CharacterData>(responceMessage);
-                var alliance = "None";
-                if (CorpDetailsContent.Alliance_id != -1)
+                corpContent = JsonConvert.DeserializeObject<CorpIDLookup>(await responce.Content.ReadAsStringAsync());
+                if (corpContent.corporation == null)
                 {
-                    responceMessage = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/alliances/{CorpDetailsContent.Alliance_id}/?datasource=tranquility");
-                    var allyContent = JsonConvert.DeserializeObject<AllianceData>(responceMessage);
-                    alliance = allyContent.alliance_name;
+                    await channel.SendMessageAsync($"{context.User.Mention}, Corp not found please try again");
                 }
-                await channel.SendMessageAsync($"```Corp Name: {CorpDetailsContent.Corporation_name}{Environment.NewLine}" +
-                  $"Corp Ticker: {CorpDetailsContent.Ticker}{Environment.NewLine}" +
-                  $"CEO: {CEONameContent.Name}{Environment.NewLine}" +
-                  $"Alliance Name: {alliance}{Environment.NewLine}" +
-                  $"Member Count: {CorpDetailsContent.Member_count}{Environment.NewLine}```" +
-                  $"ZKill: https://zkillboard.com/corporation/{corpContent.corporation[0]}/");
+                else
+                {
+                    responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corpContent.corporation[0]}/?datasource=tranquility");
+
+                    var CorpDetailsContent = JsonConvert.DeserializeObject<CorporationData>(await responce.Content.ReadAsStringAsync());
+                    responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{CorpDetailsContent.Ceo_id}/?datasource=tranquility");
+
+                    var CEONameContent = JsonConvert.DeserializeObject<CharacterData>(await responce.Content.ReadAsStringAsync());
+                    var alliance = "None";
+                    if (CorpDetailsContent.Alliance_id != -1)
+                    {
+                        responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{CorpDetailsContent.Alliance_id}/?datasource=tranquility");
+                        var allyContent = JsonConvert.DeserializeObject<AllianceData>(await responce.Content.ReadAsStringAsync());
+                        alliance = allyContent.alliance_name;
+                    }
+                    await channel.SendMessageAsync($"```Corp Name: {CorpDetailsContent.Corporation_name}{Environment.NewLine}" +
+                      $"Corp Ticker: {CorpDetailsContent.Ticker}{Environment.NewLine}" +
+                      $"CEO: {CEONameContent.Name}{Environment.NewLine}" +
+                      $"Alliance Name: {alliance}{Environment.NewLine}" +
+                      $"Member Count: {CorpDetailsContent.Member_count}{Environment.NewLine}```" +
+                      $"ZKill: https://zkillboard.com/corporation/{corpContent.corporation[0]}/");
+                }
             }
             await Task.CompletedTask;
         }
