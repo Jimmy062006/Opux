@@ -2541,7 +2541,7 @@ namespace Opux
             //{
             var channel = context.Channel;
             var botid = Program.Client.CurrentUser.Id;
-            var MemoryUsed = ByteSize.FromBytes(Process.GetCurrentProcess().PrivateMemorySize64);
+            var MemoryUsed = ByteSize.FromBytes(Process.GetCurrentProcess().WorkingSet64);
             var RunTime = DateTime.Now - Process.GetCurrentProcess().StartTime;
             var Guilds = Program.Client.Guilds.Count;
             var TotalUsers = 0;
