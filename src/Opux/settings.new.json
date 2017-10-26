@@ -12,6 +12,8 @@
     "authCheck": false,
     "authWeb": false,
     "killFeed": false,
+    "pricecheck": false,
+    "welcome": false,
     "time": false,
     "fleetup": false,
     "jabber": false,

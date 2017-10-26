@@ -190,15 +190,18 @@ namespace Opux
         #region EVENTS
         internal async static Task Event_UserJoined(SocketGuildUser arg)
         {
-            var channel = arg.Guild.DefaultChannel;
-            var authurl = Program.Settings.GetSection("auth")["authurl"];
-            if (!String.IsNullOrWhiteSpace(authurl))
+            if (Convert.ToBoolean(Program.Settings.GetSection("config")["welcome"]))
             {
-                await channel.SendMessageAsync($"Welcome {arg.Mention} to the server, To gain access please auth at {authurl} ");
-            }
-            else
-            {
-                await channel.SendMessageAsync($"Welcome {arg.Mention} to the server");
+                var channel = arg.Guild.DefaultChannel;
+                var authurl = Program.Settings.GetSection("auth")["authurl"];
+                if (!String.IsNullOrWhiteSpace(authurl))
+                {
+                    await channel.SendMessageAsync($"Welcome {arg.Mention} to the server, To gain access please auth at {authurl} ");
+                }
+                else
+                {
+                    await channel.SendMessageAsync($"Welcome {arg.Mention} to the server");
+                }
             }
         }
 
