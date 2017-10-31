@@ -383,6 +383,7 @@ namespace Opux
                                     verifyString = await tokenresponse.Content.ReadAsStringAsync();
                                     _httpClient.DefaultRequestHeaders.Clear();
 
+                                    _httpClient.DefaultRequestHeaders.Add("User-Agent", "OpuxBot");
                                     var authgroups = Program.Settings.GetSection("auth").GetSection("authgroups").GetChildren().ToList();
                                     var corps = new Dictionary<string, string>();
                                     var alliance = new Dictionary<string, string>();
