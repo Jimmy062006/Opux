@@ -238,6 +238,7 @@ namespace Opux
 
                 listener.Request += async (sender, context) =>
                 {
+                    var _httpClient = new HttpClient();
 
                     var allianceID = "";
                     var corpID = "";
@@ -365,8 +366,6 @@ namespace Opux
                                 if (!String.IsNullOrWhiteSpace(request.Url.Query))
                                 {
                                     code = request.Url.Query.TrimStart('?').Split('=')[1];
-
-                                    var _httpClient = new HttpClient();
 
                                     var values = new Dictionary<string, string> { { "grant_type", "authorization_code" }, { "code", $"{code}" } };
 
@@ -779,6 +778,7 @@ namespace Opux
                         response.MethodNotAllowed();
                     }
                     response.Close();
+                    _httpClient.Dispose();
                 };
                 listener.Start();
             }
