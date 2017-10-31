@@ -366,20 +366,22 @@ namespace Opux
                                 {
                                     code = request.Url.Query.TrimStart('?').Split('=')[1];
 
+                                    var _httpClient = Program._httpClient;
 
                                     var values = new Dictionary<string, string> { { "grant_type", "authorization_code" }, { "code", $"{code}" } };
 
-                                    Program._httpClient.DefaultRequestHeaders.Add("Authorization", $"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes(client_id + ":" + secret))}");
+                                    _httpClient.DefaultRequestHeaders.Clear();
+                                    _httpClient.DefaultRequestHeaders.Add("Authorization", $"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes(client_id + ":" + secret))}");
                                     var content = new FormUrlEncodedContent(values);
                                     var tokenresponse = await Program._httpClient.PostAsync("https://login.eveonline.com/oauth/token", content);
                                     responseString = await tokenresponse.Content.ReadAsStringAsync();
                                     accessToken = (string)JObject.Parse(responseString)["access_token"];
-                                    Program._httpClient.DefaultRequestHeaders.Clear();
+                                    _httpClient.DefaultRequestHeaders.Clear();
 
-                                    Program._httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
+                                    _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
                                     tokenresponse = await Program._httpClient.GetAsync("https://login.eveonline.com/oauth/verify");
                                     verifyString = await tokenresponse.Content.ReadAsStringAsync();
-                                    Program._httpClient.DefaultRequestHeaders.Clear();
+                                    _httpClient.DefaultRequestHeaders.Clear();
 
                                     var authgroups = Program.Settings.GetSection("auth").GetSection("authgroups").GetChildren().ToList();
                                     var corps = new Dictionary<string, string>();
@@ -410,14 +412,14 @@ namespace Opux
                                     JObject corporationDetails;
                                     JObject allianceDetails;
 
-                                    var _characterDetails = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{CharacterID}");
+                                    var _characterDetails = await _httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{CharacterID}");
                                     if (!_characterDetails.IsSuccessStatusCode)
                                         ESIFailure = true;
                                     var _characterDetailsContent = _characterDetails.Content;
 
                                     characterDetails = JObject.Parse(await _characterDetailsContent.ReadAsStringAsync());
                                     characterDetails.TryGetValue("corporation_id", out JToken corporationid);
-                                    var _corporationDetails = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corporationid}");
+                                    var _corporationDetails = await _httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corporationid}");
                                     if (!_corporationDetails.IsSuccessStatusCode)
                                         ESIFailure = true;
                                     var _corporationDetailsContent = _corporationDetails.Content;
@@ -430,7 +432,7 @@ namespace Opux
                                         corpID = c;
                                         if (allianceID != "0")
                                         {
-                                            var _allianceDetails = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{allianceid}");
+                                            var _allianceDetails = await _httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{allianceid}");
                                             if (!_allianceDetails.IsSuccessStatusCode)
                                                 ESIFailure = true;
                                             var _allianceDetailsContent = _allianceDetails.Content;
@@ -761,6 +763,7 @@ namespace Opux
                                                "</body>" +
                                                "</html>");
                                         }
+                                        _httpClient.Dispose();
                                     }
                                 }
                             }
