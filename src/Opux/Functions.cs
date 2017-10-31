@@ -238,7 +238,6 @@ namespace Opux
 
                 listener.Request += async (sender, context) =>
                 {
-                    var _httpClient = new HttpClient();
 
                     var allianceID = "";
                     var corpID = "";
@@ -369,22 +368,18 @@ namespace Opux
 
                                     var values = new Dictionary<string, string> { { "grant_type", "authorization_code" }, { "code", $"{code}" } };
 
-                                    _httpClient.DefaultRequestHeaders.Clear();
-                                    _httpClient.DefaultRequestHeaders.Add("User-Agent", "OpuxBot");
-                                    _httpClient.DefaultRequestHeaders.Add("Authorization", $"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes(client_id + ":" + secret))}");
+                                    Program._httpClient.DefaultRequestHeaders.Add("Authorization", $"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes(client_id + ":" + secret))}");
                                     var content = new FormUrlEncodedContent(values);
                                     var tokenresponse = await Program._httpClient.PostAsync("https://login.eveonline.com/oauth/token", content);
                                     responseString = await tokenresponse.Content.ReadAsStringAsync();
                                     accessToken = (string)JObject.Parse(responseString)["access_token"];
-                                    _httpClient.DefaultRequestHeaders.Clear();
+                                    Program._httpClient.DefaultRequestHeaders.Clear();
 
-                                    _httpClient.DefaultRequestHeaders.Add("User-Agent", "OpuxBot");
-                                    _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
+                                    Program._httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
                                     tokenresponse = await Program._httpClient.GetAsync("https://login.eveonline.com/oauth/verify");
                                     verifyString = await tokenresponse.Content.ReadAsStringAsync();
-                                    _httpClient.DefaultRequestHeaders.Clear();
+                                    Program._httpClient.DefaultRequestHeaders.Clear();
 
-                                    _httpClient.DefaultRequestHeaders.Add("User-Agent", "OpuxBot");
                                     var authgroups = Program.Settings.GetSection("auth").GetSection("authgroups").GetChildren().ToList();
                                     var corps = new Dictionary<string, string>();
                                     var alliance = new Dictionary<string, string>();
@@ -414,23 +409,16 @@ namespace Opux
                                     JObject corporationDetails;
                                     JObject allianceDetails;
 
-                                    var _characterDetails = await _httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{CharacterID}");
+                                    var _characterDetails = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{CharacterID}");
                                     if (!_characterDetails.IsSuccessStatusCode)
-                                    {
                                         ESIFailure = true;
-                                        await Client_Log(new LogMessage(LogSeverity.Error, "authWeb User", "characterDetails failed"));
-                                    }
                                     var _characterDetailsContent = _characterDetails.Content;
 
                                     characterDetails = JObject.Parse(await _characterDetailsContent.ReadAsStringAsync());
                                     characterDetails.TryGetValue("corporation_id", out JToken corporationid);
-                                    var _corporationDetails = await _httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corporationid}");
+                                    var _corporationDetails = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corporationid}");
                                     if (!_corporationDetails.IsSuccessStatusCode)
-                                    {
                                         ESIFailure = true;
-                                        await Client_Log(new LogMessage(LogSeverity.Error, "authWeb User", "corporationDetails failed"));
-
-                                    }
                                     var _corporationDetailsContent = _corporationDetails.Content;
                                     {
                                         corporationDetails = JObject.Parse(await _corporationDetailsContent.ReadAsStringAsync());
@@ -441,13 +429,9 @@ namespace Opux
                                         corpID = c;
                                         if (allianceID != "0")
                                         {
-                                            var _allianceDetails = await _httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{allianceid}");
+                                            var _allianceDetails = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{allianceid}");
                                             if (!_allianceDetails.IsSuccessStatusCode)
-                                            {
                                                 ESIFailure = true;
-                                                await Client_Log(new LogMessage(LogSeverity.Error, "authWeb User", "allianceDetails failed"));
-
-                                            }
                                             var _allianceDetailsContent = _allianceDetails.Content;
 
                                             allianceDetails = JObject.Parse(await _allianceDetailsContent.ReadAsStringAsync());
@@ -776,7 +760,6 @@ namespace Opux
                                                "</body>" +
                                                "</html>");
                                         }
-                                        _httpClient.Dispose();
                                     }
                                 }
                             }
@@ -791,7 +774,6 @@ namespace Opux
                         response.MethodNotAllowed();
                     }
                     response.Close();
-                    _httpClient.Dispose();
                 };
                 listener.Start();
             }
