@@ -366,11 +366,12 @@ namespace Opux
                                 {
                                     code = request.Url.Query.TrimStart('?').Split('=')[1];
 
-                                    var _httpClient = Program._httpClient;
+                                    var _httpClient = new HttpClient();
 
                                     var values = new Dictionary<string, string> { { "grant_type", "authorization_code" }, { "code", $"{code}" } };
 
                                     _httpClient.DefaultRequestHeaders.Clear();
+                                    _httpClient.DefaultRequestHeaders.Add("User-Agent", "OpuxBot");
                                     _httpClient.DefaultRequestHeaders.Add("Authorization", $"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes(client_id + ":" + secret))}");
                                     var content = new FormUrlEncodedContent(values);
                                     var tokenresponse = await Program._httpClient.PostAsync("https://login.eveonline.com/oauth/token", content);
