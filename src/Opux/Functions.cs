@@ -415,14 +415,21 @@ namespace Opux
 
                                     var _characterDetails = await _httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{CharacterID}");
                                     if (!_characterDetails.IsSuccessStatusCode)
+                                    {
                                         ESIFailure = true;
+                                        await Client_Log(new LogMessage(LogSeverity.Error, "authWeb User", "characterDetails failed"));
+                                    }
                                     var _characterDetailsContent = _characterDetails.Content;
 
                                     characterDetails = JObject.Parse(await _characterDetailsContent.ReadAsStringAsync());
                                     characterDetails.TryGetValue("corporation_id", out JToken corporationid);
                                     var _corporationDetails = await _httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corporationid}");
                                     if (!_corporationDetails.IsSuccessStatusCode)
+                                    {
                                         ESIFailure = true;
+                                        await Client_Log(new LogMessage(LogSeverity.Error, "authWeb User", "corporationDetails failed"));
+
+                                    }
                                     var _corporationDetailsContent = _corporationDetails.Content;
                                     {
                                         corporationDetails = JObject.Parse(await _corporationDetailsContent.ReadAsStringAsync());
@@ -435,7 +442,11 @@ namespace Opux
                                         {
                                             var _allianceDetails = await _httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{allianceid}");
                                             if (!_allianceDetails.IsSuccessStatusCode)
+                                            {
                                                 ESIFailure = true;
+                                                await Client_Log(new LogMessage(LogSeverity.Error, "authWeb User", "allianceDetails failed"));
+
+                                            }
                                             var _allianceDetailsContent = _allianceDetails.Content;
 
                                             allianceDetails = JObject.Parse(await _allianceDetailsContent.ReadAsStringAsync());
