@@ -378,6 +378,7 @@ namespace Opux
                                     accessToken = (string)JObject.Parse(responseString)["access_token"];
                                     _httpClient.DefaultRequestHeaders.Clear();
 
+                                    _httpClient.DefaultRequestHeaders.Add("User-Agent", "OpuxBot");
                                     _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
                                     tokenresponse = await Program._httpClient.GetAsync("https://login.eveonline.com/oauth/verify");
                                     verifyString = await tokenresponse.Content.ReadAsStringAsync();
