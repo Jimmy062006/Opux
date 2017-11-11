@@ -2006,7 +2006,7 @@ namespace Opux
                                     }
                                     catch (Exception ex)
                                     {
-                                        await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Error Notification"));
+                                        await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Error Notification", ex));
                                     }
                                 }
                                     runComplete = true;
