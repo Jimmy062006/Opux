@@ -2009,7 +2009,7 @@ namespace Opux
                                         await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Error Notification", ex));
                                     }
                                 }
-                                    runComplete = true;
+                                runComplete = true;
                             }
                             if (keyCount > 1 && keyCount != index + 1)
                             {
