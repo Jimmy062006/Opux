@@ -1900,6 +1900,38 @@ namespace Opux
                                                     $"Current Hull Level: {hullValue}{Environment.NewLine}{Environment.NewLine}" +
                                                     $"Aggressing Pilot: {aggressorName}{Environment.NewLine}Aggressing Corporation: {aggressorCorpName}{allyLine}```");
                                             }
+                                            else if (notificationType == 93)
+                                            {
+                                                await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
+                                                    $"Type: {types[notificationType]}"));
+                                                Int64.TryParse(notificationText["aggressorAllianceID"].AllNodes.ToList()[0].ToString(), out long allyResult);
+                                                var aggressorAllianceID = allyResult;
+                                                var aggressorCorpID = Convert.ToInt64(notificationText["aggressorCorpID"].AllNodes.ToList()[0].ToString());
+                                                var aggressorID = Convert.ToInt64(notificationText["aggressorID"].AllNodes.ToList()[0].ToString());
+                                                var typeID = Convert.ToInt64(notificationText["typeID"].AllNodes.ToList()[0].ToString());
+                                                var planetID = Convert.ToInt64(notificationText["planetID"].AllNodes.ToList()[0].ToString());
+                                                var planetTypeID = Convert.ToInt64(notificationText["planetTypeID"].AllNodes.ToList()[0].ToString());
+                                                var solarSystemID = Convert.ToInt64(notificationText["solarSystemID"].AllNodes.ToList()[0].ToString());
+                                                var shieldValue = string.Format("{0:P2}", Convert.ToDouble(notificationText["shieldLevel"].AllNodes.ToList()[0].ToString()));
+                                                var names = await EveLib.IDtoName(new List<Int64> { aggressorAllianceID, aggressorCorpID, aggressorID, planetID, solarSystemID });
+                                                var aggressorAlliance = names.FirstOrDefault(x => x.Key == aggressorAllianceID).Value;
+                                                var aggressorCorpName = names.First(x => x.Key == aggressorCorpID).Value;
+                                                var aggressorName = names.First(x => x.Key == aggressorID).Value;
+                                                var planetName = names.First(x => x.Key == planetID).Value;
+                                                var solarSystemName = names.First(x => x.Key == solarSystemID).Value;
+                                                var allyLine = aggressorAllianceID != 0 ? $"{Environment.NewLine}Aggressing Alliance: {aggressorAlliance}" : "";
+                                                var TypeName = await EveLib.IDtoTypeName(new List<Int64> { typeID });
+                                                var solarSystemID = Convert.ToInt64(notificationText["solarSystemID"].AllNodes.ToList()[0].ToString());
+                                                var names = await EveLib.IDtoName(new List<Int64> { solarSystemID });
+                                                var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
+
+                                                await chan.SendMessageAsync($"@everyone {Environment.NewLine}Customs office has been attacked.{Environment.NewLine}{Environment.NewLine}" +
+                                                    $"Details{Environment.NewLine}```{Environment.NewLine}System: {solarSystemName} Planet: {planetName}{Environment.NewLine}" +
+                                                    $"Type: {TypeName.First(x => x.Key == typeID).Value}{Environment.NewLine}{Environment.NewLine}" +
+                                                    $"Current Shield Level: {shieldValue}{Environment.NewLine}" +
+                                                    $"Aggressing Pilot: {aggressorName}{Environment.NewLine}Aggressing Corporation: {aggressorCorpName}{allyLine}```");
+
+                                            }
                                             else if (notificationType == 100)
                                             {
                                                 await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
@@ -1965,6 +1997,35 @@ namespace Opux
 
                                                 await chan.SendMessageAsync($"@everyone {Environment.NewLine}Command nodes decloaking for {solarSystemName.Value}");
 
+                                            }
+                                            else if (notificationType == 184)
+                                            {
+                                                await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
+                                                    $"Type: {types[notificationType]}"));
+                                                Int64.TryParse(notificationText["allianceID"].AllNodes.ToList()[0].ToString(), out long allyResult);
+                                                var aggressorAllianceID = allyResult;
+                                                var allianceName = notificationText["allianceName"];
+                                                var armorValue = string.Format("{0:P2}", Convert.ToDouble(notificationText["armorPercentage"].AllNodes.ToList()[0].ToString()));
+                                                var aggressorID = Convert.ToInt64(notificationText["charID"].AllNodes.ToList()[0].ToString());
+                                                var corpName = notificationsText["corpName"];
+                                                var shieldValue = string.Format("{0:P2}", Convert.ToDouble(notificationText["shieldPercentage"].AllNodes.ToList()[0].ToString()));
+                                                var hullValue = string.Format("{0:P2}", Convert.ToDouble(notificationText["hullPercentage"].AllNodes.ToList()[0].ToString()));
+                                                var solarSystemID = Convert.ToInt64(notificationText["solarSystemID"].AllNodes.ToList()[0].ToString());
+                                                var structureID = Convert.ToInt64(notificationText["structureID"].AllNodes.ToList()[0].ToString());
+
+                                                var names = await EveLib.IDtoName(new List<Int64> { aggressorAllianceID, aggressorID, solarSystemID, structureID });
+                                                var aggressorName = names.First(x => x.Key == aggressorID).Value;
+                                                var structureName = names.First(x => x.Key == structureID).Value;
+                                                var allyLine = aggressorAllianceID != 0 ? $"{Environment.NewLine}Aggressing Alliance: {allianceName}" : "";
+                                                var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
+
+                                                await chan.SendMessageAsync($"@everyone {Environment.NewLine}Structure under attack.{Environment.NewLine}{Environment.NewLine}" +
+                                                    $"Details{Environment.NewLine}```{Environment.NewLine}System: {solarSystemName}" +
+                                                    $"Structure: {structureName}{Environment.NewLine}{Environment.NewLine}" +
+                                                    $"Current Shield Level: {shieldValue}{Environment.NewLine}" +
+                                                    $"Current Armor Level: {armorValue}{Environment.NewLine}" +
+                                                    $"Current Hull Level: {hullValue}{Environment.NewLine}" +
+                                                    $"Aggressing Pilot: {aggressorName}{Environment.NewLine}Aggressing Corporation: {corpName}{allyLine}```");
                                             }
                                             else
                                             {
