@@ -1921,15 +1921,14 @@ namespace Opux
                                                 var solarSystemName = names.First(x => x.Key == solarSystemID).Value;
                                                 var allyLine = aggressorAllianceID != 0 ? $"{Environment.NewLine}Aggressing Alliance: {aggressorAlliance}" : "";
                                                 var TypeName = await EveLib.IDtoTypeName(new List<Int64> { typeID });
-                                                var solarSystemID = Convert.ToInt64(notificationText["solarSystemID"].AllNodes.ToList()[0].ToString());
-                                                var names = await EveLib.IDtoName(new List<Int64> { solarSystemID });
-                                                var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
 
                                                 await chan.SendMessageAsync($"@everyone {Environment.NewLine}Customs office has been attacked.{Environment.NewLine}{Environment.NewLine}" +
-                                                    $"Details{Environment.NewLine}```{Environment.NewLine}System: {solarSystemName} Planet: {planetName}{Environment.NewLine}" +
+                                                    $"Details{Environment.NewLine}```{Environment.NewLine}" +
+                                                    $"System: {solarSystemName} Planet: {planetName}{Environment.NewLine}" +
                                                     $"Type: {TypeName.First(x => x.Key == typeID).Value}{Environment.NewLine}{Environment.NewLine}" +
                                                     $"Current Shield Level: {shieldValue}{Environment.NewLine}" +
-                                                    $"Aggressing Pilot: {aggressorName}{Environment.NewLine}Aggressing Corporation: {aggressorCorpName}{allyLine}```");
+                                                    $"Aggressing Pilot: {aggressorName}{Environment.NewLine}" +
+                                                    $"Aggressing Corporation: {aggressorCorpName}{allyLine}```");
 
                                             }
                                             else if (notificationType == 100)
@@ -2007,7 +2006,7 @@ namespace Opux
                                                 var allianceName = notificationText["allianceName"];
                                                 var armorValue = string.Format("{0:P2}", Convert.ToDouble(notificationText["armorPercentage"].AllNodes.ToList()[0].ToString()));
                                                 var aggressorID = Convert.ToInt64(notificationText["charID"].AllNodes.ToList()[0].ToString());
-                                                var corpName = notificationsText["corpName"];
+                                                var corpName = notificationText["corpName"];
                                                 var shieldValue = string.Format("{0:P2}", Convert.ToDouble(notificationText["shieldPercentage"].AllNodes.ToList()[0].ToString()));
                                                 var hullValue = string.Format("{0:P2}", Convert.ToDouble(notificationText["hullPercentage"].AllNodes.ToList()[0].ToString()));
                                                 var solarSystemID = Convert.ToInt64(notificationText["solarSystemID"].AllNodes.ToList()[0].ToString());
@@ -2020,12 +2019,14 @@ namespace Opux
                                                 var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
 
                                                 await chan.SendMessageAsync($"@everyone {Environment.NewLine}Structure under attack.{Environment.NewLine}{Environment.NewLine}" +
-                                                    $"Details{Environment.NewLine}```{Environment.NewLine}System: {solarSystemName}" +
+                                                    $"Details{Environment.NewLine}```{Environment.NewLine}" +
+                                                    $"System: {solarSystemName}" +
                                                     $"Structure: {structureName}{Environment.NewLine}{Environment.NewLine}" +
                                                     $"Current Shield Level: {shieldValue}{Environment.NewLine}" +
                                                     $"Current Armor Level: {armorValue}{Environment.NewLine}" +
                                                     $"Current Hull Level: {hullValue}{Environment.NewLine}" +
-                                                    $"Aggressing Pilot: {aggressorName}{Environment.NewLine}Aggressing Corporation: {corpName}{allyLine}```");
+                                                    $"Aggressing Pilot: {aggressorName}{Environment.NewLine}" +
+                                                    $"Aggressing Corporation: {corpName}{allyLine}```");
                                             }
                                             else
                                             {
