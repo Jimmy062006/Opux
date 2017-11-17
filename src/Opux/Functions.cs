@@ -1996,37 +1996,35 @@ namespace Opux
 
                                                 await chan.SendMessageAsync($"@everyone {Environment.NewLine}Command nodes decloaking for {solarSystemName.Value}");
 
-                                            }
-                                            else if (notificationType == 184)
+                                            }                                            else if (notificationType == 184)
                                             {
                                                 await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
                                                     $"Type: {types[notificationType]}"));
-                                                Int64.TryParse(notificationText["allianceID"].AllNodes.ToList()[0].ToString(), out long allyResult);
-                                                var aggressorAllianceID = allyResult;
                                                 var allianceName = notificationText["allianceName"];
-                                                var armorValue = string.Format("{0:P2}", Convert.ToDouble(notificationText["armorPercentage"].AllNodes.ToList()[0].ToString()));
+                                                var armorValue = string.Format("{0:P2}", notificationText["armorPercentage"].AllNodes.ToList()[0].ToString());
                                                 var aggressorID = Convert.ToInt64(notificationText["charID"].AllNodes.ToList()[0].ToString());
                                                 var corpName = notificationText["corpName"];
-                                                var shieldValue = string.Format("{0:P2}", Convert.ToDouble(notificationText["shieldPercentage"].AllNodes.ToList()[0].ToString()));
-                                                var hullValue = string.Format("{0:P2}", Convert.ToDouble(notificationText["hullPercentage"].AllNodes.ToList()[0].ToString()));
-                                                var solarSystemID = Convert.ToInt64(notificationText["solarSystemID"].AllNodes.ToList()[0].ToString());
+                                                var shieldValue = string.Format("{0:P2}", notificationText["shieldPercentage"].AllNodes.ToList()[0].ToString());
+                                                var hullValue = string.Format("{0:P2}", notificationText["hullPercentage"].AllNodes.ToList()[0].ToString());
+                                                var solarSystemID = Convert.ToInt64(notificationText["solarsystemID"].AllNodes.ToList()[0].ToString());
                                                 var structureID = Convert.ToInt64(notificationText["structureID"].AllNodes.ToList()[0].ToString());
 
-                                                var names = await EveLib.IDtoName(new List<Int64> { aggressorAllianceID, aggressorID, solarSystemID, structureID });
+                                                var names = await EveLib.IDtoName(new List<Int64> { aggressorID, solarSystemID});
+                                                var namess = await EveLib.IDtoTypeName(new List<Int64> { structureID });
+
                                                 var aggressorName = names.First(x => x.Key == aggressorID).Value;
-                                                var structureName = names.First(x => x.Key == structureID).Value;
-                                                var allyLine = aggressorAllianceID != 0 ? $"{Environment.NewLine}Aggressing Alliance: {allianceName}" : "";
+                                                var structureName = namess.First(x => x.Key == structureID).Value;
                                                 var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
 
-                                                await chan.SendMessageAsync($"@everyone {Environment.NewLine}Structure under attack.{Environment.NewLine}{Environment.NewLine}" +
-                                                    $"Details{Environment.NewLine}```{Environment.NewLine}" +
-                                                    $"System: {solarSystemName}" +
-                                                    $"Structure: {structureName}{Environment.NewLine}{Environment.NewLine}" +
+                                                await chan.SendMessageAsync($" {Environment.NewLine}Citadel under attack.{Environment.NewLine}{Environment.NewLine}" +
+                                                    $"```System: {solarSystemName.Value}{Environment.NewLine}" +
+                                                    $"Structure: {structureName}{Environment.NewLine}" +
                                                     $"Current Shield Level: {shieldValue}{Environment.NewLine}" +
                                                     $"Current Armor Level: {armorValue}{Environment.NewLine}" +
                                                     $"Current Hull Level: {hullValue}{Environment.NewLine}" +
                                                     $"Aggressing Pilot: {aggressorName}{Environment.NewLine}" +
-                                                    $"Aggressing Corporation: {corpName}{allyLine}```");
+                                                    $"Aggressing Corporation: {corpName}{Environment.NewLine}" +
+                                                    $"Aggressing Alliance: {allianceName}```");
                                             }
                                             else
                                             {
