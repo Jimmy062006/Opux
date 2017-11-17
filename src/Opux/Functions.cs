@@ -2016,7 +2016,7 @@ namespace Opux
                                                 var structureName = namess.First(x => x.Key == structureID).Value;
                                                 var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
 
-                                                await chan.SendMessageAsync($" {Environment.NewLine}Citadel under attack.{Environment.NewLine}{Environment.NewLine}" +
+                                                await chan.SendMessageAsync($"@everyone {Environment.NewLine}Citadel under attack.{Environment.NewLine}{Environment.NewLine}" +
                                                     $"```System: {solarSystemName.Value}{Environment.NewLine}" +
                                                     $"Structure: {structureName}{Environment.NewLine}" +
                                                     $"Current Shield Level: {shieldValue}{Environment.NewLine}" +
