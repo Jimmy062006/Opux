@@ -1996,11 +1996,13 @@ namespace Opux
 
                                                 await chan.SendMessageAsync($"@everyone {Environment.NewLine}Command nodes decloaking for {solarSystemName.Value}");
 
-                                            }                                            else if (notificationType == 184)
+                                            }
+                                            else if (notificationType == 184)
                                             {
                                                 await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
                                                     $"Type: {types[notificationType]}"));
-                                                var allianceName = notificationText["allianceName"];
+                                                Int64.TryParse(notificationText["allianceID"].AllNodes.ToList()[0].ToString(), out long allyResult);
+                                                var aggressorAllianceID = allyResult;
                                                 var armorValue = string.Format("{0:P2}", notificationText["armorPercentage"].AllNodes.ToList()[0].ToString());
                                                 var aggressorID = Convert.ToInt64(notificationText["charID"].AllNodes.ToList()[0].ToString());
                                                 var corpName = notificationText["corpName"];
@@ -2009,12 +2011,14 @@ namespace Opux
                                                 var solarSystemID = Convert.ToInt64(notificationText["solarsystemID"].AllNodes.ToList()[0].ToString());
                                                 var structureID = Convert.ToInt64(notificationText["structureID"].AllNodes.ToList()[0].ToString());
 
-                                                var names = await EveLib.IDtoName(new List<Int64> { aggressorID, solarSystemID});
+                                                var names = await EveLib.IDtoName(new List<Int64> { aggressorAllianceID, aggressorID, solarSystemID});
                                                 var namess = await EveLib.IDtoTypeName(new List<Int64> { structureID });
 
+                                                var aggressorAlliance = names.FirstOrDefault(x => x.Key == aggressorAllianceID).Value;
                                                 var aggressorName = names.First(x => x.Key == aggressorID).Value;
                                                 var structureName = namess.First(x => x.Key == structureID).Value;
                                                 var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
+                                                var allyLine = aggressorAllianceID != 0 ? $"{aggressorAlliance}" : "";
 
                                                 await chan.SendMessageAsync($"@everyone {Environment.NewLine}Citadel under attack.{Environment.NewLine}{Environment.NewLine}" +
                                                     $"```System: {solarSystemName.Value}{Environment.NewLine}" +
@@ -2024,7 +2028,7 @@ namespace Opux
                                                     $"Current Hull Level: {hullValue}{Environment.NewLine}" +
                                                     $"Aggressing Pilot: {aggressorName}{Environment.NewLine}" +
                                                     $"Aggressing Corporation: {corpName}{Environment.NewLine}" +
-                                                    $"Aggressing Alliance: {allianceName}```");
+                                                    $"Aggressing Alliance: {allyLine}```");
                                             }
                                             else
                                             {
