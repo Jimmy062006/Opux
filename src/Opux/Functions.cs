@@ -1107,9 +1107,7 @@ namespace Opux
 
                         if (corpTickers || nameEnforce)
                         {
-                            if (corporationData.Ticker == "")
-                            {
-                                var Nickname = "";
+                            var Nickname = "";
                                 if (corpTickers)
                                 {
                                     Nickname = $"[{corporationData.Ticker}] ";
@@ -1127,7 +1125,6 @@ namespace Opux
                                     await u.ModifyAsync(x => x.Nickname = Nickname);
                                     await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Changed name of {u.Nickname} to {Nickname}"));
                                 }
-                            }
                         }
                     }
                     else
