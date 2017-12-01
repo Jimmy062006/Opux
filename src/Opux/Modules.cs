@@ -198,7 +198,14 @@ namespace Opux
             {
                 try
                 {
-                    await Functions.AuthUser(Context, x);
+                    if (Helpers.IsUserMention(Context))
+                    {
+                        await Functions.SendAuthMessage(Context);
+                    }
+                    else
+                    {
+                        await Functions.AuthUser(Context, x);
+                    }
                 }
                 catch (Exception ex)
                 {

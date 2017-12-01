@@ -192,6 +192,7 @@ namespace Opux
         {
             if (Convert.ToBoolean(Program.Settings.GetSection("config")["welcome"]))
             {
+                await Task.Delay(1000);
                 var channel = arg.Guild.DefaultChannel;
                 var authurl = Program.Settings.GetSection("auth")["authurl"];
                 if (!String.IsNullOrWhiteSpace(authurl))
@@ -214,6 +215,20 @@ namespace Opux
             await Program.Client.SetGameAsync(Program.Settings.GetSection("config")["game"]);
 
             await Task.CompletedTask;
+        }
+        #endregion
+
+        #region SendAuthMessage
+        internal static async Task SendAuthMessage(ICommandContext context)
+        {
+            var channel = context.Message.Channel;
+            var authurl = Program.Settings.GetSection("auth")["authurl"];
+            var Ids = new List<ulong>(context.Message.MentionedUserIds);
+            var mentioneduser = await context.Guild.GetUserAsync(Ids[0]);
+            if (!String.IsNullOrWhiteSpace(authurl))
+            {
+                await channel.SendMessageAsync($"{mentioneduser.Mention}, To gain access please auth at {authurl} ");
+            }
         }
         #endregion
 
