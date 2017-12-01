@@ -795,6 +795,61 @@ namespace Opux
 
         }
 
+        internal static async Task Dupes(ICommandContext context, SocketUser user)
+        {
+            var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
+            var logchan = Convert.ToUInt64(Program.Settings.GetSection("auth")["alertChannel"]);
+            var discordUsers = Program.Client.GetGuild(guildID).Users;
+            var discordGuild = Program.Client.GetGuild(guildID);
+            var logChannel = Program.Client.GetGuild(guildID).GetTextChannel(logchan);
+
+            if (user == null)
+            {
+                foreach (var u in discordUsers)
+                {
+                    int count = 0;
+                    var query = $"SELECT * FROM authUsers WHERE discordID = {u.Id} ORDER BY addedOn DESC";
+                    var responce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query);
+                    foreach (var r in responce)
+                    {
+                        if (count != 0)
+                        {
+                            var query2 = $"DELETE FROM authUsers WHERE id = {r["id"]}";
+                            var responce2 = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query2);
+                            var query3 = $"SELECT id FROM authUsers WHERE id = {r["id"]}";
+                            var responce3 = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query3);
+                            if (responce3.Count == 0)
+                            {
+                                await logChannel.SendMessageAsync($"Deleting Old Duplicate discordID for {r["eveName"]}");
+                            }
+                        }
+                        count++;
+                    }
+                }
+            }
+            else
+            {
+                int count = 0;
+                var query = $"SELECT * FROM authUsers WHERE discordID = {user.Id}";
+                var responce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query);
+                foreach (var r in responce)
+                {
+                    if (count != 0)
+                    {
+                        var query2 = $"DELETE FROM authUsers WHERE id = {r["id"]}";
+                        var responce2 = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query2);
+                        var query3 = $"SELECT id FROM authUsers WHERE id = {r["id"]}";
+                        var responce3 = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query3);
+                        if (responce3.Count == 0)
+                        {
+                            await logChannel.SendMessageAsync($"Deleting Old Duplicate discordID for {r["eveName"]}");
+                        }
+                    }
+                    count++;
+                }
+            }
+        }
+
         private static string GetUniqID()
         {
             var ts = (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0));
@@ -961,6 +1016,8 @@ namespace Opux
                                     Nickname += $"{discordUser.Username}";
                                 }
                                 await discordUser.ModifyAsync(x => x.Nickname = Nickname);
+
+                                await Dupes(null, discordUser);
                             }
                         }
 
@@ -1020,7 +1077,6 @@ namespace Opux
                     {
                         alliance.Add(allianceID, allianceMemberRole);
                     }
-
                 }
 
                 foreach (var u in discordUsers)
