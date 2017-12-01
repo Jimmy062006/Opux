@@ -830,7 +830,7 @@ namespace Opux
             else
             {
                 int count = 0;
-                var query = $"SELECT * FROM authUsers WHERE discordID = {user.Id}";
+                var query = $"SELECT * FROM authUsers WHERE discordID = {user.Id} ORDER BY addedOn DESC";
                 var responce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query);
                 foreach (var r in responce)
                 {
