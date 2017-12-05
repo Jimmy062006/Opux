@@ -264,6 +264,9 @@ namespace Opux
                     {
                         if (request.Url.LocalPath == "/" || request.Url.LocalPath == $"{port}/")
                         {
+
+                            response.Headers.Add("Content-Type", "text/html");
+
                             await response.WriteContentAsync("<!doctype html>" +
                                 "<html>" +
                                 "<head>" +
@@ -476,6 +479,9 @@ namespace Opux
                                             $"VALUES (\"{characterID}\", \"{corporationid}\", \"{allianceid}\", \"{authString}\", \"[]\", \"{active}\", \"{dateCreated}\") ON DUPLICATE KEY UPDATE " +
                                             $"corporationID = \"{corporationid}\", allianceID = \"{allianceid}\", authString = \"{authString}\", groups = \"[]\", active = \"{active}\", dateCreated = \"{dateCreated}\"";
                                             var responce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query);
+
+                                            response.Headers.Add("Content-Type", "text/html");
+
                                             await response.WriteContentAsync("<!doctype html>" +
                                                 "<html>" +
                                                 "<head>" +
@@ -581,6 +587,9 @@ namespace Opux
                                             {
                                                 message = "You are not Corp/Alliance or Blue";
                                             }
+
+                                            response.Headers.Add("Content-Type", "text/html");
+
                                             await response.WriteContentAsync("<!doctype html>" +
                                                "<html>" +
                                                "<head>" +
@@ -679,6 +688,8 @@ namespace Opux
                                         else if (ESIFailure)
                                         {
                                             var message = "ESI Failure, Please try again later";
+
+                                            response.Headers.Add("Content-Type", "text/html");
 
                                             await response.WriteContentAsync("<!doctype html>" +
                                                "<html>" +
@@ -1244,16 +1255,16 @@ namespace Opux
                             }
                         }
                     }
-                if (Context != null)
+                    catch (Exception ex)
                     {
-                        var channel = discordGuild.GetTextChannel(logchan);
-                        await channel.SendMessageAsync($"{Context.Message.Author.Mention} REAUTH COMPLETED");
+                        await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Fatal Error: {ex.Message}", ex));
                     }
                 }
-            }
-            catch(Exception ex)
-            {
-                await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Fatal Error: {ex.Message}", ex));
+                if (Context != null)
+                {
+                    var channel = discordGuild.GetTextChannel(logchan);
+                    await channel.SendMessageAsync($"{Context.Message.Author.Mention} REAUTH COMPLETED");
+                }
             }
         }
         #endregion
