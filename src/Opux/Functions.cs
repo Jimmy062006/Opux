@@ -2686,8 +2686,7 @@ namespace Opux
             {
                 var directory = Path.Combine(AppContext.BaseDirectory);
             }
-            //using (var repo = new Repository(directory))
-            //{
+
             var channel = context.Channel;
             var botid = Program.Client.CurrentUser.Id;
             var MemoryUsed = ByteSize.FromBytes(Process.GetCurrentProcess().WorkingSet64);
@@ -2702,7 +2701,7 @@ namespace Opux
             await channel.SendMessageAsync($"{context.User.Mention},{Environment.NewLine}{Environment.NewLine}" +
                 $"```Developer: Jimmy06 (In-game Name: Jimmy06){Environment.NewLine}{Environment.NewLine}" +
                 $"Bot ID: {botid}{Environment.NewLine}{Environment.NewLine}" +
-                $"Run Time: {RunTime.Days}:{RunTime.Hours}:{RunTime.Minutes}:{RunTime.Seconds}{Environment.NewLine}{Environment.NewLine}" +
+                $"Run Time: {RunTime.Days} Days {RunTime.Hours} Hours {RunTime.Minutes} Minutes {RunTime.Seconds}{Environment.NewLine}{Environment.NewLine}" +
                 $"Statistics:{Environment.NewLine}" +
                 $"Memory Used: {Math.Round(MemoryUsed.LargestWholeNumberValue, 2)} {MemoryUsed.LargestWholeNumberSymbol}{Environment.NewLine}" +
                 $"Total Connected Guilds: {Guilds}{Environment.NewLine}" +
