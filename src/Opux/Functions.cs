@@ -1081,104 +1081,106 @@ namespace Opux
 
                 foreach (var u in discordUsers)
                 {
-                    await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Running Auth Check on {u.Username}"));
-                    if (u.Id == Program.Client.CurrentUser.Id)
-                        continue;
-
-                    string query = $"SELECT * FROM authUsers WHERE discordID={u.Id}";
-                    var responce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query);
-
-                    if (responce.Count > 0)
+                    try
                     {
-                        var characterID = responce.OrderByDescending(x => x["id"]).FirstOrDefault()["characterID"];
-
-                        var responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{characterID}/?datasource=tranquility");
-                        var characterData = JsonConvert.DeserializeObject<CharacterData>(await responceMessage.Content.ReadAsStringAsync());
-                        if (!responceMessage.IsSuccessStatusCode || characterData == null)
-                        {
-                            await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential characterData {responceMessage.StatusCode} ESI Failure for {u.Nickname}"));
+                        await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Running Auth Check on {u.Username}"));
+                        if (u.Id == Program.Client.CurrentUser.Id)
                             continue;
-                        }
 
-                        responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.Corporation_id}/?datasource=tranquility");
-                        var corporationData = JsonConvert.DeserializeObject<CorporationData>(await responceMessage.Content.ReadAsStringAsync());
-                        if (!responceMessage.IsSuccessStatusCode || corporationData == null)
-                        {
-                            await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential corpData {responceMessage.StatusCode} ESI Failure for {u.Nickname}"));
-                            continue;
-                        }
+                        string query = $"SELECT * FROM authUsers WHERE discordID={u.Id}";
+                        var responce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query);
 
-                        if (characterData.Alliance_id != -1)
+                        if (responce.Count > 0)
                         {
-                            responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.Alliance_id}/?datasource=tranquility");
-                            var allianceData = JsonConvert.DeserializeObject<AllianceData>(await responceMessage.Content.ReadAsStringAsync());
-                            if (!responceMessage.IsSuccessStatusCode || characterData.Alliance_id == -1 && corporationData.Alliance_id >= 0)
+                            var characterID = responce.OrderByDescending(x => x["id"]).FirstOrDefault()["characterID"];
+
+                            var responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{characterID}/?datasource=tranquility");
+                            var characterData = JsonConvert.DeserializeObject<CharacterData>(await responceMessage.Content.ReadAsStringAsync());
+                            if (!responceMessage.IsSuccessStatusCode || characterData == null)
                             {
-                                await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential allianceData {responceMessage.StatusCode} ESI Failure for {u.Nickname}"));
+                                await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential characterData {responceMessage.StatusCode} ESI Failure for {u.Nickname}"));
                                 continue;
                             }
-                        }
 
-                        var roles = new List<SocketRole>();
-                        var rolesOrig = new List<SocketRole>(u.Roles);
-                        var remroles = new List<SocketRole>();
-                        roles.Add(u.Roles.FirstOrDefault(x => x.Name == "@everyone"));
-                        foreach (var role in exemptRoles)
-                        {
-                            var exemptRole = u.Roles.FirstOrDefault(x => x.Name == role.Value);
-                            if (exemptRole != null)
-                                roles.Add(exemptRole);
-                        }
-
-                        //Check for Corp roles
-                        if (corps.ContainsKey(characterData.Corporation_id.ToString()))
-                        {
-                            var cinfo = corps.FirstOrDefault(x => x.Key == characterData.Corporation_id.ToString());
-                            roles.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == cinfo.Value));
-                        }
-
-                        //Check for Alliance roles
-                        if (alliance.ContainsKey(characterData.Alliance_id.ToString()))
-                        {
-                            var ainfo = alliance.FirstOrDefault(x => x.Key == characterData.Alliance_id.ToString());
-                            roles.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == ainfo.Value));
-                        }
-
-                        bool changed = false;
-
-                        foreach (var role in rolesOrig)
-                        {
-                            if (roles.FirstOrDefault(x => x.Id == role.Id) == null)
+                            responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.Corporation_id}/?datasource=tranquility");
+                            var corporationData = JsonConvert.DeserializeObject<CorporationData>(await responceMessage.Content.ReadAsStringAsync());
+                            if (!responceMessage.IsSuccessStatusCode || corporationData == null)
                             {
-                                remroles.Add(role);
-                                changed = true;
+                                await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential corpData {responceMessage.StatusCode} ESI Failure for {u.Nickname}"));
+                                continue;
                             }
-                        }
 
-                        foreach (var role in roles)
-                        {
-                            if (rolesOrig.FirstOrDefault(x => x.Id == role.Id) == null)
-                                changed = true;
-                        }
+                            if (characterData.Alliance_id != -1)
+                            {
+                                responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.Alliance_id}/?datasource=tranquility");
+                                var allianceData = JsonConvert.DeserializeObject<AllianceData>(await responceMessage.Content.ReadAsStringAsync());
+                                if (!responceMessage.IsSuccessStatusCode || characterData.Alliance_id == -1 && corporationData.Alliance_id >= 0)
+                                {
+                                    await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential allianceData {responceMessage.StatusCode} ESI Failure for {u.Nickname}"));
+                                    continue;
+                                }
+                            }
 
-                        if (changed)
-                        {
-                            roles.Remove(u.Roles.FirstOrDefault(x => x.Name == "@everyone"));
-                            var channel = discordGuild.GetTextChannel(logchan);
-                            await channel.SendMessageAsync($"Adjusting roles for {u.Username}");
-                            await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Adjusting roles for {u.Username}"));
-                            await u.AddRolesAsync(roles);
-                            await u.RemoveRolesAsync(remroles);
-                        }
+                            var roles = new List<SocketRole>();
+                            var rolesOrig = new List<SocketRole>(u.Roles);
+                            var remroles = new List<SocketRole>();
+                            roles.Add(u.Roles.FirstOrDefault(x => x.Name == "@everyone"));
+                            foreach (var role in exemptRoles)
+                            {
+                                var exemptRole = u.Roles.FirstOrDefault(x => x.Name == role.Value);
+                                if (exemptRole != null)
+                                    roles.Add(exemptRole);
+                            }
 
-                        var eveName = characterData.Name;
+                            //Check for Corp roles
+                            if (corps.ContainsKey(characterData.Corporation_id.ToString()))
+                            {
+                                var cinfo = corps.FirstOrDefault(x => x.Key == characterData.Corporation_id.ToString());
+                                roles.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == cinfo.Value));
+                            }
 
-                        var corpTickers = Convert.ToBoolean(Program.Settings.GetSection("auth")["corpTickers"]);
-                        var nameEnforce = Convert.ToBoolean(Program.Settings.GetSection("auth")["nameEnforce"]);
+                            //Check for Alliance roles
+                            if (alliance.ContainsKey(characterData.Alliance_id.ToString()))
+                            {
+                                var ainfo = alliance.FirstOrDefault(x => x.Key == characterData.Alliance_id.ToString());
+                                roles.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == ainfo.Value));
+                            }
 
-                        if (corpTickers || nameEnforce)
-                        {
-                            var Nickname = "";
+                            bool changed = false;
+
+                            foreach (var role in rolesOrig)
+                            {
+                                if (roles.FirstOrDefault(x => x.Id == role.Id) == null)
+                                {
+                                    remroles.Add(role);
+                                    changed = true;
+                                }
+                            }
+
+                            foreach (var role in roles)
+                            {
+                                if (rolesOrig.FirstOrDefault(x => x.Id == role.Id) == null)
+                                    changed = true;
+                            }
+
+                            if (changed)
+                            {
+                                roles.Remove(u.Roles.FirstOrDefault(x => x.Name == "@everyone"));
+                                var channel = discordGuild.GetTextChannel(logchan);
+                                await channel.SendMessageAsync($"Adjusting roles for {u.Username}");
+                                await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Adjusting roles for {u.Username}"));
+                                await u.AddRolesAsync(roles);
+                                await u.RemoveRolesAsync(remroles);
+                            }
+
+                            var eveName = characterData.Name;
+
+                            var corpTickers = Convert.ToBoolean(Program.Settings.GetSection("auth")["corpTickers"]);
+                            var nameEnforce = Convert.ToBoolean(Program.Settings.GetSection("auth")["nameEnforce"]);
+
+                            if (corpTickers || nameEnforce)
+                            {
+                                var Nickname = "";
                                 if (corpTickers)
                                 {
                                     Nickname = $"[{corporationData.Ticker}] ";
@@ -1196,57 +1198,62 @@ namespace Opux
                                     await u.ModifyAsync(x => x.Nickname = Nickname);
                                     await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Changed name of {u.Nickname} to {Nickname}"));
                                 }
+                            }
+                        }
+                        else
+                        {
+                            var rroles = new List<SocketRole>();
+                            var rolesOrig = new List<SocketRole>(u.Roles);
+                            var rrolesOrig = rolesOrig;
+                            foreach (var rrole in rolesOrig)
+                            {
+                                var exemptRole = exemptRoles.FirstOrDefault(x => x.Value == rrole.Name);
+                                if (exemptRole == null)
+                                {
+                                    rroles.Add(rrole);
+                                }
+                            }
+
+                            rolesOrig.Remove(u.Roles.FirstOrDefault(x => x.Name == "@everyone"));
+                            rroles.Remove(u.Roles.FirstOrDefault(X => X.Name == "@everyone"));
+
+                            bool rchanged = false;
+
+                            if (rroles != rolesOrig)
+                            {
+                                foreach (var exempt in rroles)
+                                {
+                                    if (exemptRoles.FirstOrDefault(x => x.Value == exempt.Name) == null)
+                                        rchanged = true;
+                                }
+                            }
+
+                            if (rchanged)
+                            {
+                                try
+                                {
+                                    var channel = discordGuild.GetTextChannel(logchan);
+                                    await channel.SendMessageAsync($"Resetting roles for {u.Username}");
+                                    await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Resetting roles for {u.Username}"));
+                                    await u.RemoveRolesAsync(rroles);
+                                }
+                                catch (Exception ex)
+                                {
+                                    await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Error removing roles: {ex.Message}", ex));
+                                }
+                            }
                         }
                     }
-                    else
-                    {
-                        var rroles = new List<SocketRole>();
-                        var rolesOrig = new List<SocketRole>(u.Roles);
-                        var rrolesOrig = rolesOrig;
-                        foreach (var rrole in rolesOrig)
-                        {
-                            var exemptRole = exemptRoles.FirstOrDefault(x => x.Value == rrole.Name);
-                            if (exemptRole == null)
-                            {
-                                rroles.Add(rrole);
-                            }
-                        }
-
-                        rolesOrig.Remove(u.Roles.FirstOrDefault(x => x.Name == "@everyone"));
-                        rroles.Remove(u.Roles.FirstOrDefault(X => X.Name == "@everyone"));
-
-                        bool rchanged = false;
-
-                        if (rroles != rolesOrig)
-                        {
-                            foreach (var exempt in rroles)
-                            {
-                                if (exemptRoles.FirstOrDefault(x => x.Value == exempt.Name) == null)
-                                    rchanged = true;
-                            }
-                        }
-
-                        if (rchanged)
-                        {
-                            try
-                            {
-                                var channel = discordGuild.GetTextChannel(logchan);
-                                await channel.SendMessageAsync($"Resetting roles for {u.Username}");
-                                await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Resetting roles for {u.Username}"));
-                                await u.RemoveRolesAsync(rroles);
-                            }
-                            catch (Exception ex)
-                            {
-                                await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Error removing roles: {ex.Message}", ex));
-                            }
-                        }
-                    }
-                }
                 if (Context != null)
-                {
-                    var channel = discordGuild.GetTextChannel(logchan);
-                    await channel.SendMessageAsync($"{Context.Message.Author.Mention} REAUTH COMPLETED");
+                    {
+                        var channel = discordGuild.GetTextChannel(logchan);
+                        await channel.SendMessageAsync($"{Context.Message.Author.Mention} REAUTH COMPLETED");
+                    }
                 }
+            }
+            catch(Exception ex)
+            {
+                await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Fatal Error: {ex.Message}", ex));
             }
         }
         #endregion
