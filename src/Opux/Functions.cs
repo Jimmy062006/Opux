@@ -101,7 +101,7 @@ namespace Opux
                 }
                 if (Program.debug)
                     Console.WriteLine($"Checking update topic Enabled");
-                if (Convert.ToBoolean(Program.Settings.GetSection("MOTD")["updatetopic"]))
+                if (Convert.ToBoolean(Program.Settings.GetSection("motd")["updatetopic"]))
                 {
                     if (Program.debug)
                         Console.WriteLine($"Checking update topic");
@@ -2363,7 +2363,7 @@ namespace Opux
                         com = StripTagsCharArray(com);
                         com = com.Replace("&lt;", "<").Replace("&gt;", ">");
 
-                        var restricted = Convert.ToUInt64(Program.Settings.GetSection("MOTD")["restricted"]);
+                        var restricted = Convert.ToUInt64(Program.Settings.GetSection("motd")["restricted"]);
                         var channel = Convert.ToUInt64(context.Channel.Id);
                         if (channel == restricted)
                         {

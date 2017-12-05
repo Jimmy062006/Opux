@@ -89,7 +89,9 @@
     "motdcharid": "",
     "motdtopicchan": 0,
     "topicInterval": "30",
-    "MOTDChan": ""
+    "MOTDChan": "",
+    "updatetopic": false,
+    "restricted": 0
   },
   "fleetup": {
     "UserId": "",
@@ -111,9 +113,5 @@
       "BLOPS": "0000000000000"
     },
     "prepend": "@here"
-  },
-  "MOTD": {
-    "updatetopic": false,
-    "restricted": 0
   }
 }
