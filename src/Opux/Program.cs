@@ -12,7 +12,6 @@ using System.Net.Http;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using WS4NetCore;
 
 namespace Opux
 {
@@ -41,15 +40,7 @@ namespace Opux
 
             UpdateSettings();
 
-            if (!Convert.ToBoolean(Settings.GetSection("config")["Windows7Compatable"]))
-            {
-                Client = new DiscordSocketClient(new DiscordSocketConfig() { });
-            }
-            else
-            {
-                Client = new DiscordSocketClient(new DiscordSocketConfig() { WebSocketProvider = WS4NetProvider.Instance });
-            }
-
+            Client = new DiscordSocketClient(new DiscordSocketConfig() { });
             Commands = new CommandService();
             EveLib = new EveLib();
             MainAsync(args).GetAwaiter().GetResult();

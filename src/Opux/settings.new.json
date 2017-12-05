@@ -3,7 +3,6 @@
     "name": "Opux",
     "game": "Status",
     "token": "",
-    "Windows7Compatable": false,
     "commandprefix": "!",
     "logchan": 0,
     "guildId": 0,
