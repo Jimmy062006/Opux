@@ -101,7 +101,7 @@ namespace Opux
                 }
                 if (Program.debug)
                     Console.WriteLine($"Checking update topic Enabled");
-                if (Convert.ToBoolean(Program.Settings.GetSection("config")["updatetopic"]))
+                if (Convert.ToBoolean(Program.Settings.GetSection("MOTD")["updatetopic"]))
                 {
                     if (Program.debug)
                         Console.WriteLine($"Checking update topic");
@@ -1056,7 +1056,7 @@ namespace Opux
         internal async static Task AuthCheck(ICommandContext Context)
         {
             //Check inactive users are correct
-            if (DateTime.Now > _lastAuthCheck.AddMilliseconds(Convert.ToInt32(Program.Settings.GetSection("config")["authInterval"]) * 1000 * 60) || Context != null)
+            if (DateTime.Now > _lastAuthCheck.AddMilliseconds(Convert.ToInt32(Program.Settings.GetSection("auth")["authInterval"]) * 1000 * 60) || Context != null)
             {
                 _lastAuthCheck = DateTime.Now;
 
@@ -2363,7 +2363,7 @@ namespace Opux
                         com = StripTagsCharArray(com);
                         com = com.Replace("&lt;", "<").Replace("&gt;", ">");
 
-                        var restricted = Convert.ToUInt64(Program.Settings.GetSection("config")["restricted"]);
+                        var restricted = Convert.ToUInt64(Program.Settings.GetSection("MOTD")["restricted"]);
                         var channel = Convert.ToUInt64(context.Channel.Id);
                         if (channel == restricted)
                         {
