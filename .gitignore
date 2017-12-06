@@ -8,3 +8,6 @@
 /src/Opux/bin
 /.vs
 /src/Opux/Opux.csproj.user
+.vscode/launch.json
+.vscode/tasks.json
+src/Opux/settings.json

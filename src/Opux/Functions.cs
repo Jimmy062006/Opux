@@ -929,14 +929,12 @@ namespace Opux
 
                             var corpTickers = Convert.ToBoolean(Program.Settings.GetSection("auth")["corpTickers"]);
                             var nameEnforce = Convert.ToBoolean(Program.Settings.GetSection("auth")["nameEnforce"]);
+                            var corpTickerInFront = Convert.ToBoolean(Program.Settings.GetSection("auth")["corpTickerInFront"]);
 
                             if (corpTickers || nameEnforce)
                             {
                                 var Nickname = "";
-                                if (corpTickers)
-                                {
-                                    Nickname = $"[{corporationData.Ticker}] ";
-                                }
+
                                 if (nameEnforce)
                                 {
                                     Nickname += $"{eveName}";
@@ -945,6 +943,19 @@ namespace Opux
                                 {
                                     Nickname += $"{discordUser.Username}";
                                 }
+
+                                if (corpTickers)
+                                {
+                                    if (corpTickerInFront)
+                                    {
+                                        Nickname = $"[{corporationData.Ticker}] " + Nickname;
+                                    }
+                                    else
+                                    {
+                                        Nickname = Nickname + $" [{corporationData.Ticker}]";
+                                    }
+                                }
+
                                 await discordUser.ModifyAsync(x => x.Nickname = Nickname);
                             }
                         }
@@ -1011,8 +1022,17 @@ namespace Opux
                 foreach (var u in discordUsers)
                 {
                     await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Running Auth Check on {u.Username}"));
+                    
+                    // If the user is the Bot, continue.
                     if (u.Id == Program.Client.CurrentUser.Id)
                         continue;
+
+                    // If the current user is the owner of the server, don't continue.
+                    /*if(u.Guild.Owner.Id == u.Id)
+                    {
+                        await Client_Log(new LogMessage(LogSeverity.Warning, "authCheck", $"{u.Username} is server owner. Can not be modified."));
+                        continue;
+                    }*/
 
                     string query = $"SELECT * FROM authUsers WHERE discordID={u.Id}";
                     var responce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query);
@@ -1104,30 +1124,46 @@ namespace Opux
 
                         var corpTickers = Convert.ToBoolean(Program.Settings.GetSection("auth")["corpTickers"]);
                         var nameEnforce = Convert.ToBoolean(Program.Settings.GetSection("auth")["nameEnforce"]);
+                        var corpTickerInFront = Convert.ToBoolean(Program.Settings.GetSection("auth")["corpTickerInFront"]);
 
                         if (corpTickers || nameEnforce)
                         {
-                            if (corporationData.Ticker == "")
+                            var Nickname = "";
+
+                            if (nameEnforce)
                             {
-                                var Nickname = "";
-                                if (corpTickers)
+                                Nickname += $"{eveName}";
+                            }
+                            else
+                            {
+                                Nickname += $"{u.Username}";
+                            }
+
+                            if (corpTickers)
+                            {
+                                if(corpTickerInFront)
                                 {
-                                    Nickname = $"[{corporationData.Ticker}] ";
-                                }
-                                if (nameEnforce)
-                                {
-                                    Nickname += $"{eveName}";
+                                    Nickname = $"[{corporationData.Ticker}] " + Nickname;
                                 }
                                 else
                                 {
-                                    Nickname += $"{u.Username}";
+                                    Nickname = Nickname + $" [{corporationData.Ticker}]";
                                 }
-                                if (Nickname != u.Nickname && !String.IsNullOrWhiteSpace(u.Nickname) || String.IsNullOrWhiteSpace(u.Nickname) && u.Username != Nickname)
+                            }
+
+                            if (Nickname != u.Nickname && !String.IsNullOrWhiteSpace(u.Nickname) || String.IsNullOrWhiteSpace(u.Nickname) && u.Username != Nickname)
+                            {
+                                try
                                 {
                                     await u.ModifyAsync(x => x.Nickname = Nickname);
                                     await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Changed name of {u.Nickname} to {Nickname}"));
                                 }
+                                catch (Exception ex)
+                                {
+                                    await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Error changing Name: {ex.Message}", ex));
+                                }
                             }
+                            
                         }
                     }
                     else
