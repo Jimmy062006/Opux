@@ -60,6 +60,7 @@
     "exempt": [ "Role1", "Role2" ],
     "alertChannel": 0,
     "corpTickers": true,
+    "corpTickerInFront": true,
     "nameEnforce": true,
     "authGroups": {
       "group1": {

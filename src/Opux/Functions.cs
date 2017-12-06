@@ -1010,14 +1010,12 @@ namespace Opux
 
                             var corpTickers = Convert.ToBoolean(Program.Settings.GetSection("auth")["corpTickers"]);
                             var nameEnforce = Convert.ToBoolean(Program.Settings.GetSection("auth")["nameEnforce"]);
+                            var corpTickerInFront = Convert.ToBoolean(Program.Settings.GetSection("auth")["corpTickerInFront"]);
 
                             if (corpTickers || nameEnforce)
                             {
                                 var Nickname = "";
-                                if (corpTickers)
-                                {
-                                    Nickname = $"[{corporationData.Ticker}] ";
-                                }
+
                                 if (nameEnforce)
                                 {
                                     Nickname += $"{eveName}";
@@ -1026,6 +1024,19 @@ namespace Opux
                                 {
                                     Nickname += $"{discordUser.Username}";
                                 }
+
+                                if (corpTickers)
+                                {
+                                    if (corpTickerInFront)
+                                    {
+                                        Nickname = $"[{corporationData.Ticker}] " + Nickname;
+                                    }
+                                    else
+                                    {
+                                        Nickname = Nickname + $" [{corporationData.Ticker}]";
+                                    }
+                                }
+
                                 await discordUser.ModifyAsync(x => x.Nickname = Nickname);
 
                                 await Dupes(null, discordUser);
@@ -1173,8 +1184,8 @@ namespace Opux
                                 if (rolesOrig.FirstOrDefault(x => x.Id == role.Id) == null)
                                     changed = true;
                             }
-
-                            if (changed)
+							
+							if (changed)
                             {
                                 roles.Remove(u.Roles.FirstOrDefault(x => x.Name == "@everyone"));
                                 var channel = discordGuild.GetTextChannel(logchan);
@@ -1184,32 +1195,48 @@ namespace Opux
                                 await u.RemoveRolesAsync(remroles);
                             }
 
-                            var eveName = characterData.Name;
+                        var corpTickers = Convert.ToBoolean(Program.Settings.GetSection("auth")["corpTickers"]);
+                        var nameEnforce = Convert.ToBoolean(Program.Settings.GetSection("auth")["nameEnforce"]);
+                        var corpTickerInFront = Convert.ToBoolean(Program.Settings.GetSection("auth")["corpTickerInFront"]);
 
-                            var corpTickers = Convert.ToBoolean(Program.Settings.GetSection("auth")["corpTickers"]);
-                            var nameEnforce = Convert.ToBoolean(Program.Settings.GetSection("auth")["nameEnforce"]);
+                        if (corpTickers || nameEnforce)
+                        {
+                            var Nickname = "";
 
-                            if (corpTickers || nameEnforce)
+                            if (nameEnforce)
                             {
-                                var Nickname = "";
-                                if (corpTickers)
+                                Nickname += $"{eveName}";
+                            }
+                            else
+                            {
+                                Nickname += $"{u.Username}";
+                            }
+
+                            if (corpTickers)
+                            {
+                                if(corpTickerInFront)
                                 {
-                                    Nickname = $"[{corporationData.Ticker}] ";
-                                }
-                                if (nameEnforce)
-                                {
-                                    Nickname += $"{eveName}";
+                                    Nickname = $"[{corporationData.Ticker}] " + Nickname;
                                 }
                                 else
                                 {
-                                    Nickname += $"{u.Username}";
+                                    Nickname = Nickname + $" [{corporationData.Ticker}]";
                                 }
-                                if (Nickname != u.Nickname && !String.IsNullOrWhiteSpace(u.Nickname) || String.IsNullOrWhiteSpace(u.Nickname) && u.Username != Nickname)
+                            }
+
+                            if (Nickname != u.Nickname && !String.IsNullOrWhiteSpace(u.Nickname) || String.IsNullOrWhiteSpace(u.Nickname) && u.Username != Nickname)
+                            {
+                                try
                                 {
                                     await u.ModifyAsync(x => x.Nickname = Nickname);
                                     await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Changed name of {u.Nickname} to {Nickname}"));
                                 }
+                                catch (Exception ex)
+                                {
+                                    await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Error changing Name: {ex.Message}", ex));
+                                }
                             }
+                            
                         }
                         else
                         {
