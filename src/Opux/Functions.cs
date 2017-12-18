@@ -21,6 +21,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using YamlDotNet.RepresentationModel;
 using static Opux.JsonClasses;
 
 namespace Opux
@@ -1897,7 +1898,12 @@ namespace Opux
                                             var chan = Program.Client.GetGuild(guildID).GetTextChannel(Convert.ToUInt64(filters.FirstOrDefault(
                                                 x => x.Key == notification.Value["typeID"].ToString()).Value));
 
-                                            var notificationText = notificationsText.FirstOrDefault(x => x.Key == notification.Key).Value;
+                                            YamlNode notificationText = null;
+
+                                            if (notificationsText != null)
+                                            {
+                                                notificationText = notificationsText.FirstOrDefault(x => x.Key == notification.Key).Value;
+                                            }
                                             var notificationType = (int)notification.Value["typeID"];
 
                                             if (notificationType == 5)
@@ -2136,7 +2142,13 @@ namespace Opux
                                             var chan = Program.Client.GetGuild(guildID).GetTextChannel(Convert.ToUInt64(filters.FirstOrDefault(
                                                 x => x.Key == notification.Value["typeID"].ToString()).Value));
 
-                                            var notificationText = notificationsText.FirstOrDefault(x => x.Key == notification.Key).Value;
+                                            YamlNode notificationText = null;
+
+                                            if (notificationsText != null)
+                                            {
+                                                notificationText = notificationsText.FirstOrDefault(x => x.Key == notification.Key).Value;
+                                            }
+
                                             var notificationType = (int)notification.Value["typeID"];
 
                                             try
