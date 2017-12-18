@@ -218,6 +218,7 @@ namespace Opux
         }
         #endregion
 
+        //Auth
         #region SendAuthMessage
         internal static async Task SendAuthMessage(ICommandContext context)
         {
@@ -231,8 +232,6 @@ namespace Opux
             }
         }
         #endregion
-
-        //Auth
         #region AuthWeb
         internal static System.Net.Http.HttpListener listener;
 
