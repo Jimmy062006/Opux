@@ -1892,8 +1892,8 @@ namespace Opux
                                 {
                                     try
                                     {
-                                        if (filters.ContainsKey(notification.Value["typeID"].ToString()) &&
-                                            (int)notification.Value["notificationID"] > _lastNotification)
+                                        if (filters.ContainsKey(notification.Value["typeID"].ToString()) && (int)notification.Value["notificationID"] > _lastNotification &&
+                                            notificationsText.ContainsKey(notification.Key))
                                         {
                                             var chan = Program.Client.GetGuild(guildID).GetTextChannel(Convert.ToUInt64(filters.FirstOrDefault(
                                                 x => x.Key == notification.Value["typeID"].ToString()).Value));
@@ -2151,7 +2151,7 @@ namespace Opux
                                             _lastNotification = (int)notification.Value["notificationID"];
                                             await SQLiteDataUpdate("cacheData", "data", "lastNotificationID", _lastNotification.ToString());
                                         }
-                                        else if ((int)notification.Value["notificationID"] > _lastNotification)
+                                        else if ((int)notification.Value["notificationID"] > _lastNotification && notificationsText.ContainsKey(notification.Key))
                                         {
                                             var chan = Program.Client.GetGuild(guildID).GetTextChannel(Convert.ToUInt64(filters.FirstOrDefault(
                                                 x => x.Key == notification.Value["typeID"].ToString()).Value));

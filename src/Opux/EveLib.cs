@@ -94,6 +94,7 @@ namespace EveLibCore
 
             try
             {
+                notificationID.RemoveRange(0, notificationID.Count - 100);
                 var commaseperated = string.Join(",", notificationID);
 
                 var xml2 = await Program._httpClient.GetStreamAsync($"{XMLUrl}char/NotificationTexts.xml.aspx?keyID={KeyID}&vCode={VCode}&characterID={CharacterID}&IDs={commaseperated}");
