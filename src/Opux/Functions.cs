@@ -1900,11 +1900,22 @@ namespace Opux
 
                                             YamlNode notificationText = null;
 
-                                            if (notificationsText != null)
+                                            var notificationType = (int)notification.Value["typeID"];
+
+                                            try
                                             {
                                                 notificationText = notificationsText.FirstOrDefault(x => x.Key == notification.Key).Value;
                                             }
-                                            var notificationType = (int)notification.Value["typeID"];
+                                            catch(Exception ex)
+                                            {
+                                                await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"ERROR Notification TypeID: {notificationType} " +
+                                                    $"Type: {types[notificationType]}", ex));
+
+                                                foreach (var noti in notificationsText)
+                                                {
+                                                    await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"NoticationText {noti}"));
+                                                }
+                                            }
 
                                             if (notificationType == 5)
                                             {
@@ -2144,12 +2155,22 @@ namespace Opux
 
                                             YamlNode notificationText = null;
 
-                                            if (notificationsText != null)
+                                            var notificationType = (int)notification.Value["typeID"];
+
+                                            try
                                             {
                                                 notificationText = notificationsText.FirstOrDefault(x => x.Key == notification.Key).Value;
                                             }
+                                            catch (Exception ex)
+                                            {
+                                                await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"ERROR Notification TypeID: {notificationType} " +
+                                                    $"Type: {types[notificationType]}", ex));
 
-                                            var notificationType = (int)notification.Value["typeID"];
+                                                foreach (var noti in notificationsText)
+                                                {
+                                                    await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"NoticationText {noti}"));
+                                                }
+                                            }
 
                                             try
                                             {
