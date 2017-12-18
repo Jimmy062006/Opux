@@ -1911,9 +1911,12 @@ namespace Opux
                                                 await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"ERROR Notification TypeID: {notificationType} " +
                                                     $"Type: {types[notificationType]}", ex));
 
-                                                foreach (var noti in notificationsText)
+                                                if (notificationsText != null)
                                                 {
-                                                    await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"NoticationText {noti}"));
+                                                    foreach (var noti in notificationsText)
+                                                    {
+                                                        await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"NoticationText {noti}"));
+                                                    }
                                                 }
                                             }
 
@@ -2165,10 +2168,12 @@ namespace Opux
                                             {
                                                 await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"ERROR Notification TypeID: {notificationType} " +
                                                     $"Type: {types[notificationType]}", ex));
-
-                                                foreach (var noti in notificationsText)
+                                                if (notificationsText != null)
                                                 {
-                                                    await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"NoticationText {noti}"));
+                                                    foreach (var noti in notificationsText)
+                                                    {
+                                                        await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"NoticationText {noti}"));
+                                                    }
                                                 }
                                             }
 
