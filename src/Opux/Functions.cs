@@ -1658,7 +1658,7 @@ namespace Opux
         }
         #endregion
 
-        //Needs Doing
+        //Notifications
         #region Notifications
         internal async static Task NotificationFeed(CommandContext Context)
         {
