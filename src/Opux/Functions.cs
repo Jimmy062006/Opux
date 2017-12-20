@@ -2498,7 +2498,7 @@ namespace Opux
                 var JsonContent = await Program._httpClient.GetAsync($"http://api.fleet-up.com/Api.svc/Ohigwbylcsuz56ue3O6Awlw5e/{UserId}/{APICode}/Operations/{GroupID}");
                 if (JsonContent.IsSuccessStatusCode)
                 {
-                    var result = JsonConvert.DeserializeObject<Fleetupapi>(await JsonContent.Content.ReadAsStringAsync());
+                    var result = JsonConvert.DeserializeObject<Opperations>(await JsonContent.Content.ReadAsStringAsync());
                     foreach (var operation in result.data)
                     {
                         if (operation.operationId > Convert.ToInt32(lastopid) && announce_post)
@@ -2586,7 +2586,7 @@ namespace Opux
                 }
                 else
                 {
-                    await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"ERROR In Fleetup API {JsonContent.StatusCode}", ex));
+                    await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"ERROR In Fleetup API {JsonContent.StatusCode}"));
                 }
             }
         }

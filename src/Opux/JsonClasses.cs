@@ -297,35 +297,37 @@ namespace Opux
 
         //Fleetup
 
-        public class Fleetupapi
+        public class Opperations
         {
-            public bool success { get; set; }
-            public string message { get; set; }
-            public DateTime cachedUntilUTC { get; set; }
-            public string cachedUntilString { get; set; }
-            public int code { get; set; }
-            public Datum[] data { get; set; }
+            public bool Success { get; set; }
+            public string Message { get; set; }
+            public DateTime CachedUntilUTC { get; set; }
+            public int Code { get; set; }
+            public Datum[] Data { get; set; }
         }
 
         public class Datum
         {
-            public int id { get; set; }
-            public int operationId { get; set; }
-            public string subject { get; set; }
-            public DateTime start { get; set; }
-            public DateTime end { get; set; }
-            public string startString { get; set; }
-            public string endString { get; set; }
-            public string location { get; set; }
-            public int locationId { get; set; }
-            public string locationInfo { get; set; }
-            public string details { get; set; }
-            public string url { get; set; }
-            public string organizer { get; set; }
-            public string category { get; set; }
-            public string group { get; set; }
-            public int groupId { get; set; }
-            public object[] doctrines { get; set; }
+            public int Id { get; set; }
+            public int OperationId { get; set; }
+            public string Subject { get; set; }
+            public DateTime Start { get; set; }
+            public DateTime End { get; set; }
+            public string Location { get; set; }
+            public int LocationId { get; set; }
+            public string Details { get; set; }
+            public string Url { get; set; }
+            public string Organizer { get; set; }
+            public string Category { get; set; }
+            public string Group { get; set; }
+            public int GroupId { get; set; }
+            public Doctrine[] Doctrines { get; set; }
+        }
+
+        public class Doctrine
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
         }
 
         //zKill Classes
