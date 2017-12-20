@@ -2495,6 +2495,13 @@ namespace Opux
                 var announce_post = Convert.ToBoolean(Program.Settings.GetSection("fleetup")["announce_post"]);
                 var channel = Program.Client.GetGuild(guildId).GetTextChannel(channelid);
 
+                if (String.IsNullOrWhiteSpace(UserId) || String.IsNullOrWhiteSpace(APICode) || String.IsNullOrWhiteSpace(GroupID))
+                {
+                    await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Setup Incomplete please check the Settings file"));
+                    await SQLiteDataUpdate("cacheData", "data", "fleetUpLastChecked", DateTime.Now.ToString());
+                    return;
+                }
+
                 var JsonContent = await Program._httpClient.GetAsync($"http://api.fleet-up.com/Api.svc/Ohigwbylcsuz56ue3O6Awlw5e/{UserId}/{APICode}/Operations/{GroupID}");
                 if (JsonContent.IsSuccessStatusCode)
                 {
