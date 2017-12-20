@@ -2586,7 +2586,7 @@ namespace Opux
                 }
                 else
                 {
-                    await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"ERROR In Fleetup API {JsonContent.StatusCode}"));
+                    await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"ERROR In Fleetup API {JsonContent.StatusCode}", ex));
                 }
             }
         }
