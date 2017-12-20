@@ -303,7 +303,8 @@ namespace Opux
         {
             try
             {
-                await Functions.Char(Context, x);
+                if (Convert.ToBoolean(Program.Settings.GetSection("config")["charcorp"]))
+                    await Functions.Char(Context, x);
             }
             catch (Exception ex)
             {
@@ -321,7 +322,8 @@ namespace Opux
         {
             try
             {
-                await Functions.Corp(Context, x);
+                if (Convert.ToBoolean(Program.Settings.GetSection("config")["charcorp"]))
+                    await Functions.Corp(Context, x);
             }
             catch (Exception ex)
             {
