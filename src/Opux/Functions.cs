@@ -2232,7 +2232,7 @@ namespace Opux
 
             try
             {
-                var result = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/search/?categories=inventorytype&datasource=tranquility&language=en-us&search={String}&strict=true");
+                var result = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/search/?categories=inventory_type&datasource=tranquility&language=en-us&search={String}&strict=true");
 
                 if (!result.IsSuccessStatusCode)
                 {
@@ -2242,7 +2242,7 @@ namespace Opux
 
                 var searchResults = JsonConvert.DeserializeObject<SearchInventoryType>(await result.Content.ReadAsStringAsync());
 
-                if (searchResults.inventorytype == null || string.IsNullOrWhiteSpace(searchResults.inventorytype.ToString()))
+                if (searchResults.inventory_type == null || string.IsNullOrWhiteSpace(searchResults.inventory_type.ToString()))
                 {
                     await channel.SendMessageAsync($"{context.Message.Author.Mention} Item {String} does not exist please try again");
                 }
@@ -2253,7 +2253,7 @@ namespace Opux
                         var url = "https://api.evemarketer.com/ec";
                         if (system == "")
                         {
-                            var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.inventorytype[0]}");
+                            var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.inventory_type[0]}");
                             var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
                             await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
                             await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Universe**{Environment.NewLine}" +
@@ -2269,7 +2269,7 @@ namespace Opux
                         }
                         if (system == "jita")
                         {
-                            var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.inventorytype[0]}&usesystem=30000142");
+                            var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.inventory_type[0]}&usesystem=30000142");
                             var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
                             await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
                             await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Jita**{Environment.NewLine}" +
@@ -2285,7 +2285,7 @@ namespace Opux
                         }
                         if (system == "amarr")
                         {
-                            var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.inventorytype[0]}&usesystem=30002187");
+                            var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.inventory_type[0]}&usesystem=30002187");
                             var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
                             await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
                             await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Amarr**{Environment.NewLine}" +
@@ -2301,7 +2301,7 @@ namespace Opux
                         }
                         if (system == "rens")
                         {
-                            var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.inventorytype[0]}&usesystem=30002510");
+                            var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.inventory_type[0]}&usesystem=30002510");
                             var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
                             await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
                             await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Rens**{Environment.NewLine}" +
@@ -2317,7 +2317,7 @@ namespace Opux
                         }
                         if (system == "dodixie")
                         {
-                            var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.inventorytype[0]}&usesystem=30002659");
+                            var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.inventory_type[0]}&usesystem=30002659");
                             var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
                             await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
                             await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Dodixie**{Environment.NewLine}" +

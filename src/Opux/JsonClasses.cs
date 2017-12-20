@@ -12,7 +12,7 @@ namespace Opux
 
         public class SearchInventoryType
         {
-            public int[] inventorytype { get; set; }
+            public int[] inventory_type { get; set; }
         }
 
 
