@@ -1379,6 +1379,8 @@ namespace Opux
                         var systemData = JsonConvert.DeserializeObject<SystemData>(systemDataResponce);
                         var ship = JsonConvert.DeserializeObject<Type_id>(shipIDContent);
 
+                        var secstatus = Math.Round(systemData.security_status, 2);
+
                         foreach (var i in Program.Settings.GetSection("killFeed").GetSection("groupsConfig").GetChildren().ToList())
                         {
                             var minimumValue = Convert.ToInt64(i["minimumValue"]);
@@ -1426,7 +1428,7 @@ namespace Opux
                                 if (gg < radius && !postedRadius)
                                 {
                                     postedRadius = true;
-                                    var jumpsText = data.Count() > 1 ? $"{gg} from {radiusSystem}" : $"in {sysName}({systemData.security_status})";
+                                    var jumpsText = data.Count() > 1 ? $"{gg} from {radiusSystem}" : $"in {sysName} ({secstatus})";
                                     var builder = new EmbedBuilder()
                                         .WithColor(new Color(0x989898))
                                         .WithFooter(footer =>
@@ -1472,7 +1474,7 @@ namespace Opux
                                     .WithAuthor(author =>
                                     {
                                         author
-                                            .WithName($"Big Kill Reported: {ship.name} destroyed in {sysName}({systemData.security_status})")
+                                            .WithName($"Big Kill Reported: {ship.name} destroyed in {sysName} ({secstatus})")
                                             .WithUrl($"https://zkillboard.com/kill/{iD}/")
                                             .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                     })
@@ -1501,7 +1503,7 @@ namespace Opux
                                     .WithAuthor(author =>
                                     {
                                         author
-                                            .WithName($"Kill Reported: {ship.name} destroyed in {sysName}({systemData.security_status})")
+                                            .WithName($"Kill Reported: {ship.name} destroyed in {sysName} ({secstatus})")
                                             .WithUrl($"https://zkillboard.com/kill/{iD}/")
                                             .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                     })
@@ -1537,7 +1539,7 @@ namespace Opux
                                                 .WithAuthor(author =>
                                                 {
                                                     author
-                                                        .WithName($"Big Loss Reported: {ship.name} destroyed in {sysName}({systemData.security_status})")
+                                                        .WithName($"Big Loss Reported: {ship.name} destroyed in {sysName} ({secstatus})")
                                                         .WithUrl($"https://zkillboard.com/kill/{iD}/")
                                                         .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                                 })
@@ -1573,7 +1575,7 @@ namespace Opux
                                                     .WithAuthor(author =>
                                                     {
                                                         author
-                                                            .WithName($"Loss Reported: {ship.name} destroyed in {sysName}({systemData.security_status})")
+                                                            .WithName($"Loss Reported: {ship.name} destroyed in {sysName} ({secstatus})")
                                                             .WithUrl($"https://zkillboard.com/kill/{iD}/")
                                                             .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                                     })
@@ -1615,7 +1617,7 @@ namespace Opux
                                                     .WithAuthor(author =>
                                                     {
                                                         author
-                                                            .WithName($"Big Kill Reported: {ship.name} destroyed in {sysName}({systemData.security_status})")
+                                                            .WithName($"Big Kill Reported: {ship.name} destroyed in {sysName} ({secstatus})")
                                                             .WithUrl($"https://zkillboard.com/kill/{iD}/")
                                                             .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                                     })
@@ -1647,7 +1649,7 @@ namespace Opux
                                                 .WithAuthor(author =>
                                                 {
                                                     author
-                                                        .WithName($"Kill Reported: {ship.name} destroyed in {sysName}({systemData.security_status})")
+                                                        .WithName($"Kill Reported: {ship.name} destroyed in {sysName} ({secstatus})")
                                                         .WithUrl($"https://zkillboard.com/kill/{iD}/")
                                                         .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                                 })
