@@ -23,26 +23,6 @@ namespace Opux
 
         public class CharacterData
         {
-            public int corporation_id { get; set; }
-            public DateTime birthday { get; set; }
-            public string name { get; set; }
-            public string gender { get; set; }
-            public int race_id { get; set; }
-            public int bloodline_id { get; set; }
-            public string description { get; set; }
-            public int alliance_id { get; set; } = -1;
-            public int ancestry_id { get; set; }
-            public float security_status { get; set; }
-        }
-
-
-        public class Rootobject
-        {
-            public Characterdata CharacterData { get; set; }
-        }
-
-        public class Characterdata
-        {
             public string name { get; set; }
             public string description { get; set; }
             public int corporation_id { get; set; }
@@ -72,11 +52,15 @@ namespace Opux
 
         public class AllianceData
         {
-            public string alliance_name { get; set; }
+            public string name { get; set; }
             public string ticker { get; set; }
+            public int creator_id { get; set; }
+            public int creator_corporation_id { get; set; }
+            public int executor_corporation_id { get; set; }
             public DateTime date_founded { get; set; }
-            public int executor_corp { get; set; }
+            public int faction_id { get; set; }
         }
+
 
         public class SystemIDSearch
         {
@@ -406,56 +390,5 @@ namespace Opux
             public int solar_system_id { get; set; }
             public Zkb zkb { get; set; }
         }
-
-        //public class Victim
-        //{
-        //    public int damage_taken { get; set; }
-        //    public int ship_type_id { get; set; }
-        //    public int character_id { get; set; }
-        //    public int corporation_id { get; set; }
-        //    public int faction_id { get; set; }
-        //    public Item[] items { get; set; }
-        //    public Position position { get; set; }
-        //    public int alliance_id { get; set; }
-        //}
-
-        //public class Position
-        //{
-        //    public float x { get; set; }
-        //    public float y { get; set; }
-        //    public float z { get; set; }
-        //}
-
-        //public class Item
-        //{
-        //    public int item_type_id { get; set; }
-        //    public int singleton { get; set; }
-        //    public int flag { get; set; }
-        //    public int quantity_destroyed { get; set; }
-        //    public int quantity_dropped { get; set; }
-        //}
-
-        //public class Zkb
-        //{
-        //    public int locationID { get; set; }
-        //    public string hash { get; set; }
-        //    public float fittedValue { get; set; }
-        //    public float totalValue { get; set; }
-        //    public int points { get; set; }
-        //}
-
-        //public class Attacker
-        //{
-        //    public float security_status { get; set; }
-        //    public bool final_blow { get; set; }
-        //    public int damage_done { get; set; }
-        //    public int character_id { get; set; }
-        //    public int corporation_id { get; set; }
-        //    public int ship_type_id { get; set; }
-        //    public int weapon_type_id { get; set; }
-        //    public int faction_id { get; set; }
-        //    public int alliance_id { get; set; }
-        //}
-
     }
 }

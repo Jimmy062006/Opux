@@ -2855,7 +2855,7 @@ namespace Opux
                         await Client_Log(new LogMessage(LogSeverity.Error, "char", ex.Message, ex));
                     }
 
-                    var alliance = allianceData.alliance_name ?? "None";
+                    var alliance = allianceData.name ?? "None";
 
 
                     await channel.SendMessageAsync($"```Name: {characterData.name}{Environment.NewLine}" +
@@ -2904,7 +2904,7 @@ namespace Opux
                     {
                         responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{CorpDetailsContent.alliance_id}/?datasource=tranquility");
                         var allyContent = JsonConvert.DeserializeObject<AllianceData>(await responce.Content.ReadAsStringAsync());
-                        alliance = allyContent.alliance_name;
+                        alliance = allyContent.name;
                     }
                     await channel.SendMessageAsync($"```Corp Name: {CorpDetailsContent.name}{Environment.NewLine}" +
                       $"Corp Ticker: {CorpDetailsContent.ticker}{Environment.NewLine}" +
