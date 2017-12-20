@@ -1369,12 +1369,14 @@ namespace Opux
                         }
 
                         var Type_idResponce = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/universe/types/{shipID}/?datasource=tranquility&language=en-us");
+                        var systemDataResponce = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/universe/systems/{systemId}/?datasource=tranquility&language=en-us");
                         var Typeid = JsonConvert.DeserializeObject<Type_id>(Type_idResponce);
 
                         var sysName = JsonConvert.DeserializeObject<SystemName>(SysNameContent).name;
                         var victimCharacter = JsonConvert.DeserializeObject<CharacterData>(CharacterResponce);
                         var victimCorp = JsonConvert.DeserializeObject<CorporationSearch>(CorpNameContent);
                         var victimAlliance = JsonConvert.DeserializeObject<AllianceSearch>(AllyNameContent);
+                        var systemData = JsonConvert.DeserializeObject<SystemData>(systemDataResponce);
                         var ship = JsonConvert.DeserializeObject<Type_id>(shipIDContent);
 
                         foreach (var i in Program.Settings.GetSection("killFeed").GetSection("groupsConfig").GetChildren().ToList())
@@ -1424,7 +1426,7 @@ namespace Opux
                                 if (gg < radius && !postedRadius)
                                 {
                                     postedRadius = true;
-                                    var jumpsText = data.Count() > 1 ? $"{gg} from {radiusSystem}" : $"in {sysName}";
+                                    var jumpsText = data.Count() > 1 ? $"{gg} from {radiusSystem}" : $"in {sysName}({systemData.security_status})";
                                     var builder = new EmbedBuilder()
                                         .WithColor(new Color(0x989898))
                                         .WithFooter(footer =>
@@ -1470,7 +1472,7 @@ namespace Opux
                                     .WithAuthor(author =>
                                     {
                                         author
-                                            .WithName($"Big Kill Reported: {ship.name} destroyed in {sysName}")
+                                            .WithName($"Big Kill Reported: {ship.name} destroyed in {sysName}({systemData.security_status})")
                                             .WithUrl($"https://zkillboard.com/kill/{iD}/")
                                             .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                     })
@@ -1499,7 +1501,7 @@ namespace Opux
                                     .WithAuthor(author =>
                                     {
                                         author
-                                            .WithName($"Kill Reported: {ship.name} destroyed in {sysName}")
+                                            .WithName($"Kill Reported: {ship.name} destroyed in {sysName}({systemData.security_status})")
                                             .WithUrl($"https://zkillboard.com/kill/{iD}/")
                                             .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                     })
@@ -1535,7 +1537,7 @@ namespace Opux
                                                 .WithAuthor(author =>
                                                 {
                                                     author
-                                                        .WithName($"Big Loss Reported: {ship.name} destroyed in {sysName}")
+                                                        .WithName($"Big Loss Reported: {ship.name} destroyed in {sysName}({systemData.security_status})")
                                                         .WithUrl($"https://zkillboard.com/kill/{iD}/")
                                                         .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                                 })
@@ -1571,7 +1573,7 @@ namespace Opux
                                                     .WithAuthor(author =>
                                                     {
                                                         author
-                                                            .WithName($"Loss Reported: {ship.name} destroyed in {sysName}")
+                                                            .WithName($"Loss Reported: {ship.name} destroyed in {sysName}({systemData.security_status})")
                                                             .WithUrl($"https://zkillboard.com/kill/{iD}/")
                                                             .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                                     })
@@ -1613,7 +1615,7 @@ namespace Opux
                                                     .WithAuthor(author =>
                                                     {
                                                         author
-                                                            .WithName($"Big Kill Reported: {ship.name} destroyed in {sysName}")
+                                                            .WithName($"Big Kill Reported: {ship.name} destroyed in {sysName}({systemData.security_status})")
                                                             .WithUrl($"https://zkillboard.com/kill/{iD}/")
                                                             .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                                     })
@@ -1645,7 +1647,7 @@ namespace Opux
                                                 .WithAuthor(author =>
                                                 {
                                                     author
-                                                        .WithName($"Kill Reported: {ship.name} destroyed in {sysName}")
+                                                        .WithName($"Kill Reported: {ship.name} destroyed in {sysName}({systemData.security_status})")
                                                         .WithUrl($"https://zkillboard.com/kill/{iD}/")
                                                         .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                                 })
