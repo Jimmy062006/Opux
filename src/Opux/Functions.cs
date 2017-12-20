@@ -2499,16 +2499,16 @@ namespace Opux
                 if (JsonContent.IsSuccessStatusCode)
                 {
                     var result = JsonConvert.DeserializeObject<Opperations>(await JsonContent.Content.ReadAsStringAsync());
-                    foreach (var operation in result.data)
+                    foreach (var operation in result.Data)
                     {
-                        if (operation.operationId > Convert.ToInt32(lastopid) && announce_post)
+                        if (operation.OperationId > Convert.ToInt32(lastopid) && announce_post)
                         {
-                            var name = operation.subject;
-                            var startTime = operation.start;
-                            var locationinfo = operation.locationInfo;
-                            var location = operation.location;
-                            var details = operation.details;
-                            var url = $"http://fleet-up.com/Operation#{operation.operationId}";
+                            var name = operation.Subject;
+                            var startTime = operation.Start;
+                            var locationinfo = operation.LocationId;
+                            var location = operation.Location;
+                            var details = operation.Details;
+                            var url = $"http://fleet-up.com/Operation#{operation.OperationId}";
 
                             var message = $"@everyone {Environment.NewLine}{Environment.NewLine}" +
                                 $"**New Operation Posted** {Environment.NewLine}{Environment.NewLine}" +
@@ -2520,16 +2520,16 @@ namespace Opux
 
                             var sendres = await channel.SendMessageAsync(message);
 
-                            await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup OP {name}({operation.operationId}"));
+                            await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup OP {name}({operation.OperationId}"));
 
                             await sendres.AddReactionAsync(new Emoji("✅"));
                             await sendres.AddReactionAsync(new Emoji("❔"));
                             await sendres.AddReactionAsync(new Emoji("❌"));
 
-                            await SQLiteDataUpdate("cacheData", "data", "fleetUpLastPostedOperation", operation.operationId.ToString());
+                            await SQLiteDataUpdate("cacheData", "data", "fleetUpLastPostedOperation", operation.OperationId.ToString());
                         }
 
-                        var timeDiff = TimeSpan.FromTicks(operation.start.Ticks - DateTime.UtcNow.Ticks);
+                        var timeDiff = TimeSpan.FromTicks(operation.Start.Ticks - DateTime.UtcNow.Ticks);
                         var array = Program.Settings.GetSection("fleetup").GetSection("announce").GetChildren().Select(x => x.Value).ToArray(); ;
 
                         foreach (var i in array)
@@ -2539,12 +2539,12 @@ namespace Opux
 
                             if (timeDiff >= epic1 && timeDiff <= epic2)
                             {
-                                var name = operation.subject;
-                                var startTime = operation.start;
-                                var locationinfo = operation.locationInfo;
-                                var location = operation.location;
-                                var details = operation.details;
-                                var url = $"http://fleet-up.com/Operation#{operation.operationId}";
+                                var name = operation.Subject;
+                                var startTime = operation.Start;
+                                var locationinfo = operation.LocationId;
+                                var location = operation.Location;
+                                var details = operation.Details;
+                                var url = $"http://fleet-up.com/Operation#{operation.OperationId}";
 
                                 var message = $"@everyone {Environment.NewLine}{Environment.NewLine}" +
                                     $"**FORMUP in {i} Minutes** {Environment.NewLine}{Environment.NewLine}" +
@@ -2556,18 +2556,18 @@ namespace Opux
 
                                 var sendres = await channel.SendMessageAsync(message);
 
-                                await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup Reminder {name}({operation.operationId}"));
+                                await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup Reminder {name}({operation.OperationId}"));
                             }
                         }
 
                         if (timeDiff.TotalMinutes < 1 && timeDiff.TotalMinutes > 0)
                         {
-                            var name = operation.subject;
-                            var startTime = operation.start;
-                            var locationinfo = operation.locationInfo;
-                            var location = operation.location;
-                            var details = operation.details;
-                            var url = $"http://fleet-up.com/Operation#{operation.operationId}";
+                            var name = operation.Subject;
+                            var startTime = operation.Start;
+                            var locationinfo = operation.LocationId;
+                            var location = operation.Location;
+                            var details = operation.Details;
+                            var url = $"http://fleet-up.com/Operation#{operation.OperationId}";
 
                             var message = $"@everyone {Environment.NewLine}{Environment.NewLine}" +
                                 $"**FORMUP NOW** {Environment.NewLine}{Environment.NewLine}" +
@@ -2579,7 +2579,7 @@ namespace Opux
 
                             var sendres = await channel.SendMessageAsync(message);
 
-                            await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup FORMUP Now {name}({operation.operationId}"));
+                            await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup FORMUP Now {name}({operation.OperationId}"));
                         }
                     }
                     await SQLiteDataUpdate("cacheData", "data", "fleetUpLastChecked", DateTime.Now.ToString());
@@ -2603,23 +2603,23 @@ namespace Opux
             var channel = Program.Client.GetGuild(guildId).GetChannel(channelid);
 
             var Json = await Program._httpClient.GetStringAsync($"http://api.fleet-up.com/Api.svc/Ohigwbylcsuz56ue3O6Awlw5e/{UserId}/{APICode}/Operations/{GroupID}");
-            var result = JsonConvert.DeserializeObject<Fleetupapi>(Json);
+            var result = JsonConvert.DeserializeObject<Opperations>(Json);
             var message = $"{context.Message.Author.Mention}, {Environment.NewLine}";
             var count = message.Count();
-            if (result.data.Count() == 0)
+            if (result.Data.Count() == 0)
             {
                 await context.Message.Channel.SendMessageAsync($"{message}No Ops Scheduled");
             }
             else
             {
-                foreach (var operation in result.data)
+                foreach (var operation in result.Data)
                 {
-                    var name = operation.subject;
-                    var startTime = operation.startString;
-                    var locationinfo = operation.locationInfo;
-                    var location = operation.location;
-                    var details = operation.details;
-                    var url = $"http://fleet-up.com/Operation#{operation.operationId}";
+                    var name = operation.Subject;
+                    var startTime = operation.Start;
+                    var locationinfo = operation.LocationId;
+                    var location = operation.Location;
+                    var details = operation.Details;
+                    var url = $"http://fleet-up.com/Operation#{operation.OperationId}";
 
                     var message_temp = $"```Title - {name} {Environment.NewLine}" +
                                 $"Form Up Time - {startTime} {Environment.NewLine}" +
