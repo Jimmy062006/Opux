@@ -1491,32 +1491,35 @@ namespace Opux
                             }
                             if (allianceID == 0 && corpID == 0)
                             {
-                                var builder = new EmbedBuilder()
-                                    .WithColor(new Color(0x00FF00))
-                                    .WithFooter(footer =>
-                                    {
-                                        footer
-                                            .WithText("Provided by Opux and zKill")
-                                            .WithIconUrl($"https://image.eveonline.com/Render/25560_512.png");
-                                    })
-                                    .WithThumbnailUrl($"https://image.eveonline.com/Render/{shipID}_512.png")
-                                    .WithAuthor(author =>
-                                    {
-                                        author
-                                            .WithName($"Kill Reported: {ship.name} destroyed in {sysName} ({secstatus})")
-                                            .WithUrl($"https://zkillboard.com/kill/{iD}/")
-                                            .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
-                                    })
-                                    .WithDescription($"Died {killTime}")
-                                    .AddInlineField("Victim", victimCharacter == null ? Typeid.name : victimCharacter.name)
-                                    .AddInlineField("Corporation", victimCorp.name)
-                                    .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.name)
-                                    .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
-                                    .AddInlineField("Involved Count", attackers.Count());
-                                var embed = builder.Build();
+                                if (value >= minimumValue)
+                                {
+                                    var builder = new EmbedBuilder()
+                                        .WithColor(new Color(0x00FF00))
+                                        .WithFooter(footer =>
+                                        {
+                                            footer
+                                                .WithText("Provided by Opux and zKill")
+                                                .WithIconUrl($"https://image.eveonline.com/Render/25560_512.png");
+                                        })
+                                        .WithThumbnailUrl($"https://image.eveonline.com/Render/{shipID}_512.png")
+                                        .WithAuthor(author =>
+                                        {
+                                            author
+                                                .WithName($"Kill Reported: {ship.name} destroyed in {sysName} ({secstatus})")
+                                                .WithUrl($"https://zkillboard.com/kill/{iD}/")
+                                                .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                        })
+                                        .WithDescription($"Died {killTime}")
+                                        .AddInlineField("Victim", victimCharacter == null ? Typeid.name : victimCharacter.name)
+                                        .AddInlineField("Corporation", victimCorp.name)
+                                        .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.name)
+                                        .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
+                                        .AddInlineField("Involved Count", attackers.Count());
+                                    var embed = builder.Build();
 
-                                var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["channel"]));
-                                await Channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
+                                    var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["channel"]));
+                                    await Channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
+                                }
                             }
                             else
                             {
