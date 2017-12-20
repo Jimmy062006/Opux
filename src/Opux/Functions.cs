@@ -1638,7 +1638,8 @@ namespace Opux
                                                 break;
                                             }
                                         }
-                                        else if (attacker.alliance_id != 0 && attacker.alliance_id == allianceID || attacker.corporation_id != 0 && attacker.corporation_id == corpID)
+                                        else if (allianceID != 0 && attacker.alliance_id != 0 && attacker.alliance_id == allianceID && corpID != 0
+                                            || attacker.corporation_id != 0 && attacker.corporation_id == corpID)
                                         {
                                             var builder = new EmbedBuilder()
                                                 .WithColor(new Color(0x00FF00))
