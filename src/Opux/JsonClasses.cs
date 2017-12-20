@@ -7,12 +7,12 @@ namespace Opux
         //ESI Classes
         public class CharacterID
         {
-            public int[] Character { get; set; }
+            public int[] character { get; set; }
         }
 
         public class SearchInventoryType
         {
-            public int[] Inventorytype { get; set; }
+            public int[] inventorytype { get; set; }
         }
 
 
@@ -23,30 +23,51 @@ namespace Opux
 
         public class CharacterData
         {
-            public int Corporation_id { get; set; }
-            public DateTime Birthday { get; set; }
-            public string Name { get; set; }
-            public string Gender { get; set; }
-            public int Race_id { get; set; }
-            public int Bloodline_id { get; set; }
-            public string Description { get; set; }
-            public int Alliance_id { get; set; } = -1;
-            public int Ancestry_id { get; set; }
-            public float Security_status { get; set; }
+            public int corporation_id { get; set; }
+            public DateTime birthday { get; set; }
+            public string name { get; set; }
+            public string gender { get; set; }
+            public int race_id { get; set; }
+            public int bloodline_id { get; set; }
+            public string description { get; set; }
+            public int alliance_id { get; set; } = -1;
+            public int ancestry_id { get; set; }
+            public float security_status { get; set; }
+        }
+
+
+        public class Rootobject
+        {
+            public Characterdata CharacterData { get; set; }
+        }
+
+        public class Characterdata
+        {
+            public string name { get; set; }
+            public string description { get; set; }
+            public int corporation_id { get; set; }
+            public int alliance_id { get; set; }
+            public DateTime birthday { get; set; }
+            public string gender { get; set; }
+            public int race_id { get; set; }
+            public int bloodline_id { get; set; }
+            public int ancestry_id { get; set; }
+            public float security_status { get; set; }
+            public int faction_id { get; set; }
         }
 
         public class CorporationData
         {
-            public string Corporation_name { get; set; }
-            public string Ticker { get; set; }
-            public int Member_count { get; set; }
-            public int Ceo_id { get; set; }
-            public string Corporation_description { get; set; }
-            public float Tax_rate { get; set; }
-            public int Creator_id { get; set; }
-            public string Url { get; set; }
-            public int Alliance_id { get; set; } = -1;
-            public DateTime Creation_date { get; set; }
+            public string name { get; set; }
+            public string ticker { get; set; }
+            public int member_count { get; set; }
+            public int ceo_id { get; set; }
+            public int alliance_id { get; set; }
+            public string description { get; set; }
+            public float tax_rate { get; set; }
+            public DateTime date_founded { get; set; }
+            public int creator_id { get; set; }
+            public string url { get; set; }
         }
 
         public class AllianceData
@@ -59,30 +80,36 @@ namespace Opux
 
         public class SystemIDSearch
         {
-            public int[] solarsystem { get; set; }
+            public int[] solar_system { get; set; }
         }
 
         public class CorporationSearch
         {
-            public string corporation_name { get; set; }
+            public string name { get; set; }
             public string ticker { get; set; }
             public int member_count { get; set; }
             public int ceo_id { get; set; }
-            public string corporation_description { get; set; }
             public float tax_rate { get; set; }
             public int creator_id { get; set; }
+            public string description { get; set; }
+            public DateTime date_founded { get; set; }
             public string url { get; set; }
-            public DateTime creation_date { get; set; }
-            public string faction { get; set; }
+            public int? faction_id { get; set; }
+            public int home_station_id { get; set; }
+            public Int64 shares { get; set; }
         }
 
         public class AllianceSearch
         {
-            public string alliance_name { get; set; }
+            public string name { get; set; }
             public string ticker { get; set; }
+            public int creator_id { get; set; }
+            public int creator_corporation_id { get; set; }
+            public int executor_corporation_id { get; set; }
+            public int? faction_id { get; set; }
             public DateTime date_founded { get; set; }
-            public int executor_corp { get; set; }
         }
+
 
         public class SystemName
         {
@@ -143,30 +170,30 @@ namespace Opux
 
         public class EveCentralApi
         {
-            public Items[] Property1 { get; set; }
+            public Items[] property1 { get; set; }
         }
 
         public class Items
         {
-            public Buy Buy { get; set; }
-            public All All { get; set; }
-            public Sell Sell { get; set; }
+            public Buy buy { get; set; }
+            public All all { get; set; }
+            public Sell sell { get; set; }
         }
 
         public class Buy
         {
-            public Forquery ForQuery { get; set; }
-            public Int64 Volume { get; set; }
-            public float Wavg { get; set; }
-            public float Avg { get; set; }
-            public float Variance { get; set; }
-            public float StdDev { get; set; }
-            public float Median { get; set; }
-            public float FivePercent { get; set; }
-            public float Max { get; set; }
-            public float Min { get; set; }
-            public bool HighToLow { get; set; }
-            public long Generated { get; set; }
+            public Forquery forQuery { get; set; }
+            public Int64 volume { get; set; }
+            public float wavg { get; set; }
+            public float avg { get; set; }
+            public float variance { get; set; }
+            public float stdDev { get; set; }
+            public float median { get; set; }
+            public float fivePercent { get; set; }
+            public float max { get; set; }
+            public float min { get; set; }
+            public bool highToLow { get; set; }
+            public long generated { get; set; }
         }
 
         public class Forquery
@@ -181,59 +208,59 @@ namespace Opux
 
         public class All
         {
-            public Forquery1 ForQuery { get; set; }
-            public int Volume { get; set; }
-            public float Wavg { get; set; }
-            public float Avg { get; set; }
-            public float Variance { get; set; }
-            public float StdDev { get; set; }
-            public float Median { get; set; }
-            public float FivePercent { get; set; }
-            public float Max { get; set; }
-            public float Min { get; set; }
-            public bool HighToLow { get; set; }
-            public long Generated { get; set; }
+            public Forquery1 forQuery { get; set; }
+            public int volume { get; set; }
+            public float wavg { get; set; }
+            public float avg { get; set; }
+            public float variance { get; set; }
+            public float stdDev { get; set; }
+            public float median { get; set; }
+            public float fivePercent { get; set; }
+            public float max { get; set; }
+            public float min { get; set; }
+            public bool highToLow { get; set; }
+            public long generated { get; set; }
         }
 
         public class Forquery1
         {
-            public object Bid { get; set; }
-            public int[] Types { get; set; }
-            public object[] Regions { get; set; }
-            public object[] Systems { get; set; }
-            public int Hours { get; set; }
-            public int Minq { get; set; }
+            public object bid { get; set; }
+            public int[] types { get; set; }
+            public object[] regions { get; set; }
+            public object[] systems { get; set; }
+            public int hours { get; set; }
+            public int minq { get; set; }
         }
 
         public class Sell
         {
-            public Forquery2 ForQuery { get; set; }
-            public Int64 Volume { get; set; }
-            public float Wavg { get; set; }
-            public float Avg { get; set; }
-            public float Variance { get; set; }
-            public float StdDev { get; set; }
-            public float Median { get; set; }
-            public float FivePercent { get; set; }
-            public float Max { get; set; }
-            public float Min { get; set; }
-            public bool HighToLow { get; set; }
-            public long Generated { get; set; }
+            public Forquery2 forQuery { get; set; }
+            public Int64 volume { get; set; }
+            public float wavg { get; set; }
+            public float avg { get; set; }
+            public float variance { get; set; }
+            public float stdDev { get; set; }
+            public float median { get; set; }
+            public float fivePercent { get; set; }
+            public float max { get; set; }
+            public float min { get; set; }
+            public bool highToLow { get; set; }
+            public long generated { get; set; }
         }
 
         public class Forquery2
         {
-            public bool Bid { get; set; }
-            public int[] Types { get; set; }
-            public object[] Regions { get; set; }
-            public object[] Systems { get; set; }
-            public int Hours { get; set; }
-            public int Minq { get; set; }
+            public bool bid { get; set; }
+            public int[] types { get; set; }
+            public object[] regions { get; set; }
+            public object[] systems { get; set; }
+            public int hours { get; set; }
+            public int minq { get; set; }
         }
 
         public class SystemList
         {
-            public int[] System { get; set; }
+            public int[] system { get; set; }
         }
 
 
@@ -272,33 +299,33 @@ namespace Opux
 
         public class Fleetupapi
         {
-            public bool Success { get; set; }
-            public string Message { get; set; }
-            public DateTime CachedUntilUTC { get; set; }
-            public string CachedUntilString { get; set; }
-            public int Code { get; set; }
-            public Datum[] Data { get; set; }
+            public bool success { get; set; }
+            public string message { get; set; }
+            public DateTime cachedUntilUTC { get; set; }
+            public string cachedUntilString { get; set; }
+            public int code { get; set; }
+            public Datum[] data { get; set; }
         }
 
         public class Datum
         {
-            public int Id { get; set; }
-            public int OperationId { get; set; }
-            public string Subject { get; set; }
-            public DateTime Start { get; set; }
-            public DateTime End { get; set; }
-            public string StartString { get; set; }
-            public string EndString { get; set; }
-            public string Location { get; set; }
-            public int LocationId { get; set; }
-            public string LocationInfo { get; set; }
-            public string Details { get; set; }
-            public string Url { get; set; }
-            public string Organizer { get; set; }
-            public string Category { get; set; }
-            public string Group { get; set; }
-            public int GroupId { get; set; }
-            public object[] Doctrines { get; set; }
+            public int id { get; set; }
+            public int operationId { get; set; }
+            public string subject { get; set; }
+            public DateTime start { get; set; }
+            public DateTime end { get; set; }
+            public string startString { get; set; }
+            public string endString { get; set; }
+            public string location { get; set; }
+            public int locationId { get; set; }
+            public string locationInfo { get; set; }
+            public string details { get; set; }
+            public string url { get; set; }
+            public string organizer { get; set; }
+            public string category { get; set; }
+            public string group { get; set; }
+            public int groupId { get; set; }
+            public object[] doctrines { get; set; }
         }
 
         //zKill Classes
