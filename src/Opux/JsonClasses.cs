@@ -42,7 +42,7 @@ namespace Opux
             public string ticker { get; set; }
             public int member_count { get; set; }
             public int ceo_id { get; set; }
-            public int alliance_id { get; set; }
+            public int? alliance_id { get; set; }
             public string description { get; set; }
             public float tax_rate { get; set; }
             public DateTime date_founded { get; set; }

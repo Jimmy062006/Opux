@@ -36,6 +36,7 @@ namespace Opux
         static bool _running = false;
         static bool _jabberRunning = false;
         static string _motdtopic;
+        static int lastPosted = 0;
         static DateTime _lastTopicCheck = DateTime.Now;
 
         //Timer is setup here
@@ -1126,7 +1127,7 @@ namespace Opux
                             {
                                 responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.alliance_id}/?datasource=tranquility");
                                 var allianceData = JsonConvert.DeserializeObject<AllianceData>(await responceMessage.Content.ReadAsStringAsync());
-                                if (!responceMessage.IsSuccessStatusCode || characterData.alliance_id == -1 && corporationData.alliance_id >= 0)
+                                if (!responceMessage.IsSuccessStatusCode || characterData.alliance_id == null && corporationData.alliance_id >= 0)
                                 {
                                     await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential allianceData {responceMessage.StatusCode} ESI Failure for {u.Nickname}"));
                                     continue;
@@ -1290,7 +1291,7 @@ namespace Opux
                         $"https://redisq.zkillboard.com/listen.php" : $"https://redisq.zkillboard.com/listen.php?queueID={redisQID}")).Content.ReadAsStringAsync();
                     kill = JsonConvert.DeserializeObject<ZKillboard>(redisqResponse);
 
-                    if (kill != null && kill.package != null)
+                    if (kill != null && kill.package != null && lastPosted != kill.package.killID)
                     {
                         var bigKillGlobal = Convert.ToInt64(Program.Settings.GetSection("killFeed")["bigKill"]);
                         var bigKillGlobalChan = Convert.ToUInt64(Program.Settings.GetSection("killFeed")["bigKillChannel"]);
@@ -1461,6 +1462,11 @@ namespace Opux
 
                                     var _radiusChannel = discordGuild.GetTextChannel(radiusChannel);
                                     await _radiusChannel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
+
+                                    var stringVal = string.Format("{0:n0} ISK", value);
+                                    
+                                    await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting  Radius Kill: {kill.package.killID}  Value: {stringVal}"));
+
                                 }
                             }
 
@@ -1493,6 +1499,11 @@ namespace Opux
 
                                 var _Channel = discordGuild.GetTextChannel(bigKillGlobalChan);
                                 await _Channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
+
+                                var stringVal = string.Format("{0:n0} ISK", value);
+
+                                await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting Global Big Kill: {kill.package.killID}  Value: {stringVal}"));
+
                             }
                             if (allianceID == 0 && corpID == 0)
                             {
@@ -1524,6 +1535,11 @@ namespace Opux
 
                                     var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["channel"]));
                                     await Channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
+
+                                    var stringVal = string.Format("{0:n0} ISK", value);
+
+                                    await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting Global Kills: {kill.package.killID}  Value: {stringVal}"));
+
                                 }
                             }
                             else
@@ -1560,6 +1576,10 @@ namespace Opux
                                         var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["bigKillChannel"]));
                                         await Channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
 
+                                        var stringVal = string.Format("{0:n0} ISK", value);
+
+                                        await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting     Big Loss: {kill.package.killID}  Value: {stringVal}"));
+
                                         continue;
                                     }
                                 }
@@ -1595,6 +1615,10 @@ namespace Opux
 
                                             var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["channel"]));
                                             await Channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
+
+                                            var stringVal = string.Format("{0:n0} ISK", value);
+
+                                            await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting         Loss: {kill.package.killID}  Value: {stringVal}"));
 
                                             continue;
                                         }
@@ -1635,6 +1659,10 @@ namespace Opux
                                             var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["bigKillChannel"]));
                                             await Channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
 
+                                            var stringVal = string.Format("{0:n0} ISK", value);
+
+                                            await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting     Big Kill: {kill.package.killID}  Value: {stringVal}"));
+
                                             break;
                                         }
                                     }
@@ -1668,12 +1696,22 @@ namespace Opux
                                         var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["channel"]));
                                         await Channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
 
+                                        var stringVal = string.Format("{0:n0} ISK", value);
+
+                                        await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting         Kill: {kill.package.killID}  Value: {stringVal}"));
+
                                         break;
                                     }
                                 }
                             }
                         }
+                        lastPosted = iD;
                     }
+                    else if (kill.package != null && lastPosted == kill.package.killID)
+                    {
+                        await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Skipping kill: {kill.package.killID} as its been posted recently"));
+                    }
+                    await Task.Delay(500);
                     killfeedrunning = false;
                 }
             }
@@ -2932,7 +2970,7 @@ namespace Opux
 
                     var CEONameContent = JsonConvert.DeserializeObject<CharacterData>(await responce.Content.ReadAsStringAsync());
                     var alliance = "None";
-                    if (CorpDetailsContent.alliance_id != -1)
+                    if (CorpDetailsContent.alliance_id != null)
                     {
                         responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{CorpDetailsContent.alliance_id}/?datasource=tranquility");
                         var allyContent = JsonConvert.DeserializeObject<AllianceData>(await responce.Content.ReadAsStringAsync());
