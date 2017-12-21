@@ -933,18 +933,8 @@ namespace Opux
                         ESIFailed = true;
                     }
 
-                    if (characterData.alliance_id != null)
-                    {
-                        responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.alliance_id}/?datasource=tranquility");
-                        var allianceData = JsonConvert.DeserializeObject<AllianceData>(await responceMessage.Content.ReadAsStringAsync());
-                        if (!responceMessage.IsSuccessStatusCode)
-                        {
-                            ESIFailed = true;
-                        }
-                    }
-
-                    var allianceID = (corporationData.alliance_id.ToString() == "" ? "0" : corporationData.alliance_id.ToString());
-                    var corpID = (characterData.corporation_id.ToString() == "" ? "0" : characterData.corporation_id.ToString());
+                    var allianceID = characterData.alliance_id.ToString();
+                    var corpID = characterData.corporation_id.ToString();
 
                     var enable = false;
 
@@ -952,7 +942,7 @@ namespace Opux
                     {
                         enable = true;
                     }
-                    if (alliance.ContainsKey(allianceID))
+                    if (characterData.alliance_id !=null && alliance.ContainsKey(allianceID))
                     {
                         enable = true;
                     }
@@ -1123,17 +1113,6 @@ namespace Opux
                                 continue;
                             }
 
-                            if (characterData.alliance_id == null)
-                            {
-                                responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.alliance_id}/?datasource=tranquility");
-                                var allianceData = JsonConvert.DeserializeObject<AllianceData>(await responceMessage.Content.ReadAsStringAsync());
-                                if (!responceMessage.IsSuccessStatusCode || characterData.alliance_id == null && corporationData.alliance_id >= 0)
-                                {
-                                    await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential allianceData {responceMessage.StatusCode} ESI Failure for {u.Nickname}"));
-                                    continue;
-                                }
-                            }
-
                             var roles = new List<SocketRole>();
                             var rolesOrig = new List<SocketRole>(u.Roles);
                             var remroles = new List<SocketRole>();
@@ -1153,10 +1132,13 @@ namespace Opux
                             }
 
                             //Check for Alliance roles
-                            if (alliance.ContainsKey(characterData.alliance_id.ToString()))
+                            if (characterData.alliance_id != null)
                             {
-                                var ainfo = alliance.FirstOrDefault(x => x.Key == characterData.alliance_id.ToString());
-                                roles.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == ainfo.Value));
+                                if (alliance.ContainsKey(characterData.alliance_id.ToString()))
+                                {
+                                    var ainfo = alliance.FirstOrDefault(x => x.Key == characterData.alliance_id.ToString());
+                                    roles.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == ainfo.Value));
+                                }
                             }
 
                             bool changed = false;
