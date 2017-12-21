@@ -1689,7 +1689,7 @@ namespace Opux
                         }
                         lastPosted = iD;
                     }
-                    else if (kill.package != null && lastPosted != 0 && lastPosted == kill.package.killID)
+                    else if (kill != null && kill.package != null && lastPosted != 0 && lastPosted == kill.package.killID)
                     {
                         await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Skipping kill: {kill.package.killID} as its been posted recently"));
                     }
