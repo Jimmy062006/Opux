@@ -26,14 +26,14 @@ namespace Opux
             public string name { get; set; }
             public string description { get; set; }
             public int corporation_id { get; set; }
-            public int alliance_id { get; set; }
+            public int? alliance_id { get; set; }
             public DateTime birthday { get; set; }
             public string gender { get; set; }
             public int race_id { get; set; }
             public int bloodline_id { get; set; }
-            public int ancestry_id { get; set; }
-            public float security_status { get; set; }
-            public int faction_id { get; set; }
+            public int? ancestry_id { get; set; }
+            public float? security_status { get; set; }
+            public int? faction_id { get; set; }
         }
 
         public class CorporationData
@@ -67,6 +67,7 @@ namespace Opux
             public int[] solar_system { get; set; }
         }
 
+
         public class CorporationSearch
         {
             public string name { get; set; }
@@ -75,12 +76,13 @@ namespace Opux
             public int ceo_id { get; set; }
             public float tax_rate { get; set; }
             public int creator_id { get; set; }
+            public int? alliance_id { get; set; }
             public string description { get; set; }
             public DateTime date_founded { get; set; }
             public string url { get; set; }
+            public int? home_station_id { get; set; }
+            public Int64? shares { get; set; }
             public int? faction_id { get; set; }
-            public int home_station_id { get; set; }
-            public Int64 shares { get; set; }
         }
 
         public class AllianceSearch
@@ -378,8 +380,11 @@ namespace Opux
             public float totalValue { get; set; }
             public int points { get; set; }
             public bool npc { get; set; }
+            public bool solo { get; set; }
+            public bool awox { get; set; }
             public string href { get; set; }
         }
+
 
         public class Kill
         {

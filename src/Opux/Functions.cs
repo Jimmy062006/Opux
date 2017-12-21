@@ -932,7 +932,7 @@ namespace Opux
                         ESIFailed = true;
                     }
 
-                    if (characterData.alliance_id != -1)
+                    if (characterData.alliance_id != null)
                     {
                         responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.alliance_id}/?datasource=tranquility");
                         var allianceData = JsonConvert.DeserializeObject<AllianceData>(await responceMessage.Content.ReadAsStringAsync());
@@ -1122,7 +1122,7 @@ namespace Opux
                                 continue;
                             }
 
-                            if (characterData.alliance_id != -1)
+                            if (characterData.alliance_id == null)
                             {
                                 responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.alliance_id}/?datasource=tranquility");
                                 var allianceData = JsonConvert.DeserializeObject<AllianceData>(await responceMessage.Content.ReadAsStringAsync());
@@ -1307,6 +1307,7 @@ namespace Opux
                         var radius = Convert.ToInt16(Program.Settings.GetSection("killFeed")["radius"]);
                         var radiusSystem = Program.Settings.GetSection("killFeed")["radiusSystem"];
                         var radiusChannel = Convert.ToUInt64(Program.Settings.GetSection("killFeed")["radiusChannel"]);
+                        var npckill = kill.package.zkb.npc;
 
                         var postedRadius = false;
                         var postedGlobalBigKill = false;
@@ -1324,6 +1325,7 @@ namespace Opux
                                 await Client_Log(new LogMessage(LogSeverity.Error, "killFeed", $"CharacterResponce error {Responce.StatusCode}"));
                             }
                         }
+
                         var SysNameResponce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/universe/systems/{systemId}/?datasource=tranquility&language=en-us");
                         var SysNameContent = "";
                         if (SysNameResponce.IsSuccessStatusCode)
@@ -1334,6 +1336,7 @@ namespace Opux
                         {
                             await Client_Log(new LogMessage(LogSeverity.Error, "killFeed", $"SysNameContent error {SysNameResponce.StatusCode}"));
                         }
+
                         var CorpNameResponce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{victimCorpID}/?datasource=tranquility");
                         var CorpNameContent = "";
                         if (CorpNameResponce.IsSuccessStatusCode)
@@ -1344,6 +1347,7 @@ namespace Opux
                         {
                             await Client_Log(new LogMessage(LogSeverity.Error, "killFeed", $"CorpName error {CorpNameResponce.StatusCode}"));
                         }
+
                         var AllyNameContent = "";
                         if (victimAllianceID != 0)
                         {
@@ -1357,6 +1361,7 @@ namespace Opux
                                 await Client_Log(new LogMessage(LogSeverity.Error, "killFeed", $"AllyName error {AllyNameResponce.StatusCode}"));
                             }
                         }
+
                         var shipIDResponce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/universe/types/{shipID}/?datasource=tranquility&language=en-us");
                         var shipIDContent = "";
                         if (shipIDResponce.IsSuccessStatusCode)
@@ -1379,7 +1384,7 @@ namespace Opux
                         var systemData = JsonConvert.DeserializeObject<SystemData>(systemDataResponce);
                         var ship = JsonConvert.DeserializeObject<Type_id>(shipIDContent);
 
-                        var secstatus = Math.Round(systemData.security_status, 2);
+                        var secstatus = Math.Round(systemData.security_status, 1).ToString("N2");
 
                         foreach (var i in Program.Settings.GetSection("killFeed").GetSection("groupsConfig").GetChildren().ToList())
                         {
@@ -1428,7 +1433,7 @@ namespace Opux
                                 if (gg < radius && !postedRadius)
                                 {
                                     postedRadius = true;
-                                    var jumpsText = data.Count() > 1 ? $"{gg} from {radiusSystem}" : $"in {sysName} ({secstatus})";
+                                    var jumpsText = data.Count() > 1 ? $"{gg} from {radiusSystem}  ({secstatus})" : $"in {sysName} ({secstatus})";
                                     var builder = new EmbedBuilder()
                                         .WithColor(new Color(0x989898))
                                         .WithFooter(footer =>
@@ -1524,125 +1529,48 @@ namespace Opux
                             else
                             {
                                 //Losses
-                                if (victimAlliance != null && victimAllianceID == allianceID && losses == true || victimAlliance != null && victimCorpID == corpID && losses == true)
+                                if (bigKillValue != 0 && value >= bigKillValue)
                                 {
-                                    if (bigKillValue != 0 && value >= bigKillValue)
+                                    if (victimAllianceID == allianceID || victimCorpID == corpID)
                                     {
-                                        if (victimAllianceID == allianceID || victimCorpID == corpID)
-                                        {
-                                            var builder = new EmbedBuilder()
-                                                .WithColor(new Color(0xD00000))
-                                                .WithFooter(footer =>
-                                                {
-                                                    footer
-                                                        .WithText("Provided by Opux and zKill")
-                                                        .WithIconUrl($"https://image.eveonline.com/Render/25560_512.png");
-                                                })
-                                                .WithThumbnailUrl($"https://image.eveonline.com/Render/{shipID}_512.png")
-                                                .WithAuthor(author =>
-                                                {
-                                                    author
-                                                        .WithName($"Big Loss Reported: {ship.name} destroyed in {sysName} ({secstatus})")
-                                                        .WithUrl($"https://zkillboard.com/kill/{iD}/")
-                                                        .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
-                                                })
-                                                .WithDescription($"Died {killTime}")
-                                                .AddInlineField("Victim", victimCharacter == null ? Typeid.name : victimCharacter.name)
-                                                .AddInlineField("Corporation", victimCorp.name)
-                                                .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.name)
-                                                .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
-                                                .AddInlineField("Involved Count", attackers.Count());
-                                            var embed = builder.Build();
-
-                                            var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["bigKillChannel"]));
-                                            await Channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
-
-                                            continue;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (minimumLossValue == 0 || minimumLossValue <= value)
-                                        {
-                                            if (victimAllianceID == allianceID || victimCorpID == corpID)
+                                        var builder = new EmbedBuilder()
+                                            .WithColor(new Color(0xD00000))
+                                            .WithFooter(footer =>
                                             {
-                                                var builder = new EmbedBuilder()
-                                                    .WithColor(new Color(0xFF0000))
-                                                    .WithFooter(footer =>
-                                                    {
-                                                        footer
-                                                            .WithText("Provided by Opux and zKill")
-                                                            .WithIconUrl($"https://image.eveonline.com/Render/25560_512.png");
-                                                    })
-                                                    .WithThumbnailUrl($"https://image.eveonline.com/Render/{shipID}_512.png")
-                                                    .WithAuthor(author =>
-                                                    {
-                                                        author
-                                                            .WithName($"Loss Reported: {ship.name} destroyed in {sysName} ({secstatus})")
-                                                            .WithUrl($"https://zkillboard.com/kill/{iD}/")
-                                                            .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
-                                                    })
-                                                    .WithDescription($"Died {killTime}")
-                                                    .AddInlineField("Victim", victimCharacter == null ? Typeid.name : victimCharacter.name)
-                                                    .AddInlineField("Corporation", victimCorp.name)
-                                                    .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.name)
-                                                    .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
-                                                    .AddInlineField("Involved Count", attackers.Count());
-                                                var embed = builder.Build();
+                                                footer
+                                                    .WithText("Provided by Opux and zKill")
+                                                    .WithIconUrl($"https://image.eveonline.com/Render/25560_512.png");
+                                            })
+                                            .WithThumbnailUrl($"https://image.eveonline.com/Render/{shipID}_512.png")
+                                            .WithAuthor(author =>
+                                            {
+                                                author
+                                                    .WithName($"Big Loss Reported: {ship.name} destroyed in {sysName} ({secstatus})")
+                                                    .WithUrl($"https://zkillboard.com/kill/{iD}/")
+                                                    .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                            })
+                                            .WithDescription($"Died {killTime}")
+                                            .AddInlineField("Victim", victimCharacter == null ? Typeid.name : victimCharacter.name)
+                                            .AddInlineField("Corporation", victimCorp.name)
+                                            .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.name)
+                                            .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
+                                            .AddInlineField("Involved Count", attackers.Count());
+                                        var embed = builder.Build();
 
-                                                var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["channel"]));
-                                                await Channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
+                                        var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["bigKillChannel"]));
+                                        await Channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
 
-                                                continue;
-                                            }
-                                        }
+                                        continue;
                                     }
                                 }
-
-                                //Killed
-                                foreach (var attacker in attackers.ToList())
+                                else
                                 {
-                                    if (victimAlliance != null)
+                                    if (minimumLossValue == 0 || minimumLossValue <= value)
                                     {
-                                        if (bigKillValue != 0 && value >= bigKillValue)
-                                        {
-                                            if (victimAllianceID == allianceID || victimCorpID == corpID)
-                                            {
-                                                var builder = new EmbedBuilder()
-                                                    .WithColor(new Color(0x00D000))
-                                                    .WithFooter(footer =>
-                                                    {
-                                                        footer
-                                                            .WithText("Provided by Opux and zKill")
-                                                            .WithIconUrl($"https://image.eveonline.com/Render/25560_512.png");
-                                                    })
-                                                    .WithThumbnailUrl($"https://image.eveonline.com/Render/{shipID}_512.png")
-                                                    .WithAuthor(author =>
-                                                    {
-                                                        author
-                                                            .WithName($"Big Kill Reported: {ship.name} destroyed in {sysName} ({secstatus})")
-                                                            .WithUrl($"https://zkillboard.com/kill/{iD}/")
-                                                            .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
-                                                    })
-                                                    .WithDescription($"Died {killTime}")
-                                                    .AddInlineField("Victim", victimCharacter == null ? Typeid.name : victimCharacter.name)
-                                                    .AddInlineField("Corporation", victimCorp.name)
-                                                    .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.name)
-                                                    .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
-                                                    .AddInlineField("Involved Count", attackers.Count());
-                                                var embed = builder.Build();
-
-                                                var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["bigKillChannel"]));
-                                                await Channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
-
-                                                break;
-                                            }
-                                        }
-                                        else if (allianceID != 0 && attacker.alliance_id != 0 && attacker.alliance_id == allianceID && corpID != 0
-                                            || attacker.corporation_id != 0 && attacker.corporation_id == corpID)
+                                        if (victimAllianceID != 0 &&victimAllianceID == allianceID || victimCorpID == corpID)
                                         {
                                             var builder = new EmbedBuilder()
-                                                .WithColor(new Color(0x00FF00))
+                                                .WithColor(new Color(0xFF0000))
                                                 .WithFooter(footer =>
                                                 {
                                                     footer
@@ -1653,7 +1581,7 @@ namespace Opux
                                                 .WithAuthor(author =>
                                                 {
                                                     author
-                                                        .WithName($"Kill Reported: {ship.name} destroyed in {sysName} ({secstatus})")
+                                                        .WithName($"Loss Reported: {ship.name} destroyed in {sysName} ({secstatus})")
                                                         .WithUrl($"https://zkillboard.com/kill/{iD}/")
                                                         .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                                 })
@@ -1668,8 +1596,79 @@ namespace Opux
                                             var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["channel"]));
                                             await Channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
 
+                                            continue;
+                                        }
+                                    }
+                                }
+
+                                //Killed
+                                foreach (var attacker in attackers.ToList())
+                                {
+                                    if (bigKillValue != 0 && value >= bigKillValue && !npckill)
+                                    {
+                                        if (attacker.alliance_id != 0 && attacker.alliance_id == allianceID || allianceID == 0 && attacker.corporation_id == corpID)
+                                        {
+                                            var builder = new EmbedBuilder()
+                                                .WithColor(new Color(0x00D000))
+                                                .WithFooter(footer =>
+                                                {
+                                                    footer
+                                                        .WithText("Provided by Opux and zKill")
+                                                        .WithIconUrl($"https://image.eveonline.com/Render/25560_512.png");
+                                                })
+                                                .WithThumbnailUrl($"https://image.eveonline.com/Render/{shipID}_512.png")
+                                                .WithAuthor(author =>
+                                                {
+                                                    author
+                                                        .WithName($"Big Kill Reported: {ship.name} destroyed in {sysName} ({secstatus})")
+                                                        .WithUrl($"https://zkillboard.com/kill/{iD}/")
+                                                        .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                                })
+                                                .WithDescription($"Died {killTime}")
+                                                .AddInlineField("Victim", victimCharacter == null ? Typeid.name : victimCharacter.name)
+                                                .AddInlineField("Corporation", victimCorp.name)
+                                                .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.name)
+                                                .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
+                                                .AddInlineField("Involved Count", attackers.Count());
+                                            var embed = builder.Build();
+
+                                            var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["bigKillChannel"]));
+                                            await Channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
+
                                             break;
                                         }
+                                    }
+                                    else if (!npckill && attacker.alliance_id != 0 && allianceID != 0 && attacker.alliance_id == allianceID ||
+                                        !npckill && allianceID == 0 && attacker.corporation_id == corpID)
+                                    {
+                                        var builder = new EmbedBuilder()
+                                            .WithColor(new Color(0x00FF00))
+                                            .WithFooter(footer =>
+                                            {
+                                                footer
+                                                    .WithText("Provided by Opux and zKill")
+                                                    .WithIconUrl($"https://image.eveonline.com/Render/25560_512.png");
+                                            })
+                                            .WithThumbnailUrl($"https://image.eveonline.com/Render/{shipID}_512.png")
+                                            .WithAuthor(author =>
+                                            {
+                                                author
+                                                    .WithName($"Kill Reported: {ship.name} destroyed in {sysName} ({secstatus})")
+                                                    .WithUrl($"https://zkillboard.com/kill/{iD}/")
+                                                    .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                            })
+                                            .WithDescription($"Died {killTime}")
+                                            .AddInlineField("Victim", victimCharacter == null ? Typeid.name : victimCharacter.name)
+                                            .AddInlineField("Corporation", victimCorp.name)
+                                            .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.name)
+                                            .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
+                                            .AddInlineField("Involved Count", attackers.Count());
+                                        var embed = builder.Build();
+
+                                        var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["channel"]));
+                                        await Channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
+
+                                        break;
                                     }
                                 }
                             }
@@ -2874,7 +2873,7 @@ namespace Opux
 
                     try
                     {
-                        if (characterData.alliance_id != -1)
+                        if (characterData.alliance_id != null)
                         {
                             responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.alliance_id}/?datasource=tranquility");
                             if (responce.IsSuccessStatusCode)
