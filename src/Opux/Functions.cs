@@ -20,6 +20,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using YamlDotNet.RepresentationModel;
 using static Opux.JsonClasses;
@@ -1253,7 +1254,7 @@ namespace Opux
         }
         #endregion
 
-        //Complete
+        //Complete Update to Embeds
         #region killFeed
         private static async Task KillFeed(CommandContext Context)
         {
@@ -1416,15 +1417,9 @@ namespace Opux
                                 if (gg < radius && !postedRadius)
                                 {
                                     postedRadius = true;
-                                    var jumpsText = data.Count() > 1 ? $"{gg} from {radiusSystem}  ({secstatus})" : $"in {sysName} ({secstatus})";
+                                    var jumpsText = data.Count() > 1 ? $"{gg} from {radiusSystem}" : $"in {sysName} ({secstatus})";
                                     var builder = new EmbedBuilder()
                                         .WithColor(new Color(0x989898))
-                                        .WithFooter(footer =>
-                                        {
-                                            footer
-                                                .WithText("Provided by Opux and zKill")
-                                                .WithIconUrl($"https://image.eveonline.com/Render/25560_512.png");
-                                        })
                                         .WithThumbnailUrl($"https://image.eveonline.com/Render/{shipID}_512.png")
                                         .WithAuthor(author =>
                                         {
@@ -1435,7 +1430,7 @@ namespace Opux
                                         })
                                         .WithDescription($"Died {killTime}")
                                         .AddInlineField("Victim", victimCharacter == null ? Typeid.name : victimCharacter.name)
-                                        .AddInlineField("System", sysName)
+                                        .AddInlineField("System", $"{sysName} ({secstatus})")
                                         .AddInlineField("Corporation", victimCorp.name)
                                         .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.name)
                                         .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
@@ -1457,12 +1452,6 @@ namespace Opux
                                 postedGlobalBigKill = true;
                                 var builder = new EmbedBuilder()
                                     .WithColor(new Color(0xFA2FF4))
-                                    .WithFooter(footer =>
-                                    {
-                                        footer
-                                            .WithText("Provided by Opux and zKill")
-                                            .WithIconUrl($"https://image.eveonline.com/Render/25560_512.png");
-                                    })
                                     .WithThumbnailUrl($"https://image.eveonline.com/Render/{shipID}_512.png")
                                     .WithAuthor(author =>
                                     {
@@ -1493,12 +1482,6 @@ namespace Opux
                                 {
                                     var builder = new EmbedBuilder()
                                         .WithColor(new Color(0x00FF00))
-                                        .WithFooter(footer =>
-                                        {
-                                            footer
-                                                .WithText("Provided by Opux and zKill")
-                                                .WithIconUrl($"https://image.eveonline.com/Render/25560_512.png");
-                                        })
                                         .WithThumbnailUrl($"https://image.eveonline.com/Render/{shipID}_512.png")
                                         .WithAuthor(author =>
                                         {
@@ -1533,12 +1516,6 @@ namespace Opux
                                     {
                                         var builder = new EmbedBuilder()
                                             .WithColor(new Color(0xD00000))
-                                            .WithFooter(footer =>
-                                            {
-                                                footer
-                                                    .WithText("Provided by Opux and zKill")
-                                                    .WithIconUrl($"https://image.eveonline.com/Render/25560_512.png");
-                                            })
                                             .WithThumbnailUrl($"https://image.eveonline.com/Render/{shipID}_512.png")
                                             .WithAuthor(author =>
                                             {
@@ -1573,12 +1550,6 @@ namespace Opux
                                         {
                                             var builder = new EmbedBuilder()
                                                 .WithColor(new Color(0xFF0000))
-                                                .WithFooter(footer =>
-                                                {
-                                                    footer
-                                                        .WithText("Provided by Opux and zKill")
-                                                        .WithIconUrl($"https://image.eveonline.com/Render/25560_512.png");
-                                                })
                                                 .WithThumbnailUrl($"https://image.eveonline.com/Render/{shipID}_512.png")
                                                 .WithAuthor(author =>
                                                 {
@@ -1616,12 +1587,6 @@ namespace Opux
                                         {
                                             var builder = new EmbedBuilder()
                                                 .WithColor(new Color(0x00D000))
-                                                .WithFooter(footer =>
-                                                {
-                                                    footer
-                                                        .WithText("Provided by Opux and zKill")
-                                                        .WithIconUrl($"https://image.eveonline.com/Render/25560_512.png");
-                                                })
                                                 .WithThumbnailUrl($"https://image.eveonline.com/Render/{shipID}_512.png")
                                                 .WithAuthor(author =>
                                                 {
@@ -1653,12 +1618,6 @@ namespace Opux
                                     {
                                         var builder = new EmbedBuilder()
                                             .WithColor(new Color(0x00FF00))
-                                            .WithFooter(footer =>
-                                            {
-                                                footer
-                                                    .WithText("Provided by Opux and zKill")
-                                                    .WithIconUrl($"https://image.eveonline.com/Render/25560_512.png");
-                                            })
                                             .WithThumbnailUrl($"https://image.eveonline.com/Render/{shipID}_512.png")
                                             .WithAuthor(author =>
                                             {
@@ -2272,116 +2231,277 @@ namespace Opux
         }
         #endregion
 
-        //Complete
+        //Pricecheck Update to Embeds
         #region Pricecheck
         internal async static Task PriceCheck(ICommandContext context, string String, string system)
         {
             var channel = context.Message.Channel;
-            if (String.ToLower() == "short name")
-            {
-                String = "Item Name";
-            }
 
             try
             {
-                var result = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/search/?categories=inventory_type&datasource=tranquility&language=en-us&search={String}&strict=true");
-
-                if (!result.IsSuccessStatusCode)
+                HttpResponseMessage ItemID = new HttpResponseMessage();
+                if (String.EndsWith('*'))
                 {
-                    await channel.SendMessageAsync($"{context.Message.Author.Mention} ESI Failure please try again later");
+                    ItemID = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/search/?categories=inventory_type&datasource=tranquility&language=en-us&search={String.TrimEnd('*')}&strict=true");
+                }
+                else
+
+                {
+                    ItemID = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/search/?categories=inventory_type&datasource=tranquility&language=en-us&search={String}&strict=false");
+                }
+
+                if (!ItemID.IsSuccessStatusCode)
+                {
+                    await channel.SendMessageAsync($"{context.Message.Author.Mention} ESI Failure ItemID please try again later");
                     await Task.CompletedTask;
                 }
 
-                var searchResults = JsonConvert.DeserializeObject<SearchInventoryType>(await result.Content.ReadAsStringAsync());
 
-                if (searchResults.inventory_type == null || string.IsNullOrWhiteSpace(searchResults.inventory_type.ToString()))
+                var ItemIDResult = await ItemID.Content.ReadAsStringAsync();
+
+                var ItemIDResults = JsonConvert.DeserializeObject<SearchInventoryType>(ItemIDResult);
+
+                if (ItemIDResults.inventory_type == null || string.IsNullOrWhiteSpace(ItemIDResults.inventory_type.ToString()))
                 {
                     await channel.SendMessageAsync($"{context.Message.Author.Mention} Item {String} does not exist please try again");
+                }
+                else if (ItemIDResults.inventory_type.Count() > 1)
+                {
+                    await channel.SendMessageAsync("Multiple results found see DM");
+
+                    channel = await context.Message.Author.GetOrCreateDMChannelAsync();
+
+                    var tmp = JsonConvert.SerializeObject(ItemIDResults.inventory_type);
+                    var httpContent = new StringContent(tmp);
+
+                    var ItemName = await Program._httpClient.PostAsync($"https://esi.tech.ccp.is/latest/universe/names/?datasource=tranquility", httpContent);
+
+                    if (!ItemName.IsSuccessStatusCode)
+                    {
+                        await channel.SendMessageAsync($"{context.Message.Author.Mention} ESI Failure ItemName please try again later");
+                        await Task.CompletedTask;
+                    }
+
+                    var ItemNameResult = await ItemName.Content.ReadAsStringAsync();
+
+                    var ItemNameResults = JsonConvert.DeserializeObject<List<SearchName>>(ItemNameResult);
+
+                    await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
+                    var builder = new EmbedBuilder()
+                        .WithColor(new Color(0x00D000))
+                        .WithAuthor(author =>
+                        {
+                            author
+                                .WithName($"Multiple Items found use * for exact search:")
+                                .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                        })
+                        .WithDescription("Example: Hyperion*");
+                    var count = 0;
+                    foreach (var inventory_type in ItemIDResults.inventory_type)
+                    {
+                        if (count < 25)
+                        {
+                            builder.AddField($"{ItemNameResults.FirstOrDefault(x => x.id == inventory_type).name}", "\u200b");
+                        }
+                        else
+                        {
+                            var embed2 = builder.Build();
+
+                            await channel.SendMessageAsync($"", false, embed2).ConfigureAwait(false);
+
+                            builder.Fields.Clear();
+                            count = 0;
+                        }
+                        count++;
+                    }
+
+                    var embed = builder.Build();
+
+                    await channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
                 }
                 else
                 {
                     try
                     {
+                        var httpContent = new StringContent($"[ { ItemIDResults.inventory_type[0] } ]");
+
+                        var ItemName = await Program._httpClient.PostAsync($"https://esi.tech.ccp.is/latest/universe/names/?datasource=tranquility", httpContent);
+
+                        if (!ItemName.IsSuccessStatusCode)
+                        {
+                            await channel.SendMessageAsync($"{context.Message.Author.Mention} ESI Failure ItemName please try again later");
+                            await Task.CompletedTask;
+                        }
+
+                        var ItemNameResult = await ItemName.Content.ReadAsStringAsync();
+
+                        var ItemNameResults = JsonConvert.DeserializeObject<List<SearchName>>(ItemNameResult)[0];
+
                         var url = "https://api.evemarketer.com/ec";
                         if (system == "")
                         {
-                            var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.inventory_type[0]}");
+                            
+                            var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={ItemIDResults.inventory_type[0]}");
                             var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
+
                             await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
-                            await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Universe**{Environment.NewLine}" +
-                                $"**Buy:**{Environment.NewLine}" +
-                                $"```Low: {centralreply.buy.min:n2}{Environment.NewLine}" +
-                                $"Avg: {centralreply.buy.avg:n2}{Environment.NewLine}" +
-                                $"High: {centralreply.buy.max:n2}```" +
-                                $"{Environment.NewLine}" +
-                                $"**Sell**:{Environment.NewLine}" +
-                                $"```Low: {centralreply.sell.min:n2}{Environment.NewLine}" +
-                                $"Avg: {centralreply.sell.avg:n2}{Environment.NewLine}" +
-                                $"High: {centralreply.sell.max:n2}```");
+                            var builder = new EmbedBuilder()
+                                .WithColor(new Color(0x00D000))
+                                .WithThumbnailUrl($"https://image.eveonline.com/Type/{ItemNameResults.id}_64.png")
+                                .WithAuthor(author =>
+                                {
+                                    author
+                                        .WithName($"Item: {ItemNameResults.name}")
+                                        .WithUrl($"https://www.fuzzwork.co.uk/info/?typeid={ItemNameResults.id}/")
+                                        .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                })
+                                .WithDescription($"Global Prices")
+                                .AddInlineField("Buy", $"Low: {centralreply.buy.min.ToString("N2")}{Environment.NewLine}" +
+                                $"Avg: {centralreply.buy.avg.ToString("N2")}{Environment.NewLine}" +
+                                $"High: {centralreply.buy.max.ToString("N2")}")
+                                .AddInlineField("Sell", $"Low: {centralreply.sell.min.ToString("N2")}{Environment.NewLine}" +
+                                $"Avg: {centralreply.sell.avg.ToString("N2")}{Environment.NewLine}" +
+                                $"High: {centralreply.sell.max.ToString("N2")}")
+                                .AddField($"Extra Data", $"\u200b")
+                                .AddInlineField("Buy", $"5%: {centralreply.buy.fivePercent.ToString("N2")}{Environment.NewLine}" +
+                                $"Volume: {centralreply.buy.volume}")
+                                .AddInlineField("Sell", $"5%: {centralreply.sell.fivePercent.ToString("N2")}{Environment.NewLine}" +
+                                $"Volume: {centralreply.sell.volume}");
+                            var embed = builder.Build();
+
+                            await channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
                         }
                         if (system == "jita")
                         {
-                            var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.inventory_type[0]}&usesystem=30000142");
+                            var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={ItemIDResults.inventory_type[0]}&usesystem=30000142");
                             var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
+
                             await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
-                            await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Jita**{Environment.NewLine}" +
-                                $"**Buy:**{Environment.NewLine}" +
-                                $"```Low: {centralreply.buy.min:n2}{Environment.NewLine}" +
-                                $"Avg: {centralreply.buy.avg:n2}{Environment.NewLine}" +
-                                $"High: {centralreply.buy.max:n2}```" +
-                                $"{Environment.NewLine}" +
-                                $"**Sell**:{Environment.NewLine}" +
-                                $"```Low: {centralreply.sell.min:n2}{Environment.NewLine}" +
-                                $"Avg: {centralreply.sell.avg:n2}{Environment.NewLine}" +
-                                $"High: {centralreply.sell.max:n2}```");
+
+                            var builder = new EmbedBuilder()
+                                .WithColor(new Color(0x00D000))
+                                .WithThumbnailUrl($"https://image.eveonline.com/Type/{ItemNameResults.id}_64.png")
+                                .WithAuthor(author =>
+                                {
+                                    author
+                                        .WithName($"Item: {ItemNameResults.name}")
+                                        .WithUrl($"https://www.fuzzwork.co.uk/info/?typeid={ItemNameResults.id}/")
+                                        .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                })
+                                .WithDescription($"Prices from Jita")
+                                .AddInlineField("Buy", $"Low: {centralreply.buy.min.ToString("N2")}{Environment.NewLine}" +
+                                $"Avg: {centralreply.buy.avg.ToString("N2")}{Environment.NewLine}" +
+                                $"High: {centralreply.buy.max.ToString("N2")}")
+                                .AddInlineField("Sell", $"Low: {centralreply.sell.min.ToString("N2")}{Environment.NewLine}" +
+                                $"Avg: {centralreply.sell.avg.ToString("N2")}{Environment.NewLine}" +
+                                $"High: {centralreply.sell.max.ToString("N2")}")
+                                .AddField($"Extra Data", $"\u200b")
+                                .AddInlineField("Buy", $"5%: {centralreply.buy.fivePercent.ToString("N2")}{Environment.NewLine}" +
+                                $"Volume: {centralreply.buy.volume}")
+                                .AddInlineField("Sell", $"5%: {centralreply.sell.fivePercent.ToString("N2")}{Environment.NewLine}" +
+                                $"Volume: {centralreply.sell.volume}");
+                            var embed = builder.Build();
+
+                            await channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
                         }
                         if (system == "amarr")
                         {
-                            var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.inventory_type[0]}&usesystem=30002187");
+                            var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={ItemIDResults.inventory_type[0]}&usesystem=30002187");
                             var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
+
                             await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
-                            await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Amarr**{Environment.NewLine}" +
-                                $"**Buy:**{Environment.NewLine}" +
-                                $"```Low: {centralreply.buy.min:n2}{Environment.NewLine}" +
-                                $"Avg: {centralreply.buy.avg:n2}{Environment.NewLine}" +
-                                $"High: {centralreply.buy.max:n2}```" +
-                                $"{Environment.NewLine}" +
-                                $"**Sell**:{Environment.NewLine}" +
-                                $"```Low: {centralreply.sell.min:n2}{Environment.NewLine}" +
-                                $"Avg: {centralreply.sell.avg:n2}{Environment.NewLine}" +
-                                $"High: {centralreply.sell.max:n2}```");
+
+                            var builder = new EmbedBuilder()
+                                .WithColor(new Color(0x00D000))
+                                .WithThumbnailUrl($"https://image.eveonline.com/Type/{ItemNameResults.id}_64.png")
+                                .WithAuthor(author =>
+                                {
+                                    author
+                                        .WithName($"Item: {ItemNameResults.name}")
+                                        .WithUrl($"https://www.fuzzwork.co.uk/info/?typeid={ItemNameResults.id}/")
+                                        .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                })
+                                .WithDescription($"Prices from Amarr")
+                                .AddInlineField("Buy", $"Low: {centralreply.buy.min.ToString("N2")}{Environment.NewLine}" +
+                                $"Avg: {centralreply.buy.avg.ToString("N2")}{Environment.NewLine}" +
+                                $"High: {centralreply.buy.max.ToString("N2")}")
+                                .AddInlineField("Sell", $"Low: {centralreply.sell.min.ToString("N2")}{Environment.NewLine}" +
+                                $"Avg: {centralreply.sell.avg.ToString("N2")}{Environment.NewLine}" +
+                                $"High: {centralreply.sell.max.ToString("N2")}")
+                                .AddField($"Extra Data", $"\u200b")
+                                .AddInlineField("Buy", $"5%: {centralreply.buy.fivePercent.ToString("N2")}{Environment.NewLine}" +
+                                $"Volume: {centralreply.buy.volume}")
+                                .AddInlineField("Sell", $"5%: {centralreply.sell.fivePercent.ToString("N2")}{Environment.NewLine}" +
+                                $"Volume: {centralreply.sell.volume}");
+                            var embed = builder.Build();
+
+                            await channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
                         }
                         if (system == "rens")
                         {
-                            var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.inventory_type[0]}&usesystem=30002510");
+                            var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={ItemIDResults.inventory_type[0]}&usesystem=30002510");
                             var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
+
                             await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
-                            await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Rens**{Environment.NewLine}" +
-                                $"**Buy:**{Environment.NewLine}" +
-                                $"```Low: {centralreply.buy.min:n2}{Environment.NewLine}" +
-                                $"Avg: {centralreply.buy.avg:n2}{Environment.NewLine}" +
-                                $"High: {centralreply.buy.max:n2}```" +
-                                $"{Environment.NewLine}" +
-                                $"**Sell**:{Environment.NewLine}" +
-                                $"```Low: {centralreply.sell.min:n2}{Environment.NewLine}" +
-                                $"Avg: {centralreply.sell.avg:n2}{Environment.NewLine}" +
-                                $"High: {centralreply.sell.max:n2}```");
+
+                            var builder = new EmbedBuilder()
+                                .WithColor(new Color(0x00D000))
+                                .WithThumbnailUrl($"https://image.eveonline.com/Type/{ItemNameResults.id}_64.png")
+                                .WithAuthor(author =>
+                                {
+                                    author
+                                        .WithName($"Item: {ItemNameResults.name}")
+                                        .WithUrl($"https://www.fuzzwork.co.uk/info/?typeid={ItemNameResults.id}/")
+                                        .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                })
+                                .WithDescription($"Prices from Rens")
+                                .AddInlineField("Buy", $"Low: {centralreply.buy.min.ToString("N2")}{Environment.NewLine}" +
+                                $"Avg: {centralreply.buy.avg.ToString("N2")}{Environment.NewLine}" +
+                                $"High: {centralreply.buy.max.ToString("N2")}")
+                                .AddInlineField("Sell", $"Low: {centralreply.sell.min.ToString("N2")}{Environment.NewLine}" +
+                                $"Avg: {centralreply.sell.avg.ToString("N2")}{Environment.NewLine}" +
+                                $"High: {centralreply.sell.max.ToString("N2")}")
+                                .AddField($"Extra Data", $"\u200b")
+                                .AddInlineField("Buy", $"5%: {centralreply.buy.fivePercent.ToString("N2")}{Environment.NewLine}" +
+                                $"Volume: {centralreply.buy.volume}")
+                                .AddInlineField("Sell", $"5%: {centralreply.sell.fivePercent.ToString("N2")}{Environment.NewLine}" +
+                                $"Volume: {centralreply.sell.volume}");
+                            var embed = builder.Build();
+
+                            await channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
                         }
                         if (system == "dodixie")
                         {
-                            var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={searchResults.inventory_type[0]}&usesystem=30002659");
+                            var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={ItemIDResults.inventory_type[0]}&usesystem=30002659");
                             var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
+
                             await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
-                            await channel.SendMessageAsync($"{context.Message.Author.Mention}, System: **Dodixie**{Environment.NewLine}" +
-                                $"**Buy:**{Environment.NewLine}" +
-                                $"```Low: {centralreply.buy.min:n2}{Environment.NewLine}" +
-                                $"Avg: {centralreply.buy.avg:n2}{Environment.NewLine}" +
-                                $"High: {centralreply.buy.max:n2}```" +
-                                $"{Environment.NewLine}" +
-                                $"**Sell**:{Environment.NewLine}" +
-                                $"```Low: {centralreply.sell.min:n2}{Environment.NewLine}" +
-                                $"Avg: {centralreply.sell.avg:n2}{Environment.NewLine}" +
-                                $"High: {centralreply.sell.max:n2}```");
+
+                            var builder = new EmbedBuilder()
+                                .WithColor(new Color(0x00D000))
+                                .WithThumbnailUrl($"https://image.eveonline.com/Type/{ItemNameResults.id}_64.png")
+                                .WithAuthor(author =>
+                                {
+                                    author
+                                        .WithName($"Item: {ItemNameResults.name}")
+                                        .WithUrl($"https://www.fuzzwork.co.uk/info/?typeid={ItemNameResults.id}/")
+                                        .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                })
+                                .WithDescription($"Prices from Dodixie")
+                                .AddInlineField("Buy", $"Low: {centralreply.buy.min.ToString("N2")}{Environment.NewLine}" +
+                                $"Avg: {centralreply.buy.avg.ToString("N2")}{Environment.NewLine}" +
+                                $"High: {centralreply.buy.max.ToString("N2")}")
+                                .AddInlineField("Sell", $"Low: {centralreply.sell.min.ToString("N2")}{Environment.NewLine}" +
+                                $"Avg: {centralreply.sell.avg.ToString("N2")}{Environment.NewLine}" +
+                                $"High: {centralreply.sell.max.ToString("N2")}")
+                                .AddField($"Extra Data", $"\u200b")
+                                .AddInlineField("Buy", $"5%: {centralreply.buy.fivePercent.ToString("N2")}{Environment.NewLine}" +
+                                $"Volume: {centralreply.buy.volume}")
+                                .AddInlineField("Sell", $"5%: {centralreply.sell.fivePercent.ToString("N2")}{Environment.NewLine}" +
+                                $"Volume: {centralreply.sell.volume}");
+                            var embed = builder.Build();
+
+                            await channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
                         }
                     }
                     catch (Exception ex)

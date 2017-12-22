@@ -67,6 +67,13 @@ namespace Opux
             public int[] solar_system { get; set; }
         }
 
+        public class SearchName
+        {
+            public int id { get; set; }
+            public string name { get; set; }
+            public string category { get; set; }
+        }
+
 
         public class CorporationSearch
         {
