@@ -2240,14 +2240,15 @@ namespace Opux
             try
             {
                 HttpResponseMessage ItemID = new HttpResponseMessage();
-                if (String.EndsWith('*'))
+                if (String.ToLower().StartsWith("search"))
                 {
-                    ItemID = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/search/?categories=inventory_type&datasource=tranquility&language=en-us&search={String.TrimEnd('*')}&strict=true");
+                    ItemID = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/search/?categories=inventory_type&datasource=tranquility&language=en-us&search=" +
+                        $"{String.TrimStart(new char[] { 's', 'e', 'a', 'r', 'c', 'h' })}&strict=false");
                 }
                 else
-
                 {
-                    ItemID = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/search/?categories=inventory_type&datasource=tranquility&language=en-us&search={String}&strict=false");
+                    ItemID = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/search/?categories=inventory_type&datasource=tranquility&language=en-us&search=" +
+                        $"{String.ToLower()}&strict=true");
                 }
 
                 if (!ItemID.IsSuccessStatusCode)
