@@ -2366,7 +2366,7 @@ namespace Opux
                                 .AddInlineField("Buy", $"5%: {centralreply.buy.fivePercent.ToString("N2")}{Environment.NewLine}" +
                                 $"Volume: {centralreply.buy.volume}")
                                 .AddInlineField("Sell", $"5%: {centralreply.sell.fivePercent.ToString("N2")}{Environment.NewLine}" +
-                                $"Volume: {centralreply.sell.volume}");
+                                $"Volume: {centralreply.sell.volume.ToString("N0")}");
                             var embed = builder.Build();
 
                             await channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
@@ -2399,7 +2399,7 @@ namespace Opux
                                 .AddInlineField("Buy", $"5%: {centralreply.buy.fivePercent.ToString("N2")}{Environment.NewLine}" +
                                 $"Volume: {centralreply.buy.volume}")
                                 .AddInlineField("Sell", $"5%: {centralreply.sell.fivePercent.ToString("N2")}{Environment.NewLine}" +
-                                $"Volume: {centralreply.sell.volume}");
+                                $"Volume: {centralreply.sell.volume.ToString("N0")}");
                             var embed = builder.Build();
 
                             await channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
@@ -2432,7 +2432,7 @@ namespace Opux
                                 .AddInlineField("Buy", $"5%: {centralreply.buy.fivePercent.ToString("N2")}{Environment.NewLine}" +
                                 $"Volume: {centralreply.buy.volume}")
                                 .AddInlineField("Sell", $"5%: {centralreply.sell.fivePercent.ToString("N2")}{Environment.NewLine}" +
-                                $"Volume: {centralreply.sell.volume}");
+                                $"Volume: {centralreply.sell.volume.ToString("N0")}");
                             var embed = builder.Build();
 
                             await channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
@@ -2465,7 +2465,7 @@ namespace Opux
                                 .AddInlineField("Buy", $"5%: {centralreply.buy.fivePercent.ToString("N2")}{Environment.NewLine}" +
                                 $"Volume: {centralreply.buy.volume}")
                                 .AddInlineField("Sell", $"5%: {centralreply.sell.fivePercent.ToString("N2")}{Environment.NewLine}" +
-                                $"Volume: {centralreply.sell.volume}");
+                                $"Volume: {centralreply.sell.volume.ToString("N0")}");
                             var embed = builder.Build();
 
                             await channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
@@ -2498,7 +2498,7 @@ namespace Opux
                                 .AddInlineField("Buy", $"5%: {centralreply.buy.fivePercent.ToString("N2")}{Environment.NewLine}" +
                                 $"Volume: {centralreply.buy.volume}")
                                 .AddInlineField("Sell", $"5%: {centralreply.sell.fivePercent.ToString("N2")}{Environment.NewLine}" +
-                                $"Volume: {centralreply.sell.volume}");
+                                $"Volume: {centralreply.sell.volume.ToString("N0")}");
                             var embed = builder.Build();
 
                             await channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
