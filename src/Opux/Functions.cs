@@ -1370,7 +1370,7 @@ namespace Opux
                         var ship = JsonConvert.DeserializeObject<Type_id>(shipIDContent);
 
                         var secstatus = Math.Round(systemData.security_status, 1).ToString("N2");
-                        var lastChannel = 0U;
+                        UInt64 lastChannel = 0;
 
                         foreach (var i in Program.Settings.GetSection("killFeed").GetSection("groupsConfig").GetChildren().ToList())
                         {
@@ -1540,6 +1540,8 @@ namespace Opux
 
                                         await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting     Big Loss: {kill.package.killID}  Value: {stringVal}"));
 
+                                        lastChannel = c;
+
                                         continue;
                                     }
                                 }
@@ -1573,6 +1575,8 @@ namespace Opux
                                             var stringVal = string.Format("{0:n0} ISK", value);
 
                                             await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting         Loss: {kill.package.killID}  Value: {stringVal}"));
+
+                                            lastChannel = c;
 
                                             continue;
                                         }
@@ -1611,6 +1615,8 @@ namespace Opux
 
                                             await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting     Big Kill: {kill.package.killID}  Value: {stringVal}"));
 
+                                            lastChannel = c;
+
                                             break;
                                         }
                                     }
@@ -1641,6 +1647,8 @@ namespace Opux
                                         var stringVal = string.Format("{0:n0} ISK", value);
 
                                         await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting         Kill: {kill.package.killID}  Value: {stringVal}"));
+
+                                        lastChannel = c;
 
                                         break;
                                     }
