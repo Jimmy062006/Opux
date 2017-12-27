@@ -1272,6 +1272,7 @@ namespace Opux
                     var redisQID = Program.Settings.GetSection("killFeed")["reDisqID"].ToString();
                     var redisqResponse = await (await Program._httpClient.GetAsync(String.IsNullOrEmpty(redisQID) ?
                         $"https://redisq.zkillboard.com/listen.php" : $"https://redisq.zkillboard.com/listen.php?queueID={redisQID}")).Content.ReadAsStringAsync();
+
                     kill = JsonConvert.DeserializeObject<ZKillboard>(redisqResponse);
 
                     if (kill != null && kill.package != null && lastPosted != kill.package.killID)
@@ -1369,6 +1370,7 @@ namespace Opux
                         var ship = JsonConvert.DeserializeObject<Type_id>(shipIDContent);
 
                         var secstatus = Math.Round(systemData.security_status, 1).ToString("N2");
+                        var lastChannel = 0U;
 
                         foreach (var i in Program.Settings.GetSection("killFeed").GetSection("groupsConfig").GetChildren().ToList())
                         {
@@ -1504,7 +1506,6 @@ namespace Opux
                                     var stringVal = string.Format("{0:n0} ISK", value);
 
                                     await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting Global Kills: {kill.package.killID}  Value: {stringVal}"));
-
                                 }
                             }
                             else
@@ -1512,7 +1513,7 @@ namespace Opux
                                 //Losses
                                 if (bigKillValue != 0 && value >= bigKillValue)
                                 {
-                                    if (victimAllianceID == allianceID || victimCorpID == corpID)
+                                    if (victimAllianceID == allianceID && lastChannel != c || victimCorpID == corpID && lastChannel != c)
                                     {
                                         var builder = new EmbedBuilder()
                                             .WithColor(new Color(0xD00000))
@@ -1546,7 +1547,7 @@ namespace Opux
                                 {
                                     if (minimumLossValue == 0 || minimumLossValue <= value)
                                     {
-                                        if (victimAllianceID != 0 &&victimAllianceID == allianceID || victimCorpID == corpID)
+                                        if (victimAllianceID != 0 &&victimAllianceID == allianceID && lastChannel != c || victimCorpID == corpID && lastChannel != c)
                                         {
                                             var builder = new EmbedBuilder()
                                                 .WithColor(new Color(0xFF0000))
@@ -1583,7 +1584,7 @@ namespace Opux
                                 {
                                     if (bigKillValue != 0 && value >= bigKillValue && !npckill)
                                     {
-                                        if (attacker.alliance_id != 0 && attacker.alliance_id == allianceID || allianceID == 0 && attacker.corporation_id == corpID)
+                                        if (attacker.alliance_id != 0 && attacker.alliance_id == allianceID && lastChannel != c || allianceID == 0 && attacker.corporation_id == corpID && lastChannel != c)
                                         {
                                             var builder = new EmbedBuilder()
                                                 .WithColor(new Color(0x00D000))
@@ -1613,8 +1614,8 @@ namespace Opux
                                             break;
                                         }
                                     }
-                                    else if (!npckill && attacker.alliance_id != 0 && allianceID != 0 && attacker.alliance_id == allianceID ||
-                                        !npckill && allianceID == 0 && attacker.corporation_id == corpID)
+                                    else if (!npckill && attacker.alliance_id != 0 && allianceID != 0 && attacker.alliance_id == allianceID && lastChannel != c ||
+                                        !npckill && allianceID == 0 && attacker.corporation_id == corpID && lastChannel != c)
                                     {
                                         var builder = new EmbedBuilder()
                                             .WithColor(new Color(0x00FF00))
