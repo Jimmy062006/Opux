@@ -2701,7 +2701,7 @@ namespace Opux
                             var builder = new EmbedBuilder()
                                 .WithUrl(url)
                                 .WithColor(new Color(0x7CB0D0))
-                                .WithTitle(name)
+                                .WithTitle($"{name}")
                                 .WithThumbnailUrl("http://fleet-up.com/Content/Images/logo_title.png")
                                 .WithAuthor(author =>
                                 {
@@ -2714,7 +2714,7 @@ namespace Opux
 
                             var embed = builder.Build();
 
-                            var sendres = await channel.SendMessageAsync("", false, embed);
+                            var sendres = await channel.SendMessageAsync("@everyone", false, embed);
 
                             await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup OP {name} ({operation.OperationId})"));
 
@@ -2775,7 +2775,7 @@ namespace Opux
                             var builder = new EmbedBuilder()
                                 .WithUrl(url)
                                 .WithColor(new Color(0x7CB0D0))
-                                .WithTitle($"@everyone {name}")
+                                .WithTitle($"{name}")
                                 .WithThumbnailUrl("http://fleet-up.com/Content/Images/logo_title.png")
                                 .WithAuthor(author => {
                                     author
@@ -2787,7 +2787,7 @@ namespace Opux
 
                             var embed = builder.Build();
 
-                            var sendres = await channel.SendMessageAsync("", false, embed).ConfigureAwait(false);
+                            var sendres = await channel.SendMessageAsync("@everyone", false, embed).ConfigureAwait(false);
 
                             await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup FORMUP Now {name} ({operation.OperationId})"));
                         }
