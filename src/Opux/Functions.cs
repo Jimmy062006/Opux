@@ -2806,7 +2806,7 @@ namespace Opux
             var guildId = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
             var lastopid = await SQLiteDataQuery("cacheData", "data", "fleetUpLastPostedOperation");
 
-            var channel = Program.Client.GetGuild(guildId).GetChannel(channelid);
+            var channel = Program.Client.GetGuild(guildId).GetTextChannel(channelid);
 
             var Json = await Program._httpClient.GetStringAsync($"http://api.fleet-up.com/Api.svc/Ohigwbylcsuz56ue3O6Awlw5e/{UserId}/{APICode}/Operations/{GroupID}");
             var result = JsonConvert.DeserializeObject<Opperations>(Json);
@@ -2827,30 +2827,23 @@ namespace Opux
                     var details = operation.Details;
                     var url = $"http://fleet-up.com/Operation#{operation.OperationId}";
 
-                    var message_temp = $"```Title - {name} {Environment.NewLine}" +
-                                $"Form Up Time - {startTime} {Environment.NewLine}" +
-                                $"Form Up System - {location} - {locationinfo} {Environment.NewLine}" +
-                                $"Details - {details}```" +
-                                $"{url}{Environment.NewLine}{Environment.NewLine}";
+                    var builder = new EmbedBuilder()
+                        .WithUrl(url)
+                        .WithColor(new Color(0x7CB0D0))
+                        .WithTitle(name)
+                        .WithThumbnailUrl("http://fleet-up.com/Content/Images/logo_title.png")
+                        .WithAuthor(author => {
+                            author
+                                .WithName("FleetUp Notification");
+                        })
+                        .AddInlineField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]))
+                        .AddInlineField($"Form Up System", "[{location}](http://evemaps.dotlan.net/system/{location})")
+                        .AddField("Details", details);
+                    var embed = builder.Build();
 
-                    if (message.Count() + message_temp.Count() >= 2000)
-                    {
-                        if (message.Count() != count)
-                        {
-                            await context.Message.Channel.SendMessageAsync($"{message}");
-                            message = $"{context.Message.Author.Mention}, {Environment.NewLine}";
-                        }
-                        else
-                        {
-                            message += $"{message_temp}";
-                            await context.Message.Channel.SendMessageAsync($"{message}");
-                            message = $"{context.Message.Author.Mention}, {Environment.NewLine}";
-                        }
-                    }
-                    else
-                    {
-                        message += $"{message_temp}";
-                    }
+                    var dmChannel = await context.Message.Author.GetOrCreateDMChannelAsync();
+
+                    var sendres = await channel.SendMessageAsync(null, false, embed);
                 }
             }
             if (message != $"{context.Message.Author.Mention}, {Environment.NewLine}")
