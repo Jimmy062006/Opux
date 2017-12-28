@@ -2751,13 +2751,13 @@ namespace Opux
                                         author
                                             .WithName("FleetUp Notification");
                                     })
-                                    .AddInlineField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]))
+                                    .AddInlineField("FORM UP in", $"{i} Minutes")
                                     .AddInlineField($"Form Up System", $"[{location}](http://evemaps.dotlan.net/system/{location})")
                                     .AddField("Details", string.IsNullOrWhiteSpace(details) ? "None" : details);
 
                                 var embed = builder.Build();
 
-                                var sendres = await channel.SendMessageAsync("", false, embed).ConfigureAwait(false);
+                                var sendres = await channel.SendMessageAsync("@everyone", false, embed).ConfigureAwait(false);
 
                                 await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup Reminder {name} ({operation.OperationId})"));
                             }
