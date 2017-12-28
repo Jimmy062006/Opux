@@ -2799,57 +2799,66 @@ namespace Opux
 
         internal static async Task Ops(ICommandContext context)
         {
-            var UserId = Program.Settings.GetSection("fleetup")["UserId"];
-            var APICode = Program.Settings.GetSection("fleetup")["APICode"];
-            var GroupID = Program.Settings.GetSection("fleetup")["GroupID"];
-            var channelid = Convert.ToUInt64(Program.Settings.GetSection("fleetup")["channel"]);
-            var guildId = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
-            var lastopid = await SQLiteDataQuery("cacheData", "data", "fleetUpLastPostedOperation");
-
-            var channel = Program.Client.GetGuild(guildId).GetTextChannel(channelid);
-
-            var Json = await Program._httpClient.GetStringAsync($"http://api.fleet-up.com/Api.svc/Ohigwbylcsuz56ue3O6Awlw5e/{UserId}/{APICode}/Operations/{GroupID}");
-            var result = JsonConvert.DeserializeObject<Opperations>(Json);
-            var message = $"{context.Message.Author.Mention}, {Environment.NewLine}";
-            var count = message.Count();
-            if (result.Data.Count() == 0)
+            try
             {
-                await context.Message.Channel.SendMessageAsync($"{message}No Ops Scheduled");
-            }
-            else
-            {
-                foreach (var operation in result.Data)
+                var UserId = Program.Settings.GetSection("fleetup")["UserId"];
+                var APICode = Program.Settings.GetSection("fleetup")["APICode"];
+                var GroupID = Program.Settings.GetSection("fleetup")["GroupID"];
+                var channelid = Convert.ToUInt64(Program.Settings.GetSection("fleetup")["channel"]);
+                var guildId = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
+                var lastopid = await SQLiteDataQuery("cacheData", "data", "fleetUpLastPostedOperation");
+
+                var channel = Program.Client.GetGuild(guildId).GetTextChannel(channelid);
+
+                var Json = await Program._httpClient.GetStringAsync($"http://api.fleet-up.com/Api.svc/Ohigwbylcsuz56ue3O6Awlw5e/{UserId}/{APICode}/Operations/{GroupID}");
+                var result = JsonConvert.DeserializeObject<Opperations>(Json);
+                var message = $"{context.Message.Author.Mention}, {Environment.NewLine}";
+                var count = message.Count();
+                if (result.Data.Count() == 0)
                 {
-                    var name = operation.Subject;
-                    var startTime = operation.Start;
-                    var locationinfo = operation.LocationId;
-                    var location = operation.Location;
-                    var details = operation.Details;
-                    var url = $"http://fleet-up.com/Operation#{operation.OperationId}";
-
-                    var builder = new EmbedBuilder()
-                        .WithUrl(url)
-                        .WithColor(new Color(0x7CB0D0))
-                        .WithTitle(name)
-                        .WithThumbnailUrl("http://fleet-up.com/Content/Images/logo_title.png")
-                        .WithAuthor(author => {
-                            author
-                                .WithName("FleetUp Notification");
-                        })
-                        .AddInlineField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]))
-                        .AddInlineField($"Form Up System", "[{location}](http://evemaps.dotlan.net/system/{location})")
-                        .AddField("Details", details);
-                    var embed = builder.Build();
-
-                    var dmChannel = await context.Message.Author.GetOrCreateDMChannelAsync();
-
-                    var sendres = await channel.SendMessageAsync(null, false, embed);
+                    await context.Message.Channel.SendMessageAsync($"{message}No Ops Scheduled");
                 }
-            }
-            if (message != $"{context.Message.Author.Mention}, {Environment.NewLine}")
-                await context.Message.Channel.SendMessageAsync($"{message}");
+                else
+                {
+                    foreach (var operation in result.Data)
+                    {
+                        var name = operation.Subject;
+                        var startTime = operation.Start;
+                        var locationinfo = operation.LocationId;
+                        var location = operation.Location;
+                        var details = operation.Details;
+                        var url = $"http://fleet-up.com/Operation#{operation.OperationId}";
 
-            await Client_Log(new LogMessage(LogSeverity.Info, "FleetOps", $"Sending Ops to {context.Message.Channel} for {context.Message.Author}"));
+                        var builder = new EmbedBuilder()
+                            .WithUrl(url)
+                            .WithColor(new Color(0x7CB0D0))
+                            .WithTitle(name)
+                            .WithThumbnailUrl("http://fleet-up.com/Content/Images/logo_title.png")
+                            .WithAuthor(author =>
+                            {
+                                author
+                                    .WithName("FleetUp Notification");
+                            })
+                            .AddInlineField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]))
+                            .AddInlineField($"Form Up System", "[{location}](http://evemaps.dotlan.net/system/{location})")
+                            .AddField("Details", details);
+                        var embed = builder.Build();
+
+                        var dmChannel = await context.Message.Author.GetOrCreateDMChannelAsync();
+
+                        var sendres = await channel.SendMessageAsync(null, false, embed);
+                    }
+                }
+
+                if (message != $"{context.Message.Author.Mention}, {Environment.NewLine}")
+                    await context.Message.Channel.SendMessageAsync($"{message}");
+
+                await Client_Log(new LogMessage(LogSeverity.Info, "FleetOps", $"Sending Ops to {context.Message.Channel} for {context.Message.Author}"));
+            }
+            catch (Exception ex)
+            {
+                await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"ERROR In Fleetup OPS {ex.Message}", ex));
+            }
         }
         #endregion
 
