@@ -2757,7 +2757,7 @@ namespace Opux
 
                                 var embed = builder.Build();
 
-                                var sendres = await channel.SendMessageAsync($"@everyone FORMUP In {i}", false, embed).ConfigureAwait(false);
+                                var sendres = await channel.SendMessageAsync($"@everyone FORMUP In {i} Minutes", false, embed).ConfigureAwait(false);
 
                                 await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup Reminder {name} ({operation.OperationId})"));
                             }
