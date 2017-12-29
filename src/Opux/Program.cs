@@ -24,6 +24,7 @@ namespace Opux
         public static IServiceProvider ServiceCollection { get; private set; }
         public static IConfigurationRoot Settings { get; private set; }
         internal static readonly HttpClient _httpClient = new HttpClient();
+        internal static readonly HttpClient _zKillhttpClient = new HttpClient();
         internal static bool quit = false;
         internal static bool debug = false;
 
@@ -37,6 +38,9 @@ namespace Opux
             ApplicationBase = Path.GetDirectoryName(new Uri(Assembly.GetEntryAssembly().CodeBase).LocalPath);
             if (!File.Exists(Path.Combine(Program.ApplicationBase, "Opux.db")))
                 File.Copy(ApplicationBase + "/Opux.def.db", Path.Combine(Program.ApplicationBase, "Opux.db"));
+
+            _zKillhttpClient.Timeout = new TimeSpan(0, 0, 10);
+            _zKillhttpClient.DefaultRequestHeaders.Add("User-Agent", "OpuxBot");
 
             UpdateSettings();
 
