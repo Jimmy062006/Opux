@@ -1422,7 +1422,7 @@ namespace Opux
                                     var jumpsText = data.Count() > 1 ? $"{gg} from {radiusSystem}" : $"in {sysName} ({secstatus})";
                                     var builder = new EmbedBuilder()
                                         .WithColor(new Color(0x989898))
-                                        .WithThumbnailUrl($"https://image.eveonline.com/Render/{shipID}_512.png")
+                                        .WithThumbnailUrl($"https://image.eveonline.com/Type/{shipID}_64.png")
                                         .WithAuthor(author =>
                                         {
                                             author
