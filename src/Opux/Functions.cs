@@ -2098,6 +2098,7 @@ namespace Opux
                                                     .AddInlineField("Current Hull Level", $"{hullValue}")
                                                     .AddInlineField("Aggressing Pilot", $"{aggressorName}")
                                                     .AddInlineField("\u200b", "\u200b")
+                                                    .AddInlineField("\u200b", "\u200b")
                                                     .AddInlineField("Aggressing Corporation", $"{aggressorCorpName}")
                                                     .AddInlineField("Aggressing Alliance", $"{aggressorAllianceName}")
                                                     .WithTimestamp((DateTime)notification.Value["sentDate"]);
