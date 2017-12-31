@@ -95,7 +95,7 @@ namespace EveLibCore
             try
             {
                 if (notificationID.Count > 100)
-                    notificationID.RemoveRange(0, notificationID.Count - 100);
+                    notificationID.RemoveRange(100, notificationID.Count - 100);
 
                 var commaseperated = string.Join(",", notificationID);
 
