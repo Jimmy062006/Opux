@@ -2081,8 +2081,8 @@ namespace Opux
                                                 var aggressorName = names.First(x => x.Key == aggressorID).Value;
                                                 var moonName = names.First(x => x.Key == moonID).Value;
                                                 var solarSystemName = names.First(x => x.Key == solarSystemID).Value;
-                                                var allyLine = aggressorAllianceID != 0 ? $"{Environment.NewLine}Aggressing Alliance: {aggressorAlliance}" : "";
                                                 var TypeName = await EveLib.IDtoTypeName(new List<Int64> { typeID });
+                                                var aggressorAllianceName = aggressorAlliance == null ? "None" : aggressorAlliance;
 
                                                 var builder = new EmbedBuilder()
                                                     .WithColor(new Color(0xf2882b))
@@ -2097,8 +2097,11 @@ namespace Opux
                                                     .AddInlineField("Current Armor Level", $"{armorValue}")
                                                     .AddInlineField("Current Hull Level", $"{hullValue}")
                                                     .AddInlineField("Aggressing Pilot", $"{aggressorName}")
-                                                    .AddInlineField("Aggressing Corporation", $"{aggressorCorpName}{allyLine}")
+                                                    .AddInlineField("\u200b", "\u200b")
+                                                    .AddInlineField("Aggressing Corporation", $"{aggressorCorpName}")
+                                                    .AddInlineField("Aggressing Alliance", $"{aggressorAllianceName}")
                                                     .WithTimestamp((DateTime)notification.Value["sentDate"]);
+
                                                 var embed = builder.Build();
 
                                                 await chan.SendMessageAsync($"@everyone", false, embed);
@@ -2845,77 +2848,110 @@ namespace Opux
         #region FleetUp
         internal static async Task FleetUp()
         {
-            //Check Fleetup Operations
-            var lastChecked = await SQLiteDataQuery("cacheData", "data", "fleetUpLastChecked");
-
-            if (DateTime.Now > DateTime.Parse(lastChecked).AddMinutes(1))
+            try
             {
-                var UserId = Program.Settings.GetSection("fleetup")["UserId"];
-                var APICode = Program.Settings.GetSection("fleetup")["APICode"];
-                var GroupID = Program.Settings.GetSection("fleetup")["GroupID"];
-                var channelid = Convert.ToUInt64(Program.Settings.GetSection("fleetup")["channel"]);
-                var guildId = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
-                var lastopid = await SQLiteDataQuery("cacheData", "data", "fleetUpLastPostedOperation");
-                var announce_post = Convert.ToBoolean(Program.Settings.GetSection("fleetup")["announce_post"]);
-                var channel = Program.Client.GetGuild(guildId).GetTextChannel(channelid);
+                //Check Fleetup Operations
+                var lastChecked = await SQLiteDataQuery("cacheData", "data", "fleetUpLastChecked");
 
-                if (String.IsNullOrWhiteSpace(UserId) || String.IsNullOrWhiteSpace(APICode) || String.IsNullOrWhiteSpace(GroupID))
+                if (DateTime.Now > DateTime.Parse(lastChecked).AddMinutes(1))
                 {
-                    await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Setup Incomplete please check the Settings file"));
-                    await SQLiteDataUpdate("cacheData", "data", "fleetUpLastChecked", DateTime.Now.ToString());
-                    return;
-                }
+                    var UserId = Program.Settings.GetSection("fleetup")["UserId"];
+                    var APICode = Program.Settings.GetSection("fleetup")["APICode"];
+                    var GroupID = Program.Settings.GetSection("fleetup")["GroupID"];
+                    var channelid = Convert.ToUInt64(Program.Settings.GetSection("fleetup")["channel"]);
+                    var guildId = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
+                    var lastopid = await SQLiteDataQuery("cacheData", "data", "fleetUpLastPostedOperation");
+                    var announce_post = Convert.ToBoolean(Program.Settings.GetSection("fleetup")["announce_post"]);
+                    var channel = Program.Client.GetGuild(guildId).GetTextChannel(channelid);
 
-                var JsonContent = await Program._httpClient.GetAsync($"http://api.fleet-up.com/Api.svc/Ohigwbylcsuz56ue3O6Awlw5e/{UserId}/{APICode}/Operations/{GroupID}");
-                if (JsonContent.IsSuccessStatusCode)
-                {
-                    var result = JsonConvert.DeserializeObject<Opperations>(await JsonContent.Content.ReadAsStringAsync());
-                    foreach (var operation in result.Data)
+                    if (String.IsNullOrWhiteSpace(UserId) || String.IsNullOrWhiteSpace(APICode) || String.IsNullOrWhiteSpace(GroupID))
                     {
-                        if (operation.OperationId > Convert.ToInt32(lastopid) && announce_post)
-                        {
-                            var name = operation.Subject;
-                            var startTime = operation.Start;
-                            var location = operation.Location;
-                            var details = operation.Details;
-                            var url = $"http://fleet-up.com/Operation#{operation.OperationId}";
+                        await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Setup Incomplete please check the Settings file"));
+                        await SQLiteDataUpdate("cacheData", "data", "fleetUpLastChecked", DateTime.Now.ToString());
+                        return;
+                    }
 
-                            var builder = new EmbedBuilder()
-                                .WithUrl(url)
-                                .WithColor(new Color(0x7CB0D0))
-                                .WithTitle($"{name}")
-                                .WithThumbnailUrl("http://fleet-up.com/Content/Images/logo_title.png")
-                                .WithAuthor(author =>
+                    var JsonContent = await Program._httpClient.GetAsync($"http://api.fleet-up.com/Api.svc/Ohigwbylcsuz56ue3O6Awlw5e/{UserId}/{APICode}/Operations/{GroupID}");
+                    if (JsonContent.IsSuccessStatusCode)
+                    {
+                        var result = JsonConvert.DeserializeObject<Opperations>(await JsonContent.Content.ReadAsStringAsync());
+                        foreach (var operation in result.Data)
+                        {
+                            if (operation.OperationId > Convert.ToInt32(lastopid) && announce_post)
+                            {
+                                var name = operation.Subject;
+                                var startTime = operation.Start;
+                                var location = operation.Location;
+                                var details = operation.Details;
+                                var url = $"http://fleet-up.com/Operation#{operation.OperationId}";
+
+                                var builder = new EmbedBuilder()
+                                    .WithUrl(url)
+                                    .WithColor(new Color(0x7CB0D0))
+                                    .WithTitle($"{name}")
+                                    .WithThumbnailUrl("http://fleet-up.com/Content/Images/logo_title.png")
+                                    .WithAuthor(author =>
+                                    {
+                                        author
+                                            .WithName("FleetUp Notification");
+                                    })
+                                    .AddInlineField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]))
+                                    .AddInlineField($"Form Up System", $"[{location}](http://evemaps.dotlan.net/system/{location})")
+                                    .AddField("Details", string.IsNullOrWhiteSpace(details) ? "None" : details);
+
+                                var embed = builder.Build();
+
+                                var sendres = await channel.SendMessageAsync("@everyone", false, embed);
+
+                                await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup OP {name} ({operation.OperationId})"));
+
+                                await sendres.AddReactionAsync(new Emoji("✅"));
+                                await sendres.AddReactionAsync(new Emoji("❔"));
+                                await sendres.AddReactionAsync(new Emoji("❌"));
+
+                                await SQLiteDataUpdate("cacheData", "data", "fleetUpLastPostedOperation", operation.OperationId.ToString());
+                            }
+
+                            var timeDiff = TimeSpan.FromTicks(operation.Start.Ticks - DateTime.UtcNow.Ticks);
+                            var array = Program.Settings.GetSection("fleetup").GetSection("announce").GetChildren().Select(x => x.Value).ToArray(); ;
+
+                            foreach (var i in array)
+                            {
+                                var epic1 = TimeSpan.FromMinutes(Convert.ToInt16(i));
+                                var epic2 = TimeSpan.FromMinutes(Convert.ToInt16(i) + 1);
+
+                                if (timeDiff >= epic1 && timeDiff <= epic2)
                                 {
-                                    author
-                                        .WithName("FleetUp Notification");
-                                })
-                                .AddInlineField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]))
-                                .AddInlineField($"Form Up System", $"[{location}](http://evemaps.dotlan.net/system/{location})")
-                                .AddField("Details", string.IsNullOrWhiteSpace(details) ? "None" : details);
+                                    var name = operation.Subject;
+                                    var startTime = operation.Start;
+                                    var locationinfo = operation.LocationId;
+                                    var location = operation.Location;
+                                    var details = operation.Details;
+                                    var url = $"http://fleet-up.com/Operation#{operation.OperationId}";
 
-                            var embed = builder.Build();
+                                    var builder = new EmbedBuilder()
+                                        .WithUrl(url)
+                                        .WithColor(new Color(0x7CB0D0))
+                                        .WithTitle(name)
+                                        .WithThumbnailUrl("http://fleet-up.com/Content/Images/logo_title.png")
+                                        .WithAuthor(author =>
+                                        {
+                                            author
+                                                .WithName("FleetUp Notification");
+                                        })
+                                        .AddInlineField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]))
+                                        .AddInlineField($"Form Up System", $"[{location}](http://evemaps.dotlan.net/system/{location})")
+                                        .AddField("Details", string.IsNullOrWhiteSpace(details) ? "None" : details);
 
-                            var sendres = await channel.SendMessageAsync("@everyone", false, embed);
+                                    var embed = builder.Build();
 
-                            await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup OP {name} ({operation.OperationId})"));
+                                    var sendres = await channel.SendMessageAsync($"@everyone FORMUP In {i} Minutes", false, embed).ConfigureAwait(false);
 
-                            await sendres.AddReactionAsync(new Emoji("✅"));
-                            await sendres.AddReactionAsync(new Emoji("❔"));
-                            await sendres.AddReactionAsync(new Emoji("❌"));
+                                    await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup Reminder {name} ({operation.OperationId})"));
+                                }
+                            }
 
-                            await SQLiteDataUpdate("cacheData", "data", "fleetUpLastPostedOperation", operation.OperationId.ToString());
-                        }
-
-                        var timeDiff = TimeSpan.FromTicks(operation.Start.Ticks - DateTime.UtcNow.Ticks);
-                        var array = Program.Settings.GetSection("fleetup").GetSection("announce").GetChildren().Select(x => x.Value).ToArray(); ;
-
-                        foreach (var i in array)
-                        {
-                            var epic1 = TimeSpan.FromMinutes(Convert.ToInt16(i));
-                            var epic2 = TimeSpan.FromMinutes(Convert.ToInt16(i) + 1);
-
-                            if (timeDiff >= epic1 && timeDiff <= epic2)
+                            if (timeDiff.TotalMinutes < 1 && timeDiff.TotalMinutes > 0)
                             {
                                 var name = operation.Subject;
                                 var startTime = operation.Start;
@@ -2927,9 +2963,10 @@ namespace Opux
                                 var builder = new EmbedBuilder()
                                     .WithUrl(url)
                                     .WithColor(new Color(0x7CB0D0))
-                                    .WithTitle(name)
+                                    .WithTitle($"{name}")
                                     .WithThumbnailUrl("http://fleet-up.com/Content/Images/logo_title.png")
-                                    .WithAuthor(author => {
+                                    .WithAuthor(author =>
+                                    {
                                         author
                                             .WithName("FleetUp Notification");
                                     })
@@ -2939,47 +2976,22 @@ namespace Opux
 
                                 var embed = builder.Build();
 
-                                var sendres = await channel.SendMessageAsync($"@everyone FORMUP In {i} Minutes", false, embed).ConfigureAwait(false);
+                                var sendres = await channel.SendMessageAsync("@everyone FORMUP Now", false, embed).ConfigureAwait(false);
 
-                                await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup Reminder {name} ({operation.OperationId})"));
+                                await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup FORMUP Now {name} ({operation.OperationId})"));
                             }
                         }
-
-                        if (timeDiff.TotalMinutes < 1 && timeDiff.TotalMinutes > 0)
-                        {
-                            var name = operation.Subject;
-                            var startTime = operation.Start;
-                            var locationinfo = operation.LocationId;
-                            var location = operation.Location;
-                            var details = operation.Details;
-                            var url = $"http://fleet-up.com/Operation#{operation.OperationId}";
-
-                            var builder = new EmbedBuilder()
-                                .WithUrl(url)
-                                .WithColor(new Color(0x7CB0D0))
-                                .WithTitle($"{name}")
-                                .WithThumbnailUrl("http://fleet-up.com/Content/Images/logo_title.png")
-                                .WithAuthor(author => {
-                                    author
-                                        .WithName("FleetUp Notification");
-                                })
-                                .AddInlineField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]))
-                                .AddInlineField($"Form Up System", $"[{location}](http://evemaps.dotlan.net/system/{location})")
-                                .AddField("Details", string.IsNullOrWhiteSpace(details) ? "None" : details);
-
-                            var embed = builder.Build();
-
-                            var sendres = await channel.SendMessageAsync("@everyone FORMUP Now", false, embed).ConfigureAwait(false);
-
-                            await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup FORMUP Now {name} ({operation.OperationId})"));
-                        }
+                        await SQLiteDataUpdate("cacheData", "data", "fleetUpLastChecked", DateTime.Now.ToString());
                     }
-                    await SQLiteDataUpdate("cacheData", "data", "fleetUpLastChecked", DateTime.Now.ToString());
+                    else
+                    {
+                        await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"ERROR In Fleetup API {JsonContent.StatusCode}"));
+                    }
                 }
-                else
-                {
-                    await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"ERROR In Fleetup API {JsonContent.StatusCode}"));
-                }
+            }
+            catch (Exception ex)
+            {
+                await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"ERROR {ex.Message}", ex));
             }
         }
 
