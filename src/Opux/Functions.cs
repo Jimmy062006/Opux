@@ -1454,7 +1454,7 @@ namespace Opux
                                 postedGlobalBigKill = true;
                                 var builder = new EmbedBuilder()
                                     .WithColor(new Color(0xFA2FF4))
-                                    .WithThumbnailUrl($"https://image.eveonline.com/Render/{shipID}_512.png")
+                                    .WithThumbnailUrl($"https://image.eveonline.com/Type/{shipID}_64.png")
                                     .WithAuthor(author =>
                                     {
                                         author
@@ -1484,7 +1484,7 @@ namespace Opux
                                 {
                                     var builder = new EmbedBuilder()
                                         .WithColor(new Color(0x00FF00))
-                                        .WithThumbnailUrl($"https://image.eveonline.com/Render/{shipID}_512.png")
+                                        .WithThumbnailUrl($"https://image.eveonline.com/Type/{shipID}_64.png")
                                         .WithAuthor(author =>
                                         {
                                             author
@@ -1517,7 +1517,7 @@ namespace Opux
                                     {
                                         var builder = new EmbedBuilder()
                                             .WithColor(new Color(0xD00000))
-                                            .WithThumbnailUrl($"https://image.eveonline.com/Render/{shipID}_512.png")
+                                            .WithThumbnailUrl($"https://image.eveonline.com/Type/{shipID}_64.png")
                                             .WithAuthor(author =>
                                             {
                                                 author
@@ -1553,7 +1553,7 @@ namespace Opux
                                         {
                                             var builder = new EmbedBuilder()
                                                 .WithColor(new Color(0xFF0000))
-                                                .WithThumbnailUrl($"https://image.eveonline.com/Render/{shipID}_512.png")
+                                                .WithThumbnailUrl($"https://image.eveonline.com/Type/{shipID}_64.png")
                                                 .WithAuthor(author =>
                                                 {
                                                     author
@@ -1592,7 +1592,7 @@ namespace Opux
                                         {
                                             var builder = new EmbedBuilder()
                                                 .WithColor(new Color(0x00D000))
-                                                .WithThumbnailUrl($"https://image.eveonline.com/Render/{shipID}_512.png")
+                                                .WithThumbnailUrl($"https://image.eveonline.com/Type/{shipID}_64.png")
                                                 .WithAuthor(author =>
                                                 {
                                                     author
@@ -1625,7 +1625,7 @@ namespace Opux
                                     {
                                         var builder = new EmbedBuilder()
                                             .WithColor(new Color(0x00FF00))
-                                            .WithThumbnailUrl($"https://image.eveonline.com/Render/{shipID}_512.png")
+                                            .WithThumbnailUrl($"https://image.eveonline.com/Type/{shipID}_64.png")
                                             .WithAuthor(author =>
                                             {
                                                 author
@@ -1829,9 +1829,9 @@ namespace Opux
                 {145,   "Friendly fire enable timer completed (CorpFriendlyFireEnableTimerCompleted)"},
                 {146,   "Friendly fire disable timer completed (CorpFriendlyFireDisableTimerCompleted)"},
                 {152,   "Infrastructure hub bill about to expire (InfrastructureHubBillAboutToExpire)"},
-                {160,   "Sovereignty structure reinforced (SovStructureReinforced)"},
-                {161,   "SovCommandNodeEventStarted ?"},
-                {162,   "Sovereignty structure destroyed (SovStructureDestroyed)"},
+                {160,   "Sovereignty structure reinforced"},
+                {161,   "Command Node Event Started"},
+                {162,   "Sovereignty structure destroyed"},
                 {163,   "SovStationEnteredFreeport ?"},
                 {164,   "IHubDestroyedByBillFailure ?"},
                 {166,   "BuddyConnectContactAdd ?"},
@@ -1948,8 +1948,20 @@ namespace Opux
                                                 var againstName = names.FirstOrDefault(x => x.Key == againstID);
                                                 var declaredByName = names.First(x => x.Key == declaredByID);
 
-                                                await chan.SendMessageAsync($"@everyone {Environment.NewLine}War declared by {declaredByName.Value} against {againstName.Value}" +
-                                                    $" Fighting begins in roughly {delayHours} hours");
+                                                var builder = new EmbedBuilder()
+                                                    .WithColor(new Color(0xf2882b))
+                                                    .WithAuthor(author =>
+                                                    {
+                                                        author
+                                                            .WithName($"New Notification: {types[notificationType]}");
+                                                    })
+                                                    .AddInlineField("Declared BY", declaredByName.Value)
+                                                    .AddInlineField("Against", againstName.Value)
+                                                    .AddInlineField("Fighting beins in", $"{delayHours} Hours")
+                                                    .WithTimestamp((DateTime)notification.Value["sentDate"]);
+                                                var embed = builder.Build();
+
+                                                await chan.SendMessageAsync($"@everyone", false, embed);
                                             }
                                             else if (notificationType == 7)
                                             {
@@ -1962,7 +1974,41 @@ namespace Opux
                                                 var againstName = stuff.FirstOrDefault(x => x.Key == againstID).Value;
                                                 var declaredByName = stuff.FirstOrDefault(x => x.Key == declaredByID).Value;
 
-                                                await chan.SendMessageAsync($"@everyone {Environment.NewLine}{declaredByName} Retracts War Against {againstName}");
+                                                var builder = new EmbedBuilder()
+                                                    .WithColor(new Color(0xf2882b))
+                                                    .WithAuthor(author =>
+                                                    {
+                                                        author
+                                                            .WithName($"New Notification: {types[notificationType]}");
+                                                    })
+                                                    .WithDescription($"{declaredByName} Retracts War Against {againstName}")
+                                                    .WithTimestamp((DateTime)notification.Value["sentDate"]);
+                                                var embed = builder.Build();
+
+                                                await chan.SendMessageAsync($"@everyone", false, embed);
+                                            }
+                                            else if (notificationType == 16)
+                                            {
+                                                var responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{notificationText["charID"]}/?datasource=tranquility");
+                                                CharacterData characterData = new CharacterData();
+                                                if (responce.IsSuccessStatusCode)
+                                                {
+                                                    characterData = JsonConvert.DeserializeObject<CharacterData>(await responce.Content.ReadAsStringAsync());
+                                                }
+
+                                                var builder = new EmbedBuilder()
+                                                    .WithColor(new Color(0xf2882b))
+                                                    .WithAuthor(author =>
+                                                    {
+                                                        author
+                                                            .WithName($"New Notification: {types[notificationType]}");
+                                                    })
+                                                    .AddField("Character", characterData.name)
+                                                    .AddField("Text", notificationText["applicationText"])
+                                                    .WithTimestamp((DateTime)notification.Value["sentDate"]);
+                                                var embed = builder.Build();
+
+                                                await chan.SendMessageAsync($"@everyone", false, embed);
                                             }
                                             else if (notificationType == 27)
                                             {
@@ -1971,11 +2017,26 @@ namespace Opux
                                                 var againstID = Convert.ToInt64(notificationText["againstID"].AllNodes.ToList()[0].ToString());
                                                 var cost = notificationText["cost"].AllNodes.ToList()[0];
                                                 var declaredByID = Convert.ToInt64(notificationText["declaredByID"].AllNodes.ToList()[0].ToString());
+                                                var delayHours = notificationText["delayHours"].AllNodes.ToList()[0].ToString();
+                                                var hostileState = notificationText["hostileState"].AllNodes.ToList()[0].ToString();
                                                 var names = await EveLib.IDtoName(new List<Int64> { declaredByID, againstID });
                                                 var againstName = names.FirstOrDefault(x => x.Key == againstID);
                                                 var declaredByName = names.First(x => x.Key == declaredByID);
 
-                                                await chan.SendMessageAsync($"@everyone {Environment.NewLine}War declared by {declaredByName.Value} against {againstName.Value}");
+                                                var builder = new EmbedBuilder()
+                                                    .WithColor(new Color(0xf2882b))
+                                                    .WithAuthor(author =>
+                                                    {
+                                                        author
+                                                            .WithName($"New Notification: {types[notificationType]}");
+                                                    })
+                                                    .AddInlineField("Declared BY", declaredByName.Value)
+                                                    .AddInlineField("Against", againstName.Value)
+                                                    .AddInlineField("Fighting beins in", $"{delayHours} Hours")
+                                                    .WithTimestamp((DateTime)notification.Value["sentDate"]);
+                                                var embed = builder.Build();
+
+                                                await chan.SendMessageAsync($"@everyone", false, embed);
                                             }
                                             else if (notificationType == 30)
                                             {
@@ -1985,10 +2046,21 @@ namespace Opux
                                                 var cost = notificationText["cost"].AllNodes.ToList()[0];
                                                 var declaredByID = Convert.ToInt64(notificationText["declaredByID"].AllNodes.ToList()[0].ToString());
                                                 var names = await EveLib.IDtoName(new List<Int64> { declaredByID, againstID });
-                                                var againstName = names.FirstOrDefault(x => x.Key == againstID);
-                                                var declaredByName = names.First(x => x.Key == declaredByID);
+                                                var againstName = names.FirstOrDefault(x => x.Key == againstID).Value;
+                                                var declaredByName = names.First(x => x.Key == declaredByID).Value;
 
-                                                await chan.SendMessageAsync($"@everyone {Environment.NewLine}{declaredByName.Value} Retracts War Against {againstName.Value}");
+                                                var builder = new EmbedBuilder()
+                                                    .WithColor(new Color(0xf2882b))
+                                                    .WithAuthor(author =>
+                                                    {
+                                                        author
+                                                            .WithName($"New Notification: {types[notificationType]}");
+                                                    })
+                                                    .WithDescription($"{declaredByName} Retracts War Against {againstName}")
+                                                    .WithTimestamp((DateTime)notification.Value["sentDate"]);
+                                                var embed = builder.Build();
+
+                                                await chan.SendMessageAsync($"@everyone", false, embed);
                                             }
                                             else if (notificationType == 75)
                                             {
@@ -2013,12 +2085,24 @@ namespace Opux
                                                 var allyLine = aggressorAllianceID != 0 ? $"{Environment.NewLine}Aggressing Alliance: {aggressorAlliance}" : "";
                                                 var TypeName = await EveLib.IDtoTypeName(new List<Int64> { typeID });
 
-                                                await chan.SendMessageAsync($"@everyone {Environment.NewLine}Starbase is under attack{Environment.NewLine}{Environment.NewLine}" +
-                                                    $"Details{Environment.NewLine}```{Environment.NewLine}System: {moonName}{Environment.NewLine}" +
-                                                    $"Type: {TypeName.First(x => x.Key == typeID).Value}{Environment.NewLine}{Environment.NewLine}" +
-                                                    $"Current Shield Level: {shieldValue}{Environment.NewLine}Current Armor Level: {armorValue}{Environment.NewLine}" +
-                                                    $"Current Hull Level: {hullValue}{Environment.NewLine}{Environment.NewLine}" +
-                                                    $"Aggressing Pilot: {aggressorName}{Environment.NewLine}Aggressing Corporation: {aggressorCorpName}{allyLine}```");
+                                                var builder = new EmbedBuilder()
+                                                    .WithColor(new Color(0xf2882b))
+                                                    .WithAuthor(author =>
+                                                    {
+                                                        author
+                                                            .WithName($"New Notification: {types[notificationType]}");
+                                                    })
+                                                    .AddInlineField("Details", $"System: {moonName}")
+                                                    .AddInlineField("Type", $"{TypeName.First(x => x.Key == typeID).Value}")
+                                                    .AddInlineField("Current Shield Level", $"{shieldValue}")
+                                                    .AddInlineField("Current Armor Level", $"{armorValue}")
+                                                    .AddInlineField("Current Hull Level", $"{hullValue}")
+                                                    .AddInlineField("Aggressing Pilot", $"{aggressorName}")
+                                                    .AddInlineField("Aggressing Corporation", $"{aggressorCorpName}{allyLine}")
+                                                    .WithTimestamp((DateTime)notification.Value["sentDate"]);
+                                                var embed = builder.Build();
+
+                                                await chan.SendMessageAsync($"@everyone", false, embed);
                                             }
                                             else if (notificationType == 93)
                                             {
@@ -2042,13 +2126,22 @@ namespace Opux
                                                 var allyLine = aggressorAllianceID != 0 ? $"{Environment.NewLine}Aggressing Alliance: {aggressorAlliance}" : "";
                                                 var TypeName = await EveLib.IDtoTypeName(new List<Int64> { typeID });
 
-                                                await chan.SendMessageAsync($"@everyone {Environment.NewLine}Customs office has been attacked.{Environment.NewLine}{Environment.NewLine}" +
-                                                    $"Details{Environment.NewLine}```{Environment.NewLine}" +
-                                                    $"System: {solarSystemName} Planet: {planetName}{Environment.NewLine}" +
-                                                    $"Type: {TypeName.First(x => x.Key == typeID).Value}{Environment.NewLine}{Environment.NewLine}" +
-                                                    $"Current Shield Level: {shieldValue}{Environment.NewLine}" +
-                                                    $"Aggressing Pilot: {aggressorName}{Environment.NewLine}" +
-                                                    $"Aggressing Corporation: {aggressorCorpName}{allyLine}```");
+                                                var builder = new EmbedBuilder()
+                                                .WithColor(new Color(0xf2882b))
+                                                .WithAuthor(author =>
+                                                {
+                                                    author
+                                                        .WithName($"New Notification: {types[notificationType]}");
+                                                })
+                                                .AddInlineField("Details", $"System: {solarSystemName} Planet: {planetName}")
+                                                .AddInlineField("Type", $"{TypeName.First(x => x.Key == typeID).Value}")
+                                                .AddInlineField("Current Shield Level", $"{shieldValue}")
+                                                .AddInlineField("Aggressing Pilot", $"{aggressorName}")
+                                                .AddInlineField("Aggressing Corporation", $"{aggressorCorpName}{allyLine}")
+                                                .WithTimestamp((DateTime)notification.Value["sentDate"]);
+                                                var embed = builder.Build();
+
+                                                await chan.SendMessageAsync($"@everyone", false, embed);
 
                                             }
                                             else if (notificationType == 100)
@@ -2063,7 +2156,18 @@ namespace Opux
                                                 var defenderName = stuff.FirstOrDefault(x => x.Key == defenderID).Value;
                                                 var startTime = DateTime.FromFileTimeUtc(Convert.ToInt64(notificationText["startTime"].AllNodes.ToList()[0].ToString()));
 
-                                                await chan.SendMessageAsync($"@everyone {Environment.NewLine}{allyName} will join the war against {defenderName} at {startTime} EVE.");
+                                                var builder = new EmbedBuilder()
+                                                    .WithColor(new Color(0xf2882b))
+                                                    .WithAuthor(author =>
+                                                    {
+                                                        author
+                                                            .WithName($"New Notification: {types[notificationType]}");
+                                                    })
+                                                    .WithDescription($"{allyName} will join the war against {defenderName} at {startTime} EVE")
+                                                    .WithTimestamp((DateTime)notification.Value["sentDate"]);
+                                                var embed = builder.Build();
+
+                                                await chan.SendMessageAsync($"@everyone", false, embed);
                                             }
                                             else if (notificationType == 121)
                                             {
@@ -2076,7 +2180,41 @@ namespace Opux
                                                 var aggressorName = stuff.FirstOrDefault(x => x.Key == aggressorID).Value;
                                                 var defenderName = stuff.FirstOrDefault(x => x.Key == defenderID).Value;
 
-                                                await chan.SendMessageAsync($"@everyone {Environment.NewLine}War declared by {aggressorName} against {defenderName}. Fighting begins in roughly 24 hours.");
+                                                var builder = new EmbedBuilder()
+                                                .WithColor(new Color(0xf2882b))
+                                                .WithAuthor(author =>
+                                                {
+                                                    author
+                                                        .WithName($"New Notification: {types[notificationType]}");
+                                                })
+                                                .WithDescription($"War declared by {aggressorName} against {defenderName}. Fighting begins in roughly 24 hours.")
+                                                .WithTimestamp((DateTime)notification.Value["sentDate"]);
+                                                var embed = builder.Build();
+
+                                                await chan.SendMessageAsync($"@everyone", false, embed);
+                                            }
+                                            else if (notificationType == 130)
+                                            {
+                                                var responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{notificationText["charID"]}/?datasource=tranquility");
+                                                CharacterData characterData = new CharacterData();
+                                                if (responce.IsSuccessStatusCode)
+                                                {
+                                                    characterData = JsonConvert.DeserializeObject<CharacterData>(await responce.Content.ReadAsStringAsync());
+                                                }
+
+                                                var builder = new EmbedBuilder()
+                                                    .WithColor(new Color(0xf2882b))
+                                                    .WithAuthor(author =>
+                                                    {
+                                                        author
+                                                            .WithName($"New Notification: {types[notificationType]}");
+                                                    })
+                                                    .AddField("Character", characterData.name)
+                                                    .AddField("Text", notificationText["applicationText"])
+                                                    .WithTimestamp((DateTime)notification.Value["sentDate"]);
+                                                var embed = builder.Build();
+
+                                                await chan.SendMessageAsync($"@everyone", false, embed);
                                             }
                                             else if (notificationType == 147)
                                             {
@@ -2089,7 +2227,18 @@ namespace Opux
                                                 var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
                                                 var structureTypeName = typeNames.FirstOrDefault(x => x.Key == structureTypeID);
 
-                                                await chan.SendMessageAsync($"@everyone {Environment.NewLine}Entosis Link started in {solarSystemName.Value} on {structureTypeName.Value}");
+                                                var builder = new EmbedBuilder()
+                                                .WithColor(new Color(0xf2882b))
+                                                .WithAuthor(author =>
+                                                {
+                                                    author
+                                                        .WithName($"New Notification: {types[notificationType]}");
+                                                })
+                                                .WithDescription($"Entosis Link started in {solarSystemName.Value} on {structureTypeName.Value}.")
+                                                .WithTimestamp((DateTime)notification.Value["sentDate"]);
+                                                var embed = builder.Build();
+
+                                                await chan.SendMessageAsync($"@everyone", false, embed);
                                             }
                                             else if (notificationType == 160)
                                             {
@@ -2102,7 +2251,19 @@ namespace Opux
                                                 var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
                                                 var decloaktime = DateTime.FromFileTime(decloakTime);
 
-                                                await chan.SendMessageAsync($"@everyone {Environment.NewLine}Sovereignty structure reinforced in {solarSystemName.Value} nodes will spawn @{decloaktime}");
+                                                var builder = new EmbedBuilder()
+                                                .WithColor(new Color(0xf2882b))
+                                                .WithAuthor(author =>
+                                                {
+                                                    author
+                                                        .WithName($"New Notification: {types[notificationType]}");
+                                                })
+                                                .AddInlineField("System", $"{solarSystemName.Value}")
+                                                .AddInlineField("Decloak Time", $"{decloaktime}")
+                                                .WithTimestamp((DateTime)notification.Value["sentDate"]);
+                                                var embed = builder.Build();
+
+                                                await chan.SendMessageAsync($"@everyone", false, embed);
                                             }
                                             else if (notificationType == 161)
                                             {
@@ -2114,7 +2275,18 @@ namespace Opux
                                                 var names = await EveLib.IDtoName(new List<Int64> { solarSystemID });
                                                 var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
 
-                                                await chan.SendMessageAsync($"@everyone {Environment.NewLine}Command nodes decloaking for {solarSystemName.Value}");
+                                                var builder = new EmbedBuilder()
+                                                .WithColor(new Color(0xf2882b))
+                                                .WithAuthor(author =>
+                                                {
+                                                    author
+                                                        .WithName($"New Notification: {types[notificationType]}");
+                                                })
+                                                .WithDescription($"Command nodes decloaking for {solarSystemName.Value}.")
+                                                .WithTimestamp((DateTime)notification.Value["sentDate"]);
+                                                var embed = builder.Build();
+
+                                                await chan.SendMessageAsync($"@everyone", false, embed);
 
                                             }
                                             else if (notificationType == 184)
@@ -2140,15 +2312,26 @@ namespace Opux
                                                 var solarSystemName = names.FirstOrDefault(x => x.Key == solarSystemID);
                                                 var allyLine = aggressorAllianceID != 0 ? $"{aggressorAlliance}" : "";
 
-                                                await chan.SendMessageAsync($"@everyone {Environment.NewLine}Citadel under attack.{Environment.NewLine}{Environment.NewLine}" +
-                                                    $"```System: {solarSystemName.Value}{Environment.NewLine}" +
-                                                    $"Structure: {structureName}{Environment.NewLine}" +
-                                                    $"Current Shield Level: {shieldValue}{Environment.NewLine}" +
-                                                    $"Current Armor Level: {armorValue}{Environment.NewLine}" +
-                                                    $"Current Hull Level: {hullValue}{Environment.NewLine}" +
-                                                    $"Aggressing Pilot: {aggressorName}{Environment.NewLine}" +
-                                                    $"Aggressing Corporation: {corpName}{Environment.NewLine}" +
-                                                    $"Aggressing Alliance: {allyLine}```");
+                                                var builder = new EmbedBuilder()
+                                                .WithColor(new Color(0xf2882b))
+                                                .WithAuthor(author =>
+                                                {
+                                                    author
+                                                        .WithName($"New Notification: {types[notificationType]}");
+                                                })
+                                                .WithDescription($"Command nodes decloaking for {solarSystemName.Value}.")
+                                                .AddInlineField("System", solarSystemName.Value)
+                                                .AddInlineField("Structure", structureName)
+                                                .AddInlineField("Current Shield Level", shieldValue)
+                                                .AddInlineField("Current Armor Level", armorValue)
+                                                .AddInlineField("Current Hull Level", hullValue)
+                                                .AddInlineField("Aggressing Pilot", aggressorName)
+                                                .AddInlineField("Aggressing Corporation", corpName)
+                                                .AddInlineField("Aggressing Alliance", allyLine)
+                                                .WithTimestamp((DateTime)notification.Value["sentDate"]);
+                                                var embed = builder.Build();
+
+                                                await chan.SendMessageAsync($"@everyone", false, embed);
                                             }
                                             else
                                             {
