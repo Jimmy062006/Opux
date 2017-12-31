@@ -195,7 +195,6 @@ namespace Opux
         {
             if (Convert.ToBoolean(Program.Settings.GetSection("config")["welcome"]))
             {
-                await Task.Delay(1000);
                 var channel = arg.Guild.DefaultChannel;
                 var authurl = Program.Settings.GetSection("auth")["authurl"];
                 if (!String.IsNullOrWhiteSpace(authurl))
