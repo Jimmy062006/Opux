@@ -25,7 +25,6 @@ namespace Opux
         public static IConfigurationRoot Settings { get; private set; }
         internal static readonly HttpClient _httpClient = new HttpClient();
         internal static readonly HttpClient _zKillhttpClient = new HttpClient();
-        internal static HttpClient _AuthWebHttpClient = new HttpClient();
         internal static bool quit = false;
         internal static bool debug = false;
 
