@@ -369,6 +369,7 @@ namespace Opux
                         {
                             try
                             {
+                                var _AuthWebHttpClient = new HttpClient();
                                 var assembly = Assembly.GetEntryAssembly();
                                 var temp = assembly.GetManifestResourceNames();
                                 var resource = assembly.GetManifestResourceStream("Opux.Discord-01.png");
@@ -384,21 +385,25 @@ namespace Opux
 
                                 if (!String.IsNullOrWhiteSpace(request.Url.Query))
                                 {
+                                    _AuthWebHttpClient.DefaultRequestHeaders.Clear();
+                                    _AuthWebHttpClient.DefaultRequestHeaders.Add("User-Agent", "OpuxBot");
+
                                     code = request.Url.Query.TrimStart('?').Split('=')[1];
 
                                     var values = new Dictionary<string, string> { { "grant_type", "authorization_code" }, { "code", $"{code}" } };
 
-                                    Program._AuthWebHttpClient.DefaultRequestHeaders.Add("Authorization", $"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes(client_id + ":" + secret))}");
+                                    _AuthWebHttpClient.DefaultRequestHeaders.Add("Authorization", $"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes(client_id + ":" + secret))}");
                                     var content = new FormUrlEncodedContent(values);
-                                    var tokenresponse = await Program._AuthWebHttpClient.PostAsync("https://login.eveonline.com/oauth/token", content);
+
+                                    var tokenresponse = await _AuthWebHttpClient.PostAsync("https://login.eveonline.com/oauth/token", content);
                                     responseString = await tokenresponse.Content.ReadAsStringAsync();
                                     accessToken = (string)JObject.Parse(responseString)["access_token"];
-                                    Program._AuthWebHttpClient.DefaultRequestHeaders.Clear();
+                                    _AuthWebHttpClient.DefaultRequestHeaders.Clear();
 
-                                    Program._AuthWebHttpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
-                                    tokenresponse = await Program._AuthWebHttpClient.GetAsync("https://login.eveonline.com/oauth/verify");
+                                    _AuthWebHttpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
+                                    tokenresponse = await _AuthWebHttpClient.GetAsync("https://login.eveonline.com/oauth/verify");
                                     verifyString = await tokenresponse.Content.ReadAsStringAsync();
-                                    Program._AuthWebHttpClient.DefaultRequestHeaders.Clear();
+                                    _AuthWebHttpClient.DefaultRequestHeaders.Clear();
 
                                     var authgroups = Program.Settings.GetSection("auth").GetSection("authgroups").GetChildren().ToList();
                                     var corps = new Dictionary<string, string>();
@@ -429,7 +434,7 @@ namespace Opux
                                     JObject corporationDetails;
                                     JObject allianceDetails;
 
-                                    var _characterDetails = await Program._AuthWebHttpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{CharacterID}");
+                                    var _characterDetails = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{CharacterID}");
                                     if (!_characterDetails.IsSuccessStatusCode)
                                     {
                                         ESIFailure = true;
@@ -439,7 +444,7 @@ namespace Opux
 
                                     characterDetails = JObject.Parse(await _characterDetailsContent.ReadAsStringAsync());
                                     characterDetails.TryGetValue("corporation_id", out JToken corporationid);
-                                    var _corporationDetails = await Program._AuthWebHttpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corporationid}");
+                                    var _corporationDetails = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corporationid}");
                                     if (!_corporationDetails.IsSuccessStatusCode)
                                     {
                                         ESIFailure = true;
@@ -455,11 +460,11 @@ namespace Opux
                                     corpID = c;
                                     if (allianceID != "0")
                                     {
-                                        var _allianceDetails = await Program._AuthWebHttpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{allianceid}");
+                                        var _allianceDetails = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{allianceid}");
                                         if (!_allianceDetails.IsSuccessStatusCode)
                                         {
                                             await Client_Log(new LogMessage(LogSeverity.Error, "AuthWeb", $"ESI Failure: cID:{CharacterID}"));
-                                            foreach (var h in Program._AuthWebHttpClient.DefaultRequestHeaders)
+                                            foreach (var h in Program._httpClient.DefaultRequestHeaders)
                                             {
                                                 await Client_Log(new LogMessage(LogSeverity.Error, "AuthWeb", $"key:{h.Key} value:{h.Value}"));
                                             }
@@ -812,7 +817,6 @@ namespace Opux
                         response.MethodNotAllowed();
                     }
                     response.Close();
-                    Program._AuthWebHttpClient.DefaultRequestHeaders.Clear();
                 };
                 listener.Start();
             }
