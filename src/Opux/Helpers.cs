@@ -1,4 +1,5 @@
 ﻿using Discord.Commands;
+using System;
 
 namespace Opux
 {
@@ -11,6 +12,61 @@ namespace Opux
                 return true;
             }
             return false;
+        }
+
+        internal static string GenerateUnicodePercentage(double percentage)
+        {
+            string styles = "░▒▓█";
+
+            double d, full, middle, rest, x, min_delta = double.PositiveInfinity;
+            char full_symbol = styles[styles.Length - 1], m;
+            var n = styles.Length;
+            var max_size = 10;
+            var min_size = 10;
+
+            var i = max_size;
+
+            string String = "";
+            if (percentage == 100)
+            {
+                return repeat(full_symbol, 10);
+            }
+            else
+            {
+                percentage = percentage / 100;
+
+                while (i > 0 && i >= min_size)
+                {
+
+                    x = percentage * i;
+                    full = Math.Floor(x);
+                    rest = x - full;
+                    middle = Math.Floor(rest * n);
+
+                    if (percentage != 0 && full == 0 && middle == 0) middle = 1;
+
+                    d = Math.Abs(percentage - (full + middle / n) / i) * 100;
+
+                    if (d < min_delta)
+                    {
+                        min_delta = d;
+
+                        m = styles[(int)middle];
+                        if (full == i) m = ' ';
+                        String = repeat(full_symbol, full) + m + repeat(styles[0], i - full - 1);
+                    }
+                    i--;
+                }
+            }
+
+            return String;
+        }
+
+        static string repeat(char s, double i)
+        {
+            var r = "";
+            for (var j = 0; j < i; j++) r += s;
+            return r;
         }
     }
 }
