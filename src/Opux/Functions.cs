@@ -22,6 +22,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using YamlDotNet.RepresentationModel;
 using static Opux.JsonClasses;
 
@@ -956,7 +957,7 @@ namespace Opux
                     {
                         enable = true;
                     }
-                    if (characterData.alliance_id !=null && alliance.ContainsKey(allianceID))
+                    if (characterData.alliance_id != null && alliance.ContainsKey(allianceID))
                     {
                         enable = true;
                     }
@@ -1456,7 +1457,7 @@ namespace Opux
                                     await _radiusChannel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
 
                                     var stringVal = string.Format("{0:n0} ISK", value);
-                                    
+
                                     await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting  Radius Kill: {kill.package.killID}  Value: {stringVal}"));
 
                                 }
@@ -1562,7 +1563,7 @@ namespace Opux
                                 {
                                     if (minimumLossValue == 0 || minimumLossValue <= value)
                                     {
-                                        if (victimAllianceID != 0 &&victimAllianceID == allianceID && lastChannel != c || victimCorpID == corpID && lastChannel != c)
+                                        if (victimAllianceID != 0 && victimAllianceID == allianceID && lastChannel != c || victimCorpID == corpID && lastChannel != c)
                                         {
                                             var builder = new EmbedBuilder()
                                                 .WithColor(new Color(0xFF0000))
@@ -1934,7 +1935,7 @@ namespace Opux
                                             {
                                                 notificationText = notificationsText.FirstOrDefault(x => x.Key == notification.Key).Value;
                                             }
-                                            catch(Exception ex)
+                                            catch (Exception ex)
                                             {
                                                 await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"ERROR Notification TypeID: {notificationType} " +
                                                     $"Type: {types[notificationType]}", ex));
@@ -2320,7 +2321,7 @@ namespace Opux
                                                 var solarSystemID = Convert.ToInt64(notificationText["solarsystemID"].AllNodes.ToList()[0].ToString());
                                                 var structureID = Convert.ToInt64(notificationText["structureID"].AllNodes.ToList()[0].ToString());
 
-                                                var names = await EveLib.IDtoName(new List<Int64> { aggressorAllianceID, aggressorID, solarSystemID});
+                                                var names = await EveLib.IDtoName(new List<Int64> { aggressorAllianceID, aggressorID, solarSystemID });
                                                 var namess = await EveLib.IDtoTypeName(new List<Int64> { structureID });
 
                                                 var aggressorAlliance = names.FirstOrDefault(x => x.Key == aggressorAllianceID).Value;
@@ -2550,7 +2551,7 @@ namespace Opux
                         var url = "https://api.evemarketer.com/ec";
                         if (system == "")
                         {
-                            
+
                             var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={ItemIDResults.inventory_type[0]}");
                             var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
 
@@ -2912,7 +2913,8 @@ namespace Opux
                                     })
                                     .AddInlineField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]))
                                     .AddInlineField($"Form Up System", $"[{location}](http://evemaps.dotlan.net/system/{location})")
-                                    .AddField("Details", string.IsNullOrWhiteSpace(details) ? "None" : details);
+                                    .AddField("Details", string.IsNullOrWhiteSpace(details) ? "None" : details)
+                                    .WithTimestamp(startTime);
 
                                 var embed = builder.Build();
 
@@ -2956,7 +2958,8 @@ namespace Opux
                                         })
                                         .AddInlineField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]))
                                         .AddInlineField($"Form Up System", $"[{location}](http://evemaps.dotlan.net/system/{location})")
-                                        .AddField("Details", string.IsNullOrWhiteSpace(details) ? "None" : details);
+                                        .AddField("Details", string.IsNullOrWhiteSpace(details) ? "None" : details)
+                                        .WithTimestamp(startTime);
 
                                     var embed = builder.Build();
 
@@ -2987,7 +2990,8 @@ namespace Opux
                                     })
                                     .AddInlineField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]))
                                     .AddInlineField($"Form Up System", $"[{location}](http://evemaps.dotlan.net/system/{location})")
-                                    .AddField("Details", string.IsNullOrWhiteSpace(details) ? "None" : details);
+                                    .AddField("Details", string.IsNullOrWhiteSpace(details) ? "None" : details)
+                                    .WithTimestamp(startTime);
 
                                 var embed = builder.Build();
 
@@ -3050,7 +3054,8 @@ namespace Opux
                             })
                             .AddInlineField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]))
                             .AddInlineField($"Form Up System", $"[{location}](http://evemaps.dotlan.net/system/{location})")
-                            .AddField("Details", string.IsNullOrWhiteSpace(details) ? "None" : details);
+                            .AddField("Details", string.IsNullOrWhiteSpace(details) ? "None" : details)
+                            .WithTimestamp(startTime);
 
                         var embed = builder.Build();
 
@@ -3094,6 +3099,7 @@ namespace Opux
 
         internal static async void OnMessage(object sender, MessageEventArgs e)
         {
+            var filtered = false;
             if (e.Message.Chatstate != Chatstate.Composing && !string.IsNullOrWhiteSpace(e.Message.Value))
             {
                 if (Convert.ToBoolean(Program.Settings.GetSection("jabber").GetSection("filter").Value))
@@ -3104,11 +3110,13 @@ namespace Opux
                         {
                             var prepend = Program.Settings.GetSection("jabber")["prepend"];
                             var channel = Program.Client.GetGuild(Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"])).GetTextChannel(Convert.ToUInt64(filter.Value));
+                            filtered = true;
                             await channel.SendMessageAsync($"{prepend + Environment.NewLine}From: {e.Message.From.User} {Environment.NewLine} Message: ```{e.Message.Value}```");
                         }
                     }
                 }
-                else if (!string.IsNullOrWhiteSpace(e.Message.Value))
+
+                if (!string.IsNullOrWhiteSpace(e.Message.Value) && !filtered)
                 {
                     var prepend = Program.Settings.GetSection("jabber")["prepend"];
                     var channel = Program.Client.GetGuild(Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"])).GetTextChannel(Convert.ToUInt64(Program.Settings.GetSection("jabber")["defchan"]));
@@ -3196,6 +3204,14 @@ namespace Opux
                     {
                         zkillContent = JsonConvert.DeserializeObject<List<Kill>>(await responce.Content.ReadAsStringAsync());
                     }
+                    responce = await Program._httpClient.GetAsync($"https://zkillboard.com/api/stats/characterID/{characterID.character[0]}/");
+
+                    CharacterStats characterStats = new CharacterStats();
+                    if (responce.IsSuccessStatusCode)
+                    {
+                        characterStats = JsonConvert.DeserializeObject<CharacterStats>(await responce.Content.ReadAsStringAsync());
+                    }
+
                     Kill zkillLast = zkillContent.Count > 0 ? zkillContent[0] : new Kill();
                     SystemData systemData = new SystemData();
                     ShipType lastShip = new ShipType();
@@ -3262,16 +3278,41 @@ namespace Opux
                     }
 
                     var alliance = allianceData.name ?? "None";
+                    var lastSeenSystem = systemData.name ?? "None";
+                    var lastSeenShip = lastShip.name ?? "None";
+                    var lastSeenTime = lastSeen == DateTime.MinValue ? "Too Long Ago" : $"{lastSeen}";
 
+                    var chanceText = 100 - characterStats.gangRatio > 50 ? $"There is {100 - characterStats.gangRatio}% chance of salt generation"
+                        : $"There is {characterStats.gangRatio}% chance they are in a fleet";
 
-                    await channel.SendMessageAsync($"```Name: {characterData.name}{Environment.NewLine}" +
-                        $"DOB: {characterData.birthday}{Environment.NewLine}{Environment.NewLine}" +
-                        $"Corporation Name: {corporationData.name}{Environment.NewLine}" +
-                        $"Alliance Name: {alliance}{Environment.NewLine}{Environment.NewLine}" +
-                        $"Last System: {systemData.name}{Environment.NewLine}" +
-                        $"Last Ship: {lastShip.name}{Environment.NewLine}" +
-                        $"Last Seen: {lastSeen}{Environment.NewLine}```" +
-                        $"ZKill: https://zkillboard.com/character/{characterID.character[0]}/");
+                    var text1 = characterStats.dangerRatio == 0 ? "Unavaliable" : Helpers.GenerateUnicodePercentage(characterStats.dangerRatio);
+                    var text2 = characterStats.gangRatio == 0 ? "Unavaliable" : Helpers.GenerateUnicodePercentage(characterStats.gangRatio);
+
+                    var builder = new EmbedBuilder()
+                        .WithDescription($"[zKillboard](https://zkillboard.com/character/{characterID.character[0]}/) / [EVEWho](https://evewho.com/pilot/{HttpUtility.UrlEncode(characterData.name)})")
+                        .WithColor(new Color(0x4286F4))
+                        .WithThumbnailUrl($"https://image.eveonline.com/Character/{characterID.character[0]}_64.jpg")
+                        .WithAuthor(author =>
+                        {
+                            author
+                                .WithName($"{characterData.name}");
+                        })
+                        .AddField("Details", $"\u200b")
+                        .AddInlineField("Corporation:", $"{corporationData.name}")
+                        .AddInlineField("Alliance:", $"{alliance}")
+                        .AddInlineField("Last Seen Location:", $"{lastSeenSystem}")
+                        .AddInlineField("Last Seen Ship:", $"{lastSeenShip}")
+                        .AddInlineField("Last Seen:", $"{lastSeenTime}")
+                        .AddField("Extra", $"\u200b")
+                        .AddInlineField("Threat", $"{text1}")
+                        .AddInlineField("In Fleet", $"{text2}")
+                        .AddInlineField("Chance of Fleet", $"{chanceText}");
+
+                    var embed = builder.Build();
+
+                    await channel.SendMessageAsync($"", false, embed);
+                    await Client_Log(new LogMessage(LogSeverity.Info, "Char", $"Sending {context.Message.Author} Character Info Request to {context.Message.Channel}" +
+                        $"{context.Guild.Name}"));
                 }
             }
             await Task.CompletedTask;
@@ -3288,39 +3329,76 @@ namespace Opux
             CorpIDLookup corpContent = new CorpIDLookup();
             if (!responce.IsSuccessStatusCode)
             {
-                await channel.SendMessageAsync($"{context.User.Mention}, Corporation ESI Failure, Please try again later");
+                await channel.SendMessageAsync($"{context.User.Mention}, {x} Corporation was not found");
             }
             else
             {
-                corpContent = JsonConvert.DeserializeObject<CorpIDLookup>(await responce.Content.ReadAsStringAsync());
-                if (corpContent.corporation == null)
+                var corpIDLookup = JsonConvert.DeserializeObject<CorpIDLookup>(await responce.Content.ReadAsStringAsync());
+                if (corpIDLookup.corporation != null)
                 {
-                    await channel.SendMessageAsync($"{context.User.Mention}, Corp not found please try again");
+                    responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corpIDLookup.corporation[0]}/?datasource=tranquility");
+
+                    CorporationData corporationData = new CorporationData();
+                    if (responce.IsSuccessStatusCode)
+                    {
+                        corporationData = JsonConvert.DeserializeObject<CorporationData>(await responce.Content.ReadAsStringAsync());
+                    }
+                    else if (!responce.IsSuccessStatusCode)
+                    {
+                        await channel.SendMessageAsync($"{context.User.Mention}, Co");
+                    }
+
+                    var allianceData = new AllianceData();
+
+                    try
+                    {
+                        if (corporationData.alliance_id != null)
+                        {
+                            responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{corporationData.alliance_id}/?datasource=tranquility");
+                            if (responce.IsSuccessStatusCode)
+                            {
+                                allianceData = JsonConvert.DeserializeObject<AllianceData>(await responce.Content.ReadAsStringAsync());
+                            }
+                        }
+                    }
+                    catch (HttpRequestException ex)
+                    {
+                        await Client_Log(new LogMessage(LogSeverity.Error, "corp", ex.Message, ex));
+                    }
+
+                    responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{corporationData.ceo_id}/?datasource=tranquility");
+
+                    var CEONameContent = JsonConvert.DeserializeObject<CharacterData>(await responce.Content.ReadAsStringAsync());
+
+                    var alliance = allianceData.name ?? "None";
+
+                    var builder = new EmbedBuilder()
+                        .WithDescription($"")
+                        .WithColor(new Color(0x4286F4))
+                        .WithThumbnailUrl($"https://image.eveonline.com/Corporation/{corpIDLookup.corporation[0]}_64.png")
+                        .WithAuthor(author =>
+                        {
+                            author
+                                .WithName($"{corporationData.name}");
+                        })
+                        .AddField("Details", $"\u200b")
+                        .AddInlineField("Corporation:", $"{corporationData.name}")
+                        .AddInlineField("Alliance:", $"{alliance}")
+                        .AddInlineField("CEO", $"{CEONameContent.name}")
+                        .AddInlineField("Members", $"{corporationData.member_count}");
+
+                    var embed = builder.Build();
+
+
+                    await channel.SendMessageAsync($"", false, embed);
+                    await Client_Log(new LogMessage(LogSeverity.Info, "Corp", $"Sending {context.Message.Author} Corporation Info Request to {context.Message.Channel}" +
+                        $"{context.Guild.Name}"));
                 }
                 else
                 {
-                    responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corpContent.corporation[0]}/?datasource=tranquility");
-
-                    var CorpDetailsContent = JsonConvert.DeserializeObject<CorporationData>(await responce.Content.ReadAsStringAsync());
-                    responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{CorpDetailsContent.ceo_id}/?datasource=tranquility");
-
-                    var CEONameContent = JsonConvert.DeserializeObject<CharacterData>(await responce.Content.ReadAsStringAsync());
-                    var alliance = "None";
-                    if (CorpDetailsContent.alliance_id != null)
-                    {
-                        responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{CorpDetailsContent.alliance_id}/?datasource=tranquility");
-                        var allyContent = JsonConvert.DeserializeObject<AllianceData>(await responce.Content.ReadAsStringAsync());
-                        alliance = allyContent.name;
-                    }
-                    await channel.SendMessageAsync($"```Corp Name: {CorpDetailsContent.name}{Environment.NewLine}" +
-                      $"Corp Ticker: {CorpDetailsContent.ticker}{Environment.NewLine}" +
-                      $"CEO: {CEONameContent.name}{Environment.NewLine}" +
-                      $"Alliance Name: {alliance}{Environment.NewLine}" +
-                      $"Member Count: {CorpDetailsContent.member_count}{Environment.NewLine}```" +
-                      $"ZKill: https://zkillboard.com/corporation/{corpContent.corporation[0]}/");
+                    await channel.SendMessageAsync($"{context.User.Mention}, {x} Corporation was not found");
                 }
             }
-            await Task.CompletedTask;
         }
         #endregion
 

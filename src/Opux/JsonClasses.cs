@@ -402,5 +402,167 @@ namespace Opux
             public int solar_system_id { get; set; }
             public Zkb zkb { get; set; }
         }
+
+        public class CharacterStats
+        {
+            public int allTimeSum { get; set; }
+            public bool calcTrophies { get; set; }
+            public int dangerRatio { get; set; }
+            public int gangRatio { get; set; }
+            public int id { get; set; }
+            public long iskDestroyed { get; set; }
+            public long iskLost { get; set; }
+            public int nextTopRecalc { get; set; }
+            public int pointsDestroyed { get; set; }
+            public int pointsLost { get; set; }
+            public int sequence { get; set; }
+            public int shipsDestroyed { get; set; }
+            public int shipsLost { get; set; }
+            public int soloKills { get; set; }
+            public int soloLosses { get; set; }
+            public Topalltime[] topAllTime { get; set; }
+            public Trophies trophies { get; set; }
+            public string type { get; set; }
+            public Activepvp activepvp { get; set; }
+            public Info info { get; set; }
+            public Toplist[] topLists { get; set; }
+            public int[] topIskKillIDs { get; set; }
+        }
+
+        public class Trophies
+        {
+            public int levels { get; set; }
+            public int max { get; set; }
+        }
+
+        public class Activepvp
+        {
+            public Ships ships { get; set; }
+            public Systems systems { get; set; }
+            public Regions regions { get; set; }
+            public Kills kills { get; set; }
+        }
+
+        public class Ships
+        {
+            public string type { get; set; }
+            public int count { get; set; }
+        }
+
+        public class Systems
+        {
+            public string type { get; set; }
+            public int count { get; set; }
+        }
+
+        public class Regions
+        {
+            public string type { get; set; }
+            public int count { get; set; }
+        }
+
+        public class Kills
+        {
+            public string type { get; set; }
+            public int count { get; set; }
+        }
+
+        public class Info
+        {
+            public _1 _1 { get; set; }
+            public int allianceID { get; set; }
+            public int corporationID { get; set; }
+            public int factionID { get; set; }
+            public int id { get; set; }
+            public int killID { get; set; }
+            public Lastapiupdate lastApiUpdate { get; set; }
+            public string name { get; set; }
+            public float secStatus { get; set; }
+            public int skip { get; set; }
+            public string type { get; set; }
+        }
+
+        public class _1
+        {
+            public int allianceID { get; set; }
+        }
+
+        public class Lastapiupdate
+        {
+            public int sec { get; set; }
+            public int usec { get; set; }
+        }
+
+        public class Topalltime
+        {
+            public string type { get; set; }
+            public Datum2[] data { get; set; }
+        }
+
+        public class Datum2
+        {
+            public int kills { get; set; }
+            public int characterID { get; set; }
+            public string characterName { get; set; }
+            public int corporationID { get; set; }
+            public string corporationName { get; set; }
+            public string cticker { get; set; }
+            public int allianceID { get; set; }
+            public string allianceName { get; set; }
+            public string aticker { get; set; }
+            public int factionID { get; set; }
+            public string factionName { get; set; }
+            public int shipTypeID { get; set; }
+            public string shipName { get; set; }
+            public string groupID { get; set; }
+            public string groupName { get; set; }
+            public int solarSystemID { get; set; }
+            public string solarSystemName { get; set; }
+            public object sunTypeID { get; set; }
+            public string solarSystemSecurity { get; set; }
+            public string systemColorCode { get; set; }
+            public int regionID { get; set; }
+            public string regionName { get; set; }
+            public string systemClass { get; set; }
+            public string systemEffect { get; set; }
+        }
+
+        public class Toplist
+        {
+            public string type { get; set; }
+            public string title { get; set; }
+            public Value[] values { get; set; }
+        }
+
+        public class Value
+        {
+            public int kills { get; set; }
+            public int characterID { get; set; }
+            public string characterName { get; set; }
+            public int id { get; set; }
+            public string typeID { get; set; }
+            public string name { get; set; }
+            public int corporationID { get; set; }
+            public string corporationName { get; set; }
+            public string cticker { get; set; }
+            public int allianceID { get; set; }
+            public string allianceName { get; set; }
+            public string aticker { get; set; }
+            public int shipTypeID { get; set; }
+            public string shipName { get; set; }
+            public string groupID { get; set; }
+            public string groupName { get; set; }
+            public int solarSystemID { get; set; }
+            public string solarSystemName { get; set; }
+            public string sunTypeID { get; set; }
+            public string solarSystemSecurity { get; set; }
+            public string systemColorCode { get; set; }
+            public int regionID { get; set; }
+            public string regionName { get; set; }
+            public int locationID { get; set; }
+            public string itemName { get; set; }
+            public string locationName { get; set; }
+        }
+
     }
 }
