@@ -71,7 +71,6 @@
     }
   },
   "notifications": {
-    "channelID": 0,
     "keys": {
       "key1": {
         "characterID": "",
@@ -80,7 +79,7 @@
       }
     },
     "filters": {
-      "1": 0
+      "999999": 0
     }
   },
   "motd": {

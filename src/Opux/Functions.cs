@@ -1922,7 +1922,7 @@ namespace Opux
                                     try
                                     {
                                         if (filters.ContainsKey(notification.Value["typeID"].ToString()) && (int)notification.Value["notificationID"] > _lastNotification &&
-                                            notificationsText.ContainsKey(notification.Key))
+                                            notificationsText.ContainsKey(notification.Key) || filters.ContainsKey("999999"))
                                         {
                                             var chan = Program.Client.GetGuild(guildID).GetTextChannel(Convert.ToUInt64(filters.FirstOrDefault(
                                                 x => x.Key == notification.Value["typeID"].ToString()).Value));
