@@ -3299,7 +3299,7 @@ namespace Opux
                         {
                             foreach (var item in kill.victim.items)
                             {
-                                if (item.item_type_id == 21096 || item.item_type_id == 21096)
+                                if (item.item_type_id == 21096 || item.item_type_id == 28646)
                                     cynoCount++;
                             }
                         }
