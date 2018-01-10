@@ -3211,6 +3211,13 @@ namespace Opux
                     {
                         characterStats = JsonConvert.DeserializeObject<CharacterStats>(await responce.Content.ReadAsStringAsync());
                     }
+                    responce = await Program._httpClient.GetAsync($"https://zkillboard.com/api/losses/characterID/{characterID.character[0]}/orderDirection/asc/");
+
+                    List<Kill> zkillLosses = new List<Kill>();
+                    if (responce.IsSuccessStatusCode)
+                    {
+                        zkillLosses = JsonConvert.DeserializeObject<List<Kill>>(await responce.Content.ReadAsStringAsync());
+                    }
 
                     Kill zkillLast = zkillContent.Count > 0 ? zkillContent[0] : new Kill();
                     SystemData systemData = new SystemData();
@@ -3281,6 +3288,22 @@ namespace Opux
                     var lastSeenSystem = systemData.name ?? "None";
                     var lastSeenShip = lastShip.name ?? "None";
                     var lastSeenTime = lastSeen == DateTime.MinValue ? "Too Long Ago" : $"{lastSeen}";
+                    var dangerous = characterStats.dangerRatio > 75 ? "Dangerous" : "Snuggly";
+                    var gang = characterStats.gangRatio > 70 ? "Fleets" : "Solo";
+
+                    var cynoCount = 0;
+
+                    foreach (var kill in zkillLosses)
+                    {
+                        if (kill.victim.character_id == characterID.character[0])
+                        {
+                            foreach (var item in kill.victim.items)
+                            {
+                                if (item.item_type_id == 21096 || item.item_type_id == 21096)
+                                    cynoCount++;
+                            }
+                        }
+                    }
 
                     var chanceText = 100 - characterStats.gangRatio > 50 ? $"There is {100 - characterStats.gangRatio}% chance of a fleet"
                         : $"There is {characterStats.gangRatio}% chance they are in a fleet";
@@ -3303,16 +3326,17 @@ namespace Opux
                         .AddInlineField("Last Seen Location:", $"{lastSeenSystem}")
                         .AddInlineField("Last Seen Ship:", $"{lastSeenShip}")
                         .AddInlineField("Last Seen:", $"{lastSeenTime}")
-                        .AddField("Extra", $"\u200b")
-                        .AddInlineField("Threat", $"Dangerous {characterStats.dangerRatio}% {text1} {100 - characterStats.dangerRatio}% Snuggly")
-                        .AddInlineField("In Fleet", $"IN {characterStats.gangRatio}% {text2} OUT {100 - characterStats.gangRatio}%")
-                        .AddInlineField("Chance of Fleet", $"{chanceText}");
+                        .AddField("Cyno's (Last 200 losses)", $"{cynoCount}")
+                        .AddInlineField("Threat", $"{text1}")
+                        .AddInlineField("In Fleet", $"{text2}")
+                        .AddInlineField($"{characterStats.dangerRatio}% {dangerous} {100 - characterStats.dangerRatio}%", "\u200b")
+                        .AddInlineField($"{characterStats.gangRatio}% {gang} {100 - characterStats.gangRatio}%", "\u200b");
 
                     var embed = builder.Build();
 
                     await channel.SendMessageAsync($"", false, embed);
                     await Client_Log(new LogMessage(LogSeverity.Info, "Char", $"Sending {context.Message.Author} Character Info Request to {context.Message.Channel}" +
-                        $"{context.Guild.Name}"));
+                        $" {context.Guild.Name}"));
                 }
             }
             await Task.CompletedTask;
