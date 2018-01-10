@@ -3282,11 +3282,11 @@ namespace Opux
                     var lastSeenShip = lastShip.name ?? "None";
                     var lastSeenTime = lastSeen == DateTime.MinValue ? "Too Long Ago" : $"{lastSeen}";
 
-                    var chanceText = 100 - characterStats.gangRatio > 50 ? $"There is {100 - characterStats.gangRatio}% chance of salt generation"
+                    var chanceText = 100 - characterStats.gangRatio > 50 ? $"There is {100 - characterStats.gangRatio}% chance of a fleet"
                         : $"There is {characterStats.gangRatio}% chance they are in a fleet";
 
-                    var text1 = characterStats.dangerRatio == 0 ? "Unavaliable" : Helpers.GenerateUnicodePercentage(characterStats.dangerRatio);
-                    var text2 = characterStats.gangRatio == 0 ? "Unavaliable" : Helpers.GenerateUnicodePercentage(characterStats.gangRatio);
+                    var text1 = characterStats.dangerRatio == 0 ? "Unavailable" : Helpers.GenerateUnicodePercentage(characterStats.dangerRatio);
+                    var text2 = characterStats.gangRatio == 0 ? "Unavailable" : Helpers.GenerateUnicodePercentage(characterStats.gangRatio);
 
                     var builder = new EmbedBuilder()
                         .WithDescription($"[zKillboard](https://zkillboard.com/character/{characterID.character[0]}/) / [EVEWho](https://evewho.com/pilot/{HttpUtility.UrlEncode(characterData.name)})")
@@ -3304,7 +3304,7 @@ namespace Opux
                         .AddInlineField("Last Seen Ship:", $"{lastSeenShip}")
                         .AddInlineField("Last Seen:", $"{lastSeenTime}")
                         .AddField("Extra", $"\u200b")
-                        .AddInlineField("Threat", $"{text1}")
+                        .AddInlineField("Threat", $"Dangerous {characterStats.dangerRatio}% {text1} {100 - characterStats.dangerRatio}% Snuggly")
                         .AddInlineField("In Fleet", $"{text2}")
                         .AddInlineField("Chance of Fleet", $"{chanceText}");
 
