@@ -3292,6 +3292,7 @@ namespace Opux
                     var gang = characterStats.gangRatio > 70 ? "Fleets" : "Solo";
 
                     var cynoCount = 0;
+                    var covertCount = 0;
 
                     foreach (var kill in zkillLosses)
                     {
@@ -3299,8 +3300,10 @@ namespace Opux
                         {
                             foreach (var item in kill.victim.items)
                             {
-                                if (item.item_type_id == 21096 || item.item_type_id == 28646)
+                                if (item.item_type_id == 21096)
                                     cynoCount++;
+                                if (item.item_type_id == 28646)
+                                    covertCount++;
                             }
                         }
                     }
@@ -3326,7 +3329,8 @@ namespace Opux
                         .AddInlineField("Last Seen Location:", $"{lastSeenSystem}")
                         .AddInlineField("Last Seen Ship:", $"{lastSeenShip}")
                         .AddInlineField("Last Seen:", $"{lastSeenTime}")
-                        .AddField("Cyno's (Last 200 losses)", $"{cynoCount}")
+                        .AddInlineField("Regular Cynos(Last 200 losses)", $"{cynoCount}")
+                        .AddInlineField("Covert Cynos(Last 200 losses)", $"{covertCount}")
                         .AddInlineField("Threat", $"{text1}")
                         .AddInlineField("In Fleet", $"{text2}")
                         .AddInlineField($"{characterStats.dangerRatio}% {dangerous} {100 - characterStats.dangerRatio}%", "\u200b")
