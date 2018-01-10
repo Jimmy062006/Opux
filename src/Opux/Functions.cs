@@ -3305,7 +3305,7 @@ namespace Opux
                         .AddInlineField("Last Seen:", $"{lastSeenTime}")
                         .AddField("Extra", $"\u200b")
                         .AddInlineField("Threat", $"Dangerous {characterStats.dangerRatio}% {text1} {100 - characterStats.dangerRatio}% Snuggly")
-                        .AddInlineField("In Fleet", $"{text2}")
+                        .AddInlineField("In Fleet", $"{characterStats.gangRatio}% {text2} {characterStats.gangRatio}%")
                         .AddInlineField("Chance of Fleet", $"{chanceText}");
 
                     var embed = builder.Build();
