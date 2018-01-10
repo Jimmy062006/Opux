@@ -3329,6 +3329,7 @@ namespace Opux
                         .AddInlineField("Last Seen Location:", $"{lastSeenSystem}")
                         .AddInlineField("Last Seen Ship:", $"{lastSeenShip}")
                         .AddInlineField("Last Seen:", $"{lastSeenTime}")
+                        .AddField("\u200b", "\u200b")
                         .AddInlineField("Regular Cynos(Last 200 losses)", $"{cynoCount}")
                         .AddInlineField("Covert Cynos(Last 200 losses)", $"{covertCount}")
                         .AddInlineField("Threat", $"{text1}")
