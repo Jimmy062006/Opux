@@ -1922,7 +1922,8 @@ namespace Opux
                                     try
                                     {
                                         if (filters.ContainsKey(notification.Value["typeID"].ToString()) && (int)notification.Value["notificationID"] > _lastNotification &&
-                                            notificationsText.ContainsKey(notification.Key) || filters.ContainsKey("999999"))
+                                            notificationsText.ContainsKey(notification.Key) || filters.ContainsKey("999999") && (int)notification.Value["notificationID"] > _lastNotification &&
+                                           notificationsText.ContainsKey(notification.Key))
                                         {
                                             var chan = Program.Client.GetGuild(guildID).GetTextChannel(Convert.ToUInt64(filters.FirstOrDefault(
                                                 x => x.Key == notification.Value["typeID"].ToString()).Value));
@@ -2337,7 +2338,6 @@ namespace Opux
                                                     author
                                                         .WithName($"New Notification: {types[notificationType]}");
                                                 })
-                                                .WithDescription($"Command nodes decloaking for {solarSystemName.Value}.")
                                                 .AddInlineField("System", solarSystemName.Value)
                                                 .AddInlineField("Structure", structureName)
                                                 .AddInlineField("Current Shield Level", shieldValue)
