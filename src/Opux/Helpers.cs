@@ -21,8 +21,8 @@ namespace Opux
             double d, full, middle, rest, x, min_delta = double.PositiveInfinity;
             char full_symbol = styles[styles.Length - 1], m;
             var n = styles.Length;
-            var max_size = 10;
-            var min_size = 10;
+            var max_size = 20;
+            var min_size = 20;
 
             var i = max_size;
 
