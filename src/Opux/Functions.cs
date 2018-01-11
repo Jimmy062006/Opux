@@ -3289,7 +3289,7 @@ namespace Opux
                     var lastSeenShip = lastShip.name ?? "None";
                     var lastSeenTime = lastSeen == DateTime.MinValue ? "Too Long Ago" : $"{lastSeen}";
                     var dangerous = characterStats.dangerRatio > 75 ? "Dangerous" : "Snuggly";
-                    var gang = characterStats.gangRatio > 70 ? "Fleets" : "Solo";
+                    var gang = characterStats.gangRatio > 70 ? "chance they are Fleeted" : "chance they are Solo";
 
                     var cynoCount = 0;
                     var covertCount = 0;
@@ -3307,9 +3307,6 @@ namespace Opux
                             }
                         }
                     }
-
-                    var chanceText = 100 - characterStats.gangRatio > 50 ? $"There is {100 - characterStats.gangRatio}% chance of a fleet"
-                        : $"There is {characterStats.gangRatio}% chance they are in a fleet";
 
                     var text1 = characterStats.dangerRatio == 0 ? "Unavailable" : Helpers.GenerateUnicodePercentage(characterStats.dangerRatio);
                     var text2 = characterStats.gangRatio == 0 ? "Unavailable" : Helpers.GenerateUnicodePercentage(characterStats.gangRatio);
@@ -3332,10 +3329,8 @@ namespace Opux
                         .AddField("\u200b", "\u200b")
                         .AddInlineField("Regular Cynos(Last 200 losses)", $"{cynoCount}")
                         .AddInlineField("Covert Cynos(Last 200 losses)", $"{covertCount}")
-                        .AddInlineField("Threat", $"{text1}")
-                        .AddInlineField("In Fleet", $"{text2}")
-                        .AddInlineField($"{characterStats.dangerRatio}% {dangerous} {100 - characterStats.dangerRatio}%", "\u200b")
-                        .AddInlineField($"{characterStats.gangRatio}% {gang} {100 - characterStats.gangRatio}%", "\u200b");
+                        .AddInlineField("Threat", $"{text1}{Environment.NewLine}{Environment.NewLine}**{dangerous} {characterStats.dangerRatio}%**")
+                        .AddInlineField("Chance in Fleet", $"{text2}{Environment.NewLine}{Environment.NewLine}**{characterStats.gangRatio}% {gang}**");
 
                     var embed = builder.Build();
 
