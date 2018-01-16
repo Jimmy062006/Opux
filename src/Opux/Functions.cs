@@ -20,7 +20,6 @@ using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using YamlDotNet.RepresentationModel;
@@ -2900,6 +2899,7 @@ namespace Opux
                                 var location = operation.Location;
                                 var details = operation.Details;
                                 var url = $"http://fleet-up.com/Operation#{operation.OperationId}";
+                                var locationText = $"[{ location}](http://evemaps.dotlan.net/system/{location})";
 
                                 var builder = new EmbedBuilder()
                                     .WithUrl(url)
@@ -2912,13 +2912,13 @@ namespace Opux
                                             .WithName("FleetUp Notification");
                                     })
                                     .AddInlineField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]))
-                                    .AddInlineField($"Form Up System", $"[{location}](http://evemaps.dotlan.net/system/{location})")
+                                    .AddInlineField($"Form Up System", string.IsNullOrWhiteSpace(location) ? "None" : locationText)
                                     .AddField("Details", string.IsNullOrWhiteSpace(details) ? "None" : details)
                                     .WithTimestamp(startTime);
 
                                 var embed = builder.Build();
 
-                                var sendres = await channel.SendMessageAsync("@everyone", false, embed);
+                                var sendres = await channel.SendMessageAsync("@everyone FleetUp Op FleetUp Op <http://fleet-up.com/Operation#{operation.OperationId}>", false, embed);
 
                                 await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup OP {name} ({operation.OperationId})"));
 
@@ -2945,6 +2945,7 @@ namespace Opux
                                     var location = operation.Location;
                                     var details = operation.Details;
                                     var url = $"http://fleet-up.com/Operation#{operation.OperationId}";
+                                    var locationText = $"[{ location}](http://evemaps.dotlan.net/system/{location})";
 
                                     var builder = new EmbedBuilder()
                                         .WithUrl(url)
@@ -2957,13 +2958,13 @@ namespace Opux
                                                 .WithName("FleetUp Notification");
                                         })
                                         .AddInlineField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]))
-                                        .AddInlineField($"Form Up System", $"[{location}](http://evemaps.dotlan.net/system/{location})")
+                                    .AddInlineField($"Form Up System", string.IsNullOrWhiteSpace(location) ? "None" : locationText)
                                         .AddField("Details", string.IsNullOrWhiteSpace(details) ? "None" : details)
                                         .WithTimestamp(startTime);
 
                                     var embed = builder.Build();
 
-                                    var sendres = await channel.SendMessageAsync($"@everyone FORMUP In {i} Minutes", false, embed).ConfigureAwait(false);
+                                    var sendres = await channel.SendMessageAsync($"@everyone FORMUP In {i} Minutes for FleetUp Op <http://fleet-up.com/Operation#{operation.OperationId}>", false, embed).ConfigureAwait(false);
 
                                     await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup Reminder {name} ({operation.OperationId})"));
                                 }
@@ -2977,6 +2978,7 @@ namespace Opux
                                 var location = operation.Location;
                                 var details = operation.Details;
                                 var url = $"http://fleet-up.com/Operation#{operation.OperationId}";
+                                var locationText = $"[{ location}](http://evemaps.dotlan.net/system/{location})";
 
                                 var builder = new EmbedBuilder()
                                     .WithUrl(url)
@@ -2989,13 +2991,13 @@ namespace Opux
                                             .WithName("FleetUp Notification");
                                     })
                                     .AddInlineField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]))
-                                    .AddInlineField($"Form Up System", $"[{location}](http://evemaps.dotlan.net/system/{location})")
+                                    .AddInlineField($"Form Up System", string.IsNullOrWhiteSpace(location) ? "None" : locationText)
                                     .AddField("Details", string.IsNullOrWhiteSpace(details) ? "None" : details)
                                     .WithTimestamp(startTime);
 
                                 var embed = builder.Build();
 
-                                var sendres = await channel.SendMessageAsync("@everyone FORMUP Now", false, embed).ConfigureAwait(false);
+                                var sendres = await channel.SendMessageAsync("@everyone FORMUP Now FleetUp Op <http://fleet-up.com/Operation#{operation.OperationId}>", false, embed).ConfigureAwait(false);
 
                                 await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup FORMUP Now {name} ({operation.OperationId})"));
                             }
@@ -3014,10 +3016,12 @@ namespace Opux
             }
         }
 
-        internal static async Task Ops(ICommandContext Context)
+        internal static async Task Ops(ICommandContext Context, string x)
         {
             try
             {
+                var amount = 0;
+                int.TryParse(x, out amount);
                 var UserId = Program.Settings.GetSection("fleetup")["UserId"];
                 var APICode = Program.Settings.GetSection("fleetup")["APICode"];
                 var GroupID = Program.Settings.GetSection("fleetup")["GroupID"];
@@ -3032,34 +3036,70 @@ namespace Opux
                 {
                     await Context.Message.Channel.SendMessageAsync($"{Context.Message.Author.Mention}, No Ops Scheduled");
                 }
+                else if (amount == 0)
+                {
+                    var operation = result.Data[0];
+                    var name = operation.Subject;
+                    var startTime = operation.Start;
+                    var location = operation.Location;
+                    var details = operation.Details;
+                    var url = $"http://fleet-up.com/Operation#{operation.OperationId}";
+                    var locationText = $"[{ location}](http://evemaps.dotlan.net/system/{location})";
+
+                    var builder = new EmbedBuilder()
+                        .WithUrl(url)
+                        .WithColor(new Color(0x7CB0D0))
+                        .WithTitle(name)
+                        .WithThumbnailUrl("http://fleet-up.com/Content/Images/logo_title.png")
+                        .WithAuthor(author =>
+                        {
+                            author
+                                .WithName("FleetUp Notification");
+                        })
+                        .AddInlineField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]))
+                        .AddInlineField($"Form Up System", string.IsNullOrWhiteSpace(location) ? "None" : locationText)
+                        .AddField("Details", string.IsNullOrWhiteSpace(details) ? "None" : details)
+                        .WithTimestamp(startTime);
+
+                    var embed = builder.Build();
+
+                    var sendres = await Context.Channel.SendMessageAsync($"FleetUp Op <http://fleet-up.com/Operation#{operation.OperationId}>", false, embed);
+                }
                 else
                 {
+                    var count = 0;
+
                     foreach (var operation in result.Data)
                     {
-                        var name = operation.Subject;
-                        var startTime = operation.Start;
-                        var location = operation.Location;
-                        var details = operation.Details;
-                        var url = $"http://fleet-up.com/Operation#{operation.OperationId}";
+                        if (count < amount)
+                        {
+                            var name = operation.Subject;
+                            var startTime = operation.Start;
+                            var location = operation.Location;
+                            var details = operation.Details;
+                            var url = $"http://fleet-up.com/Operation#{operation.OperationId}";
+                            var locationText = $"[{ location}](http://evemaps.dotlan.net/system/{location})";
 
-                        var builder = new EmbedBuilder()
-                            .WithUrl(url)
-                            .WithColor(new Color(0x7CB0D0))
-                            .WithTitle(name)
-                            .WithThumbnailUrl("http://fleet-up.com/Content/Images/logo_title.png")
-                            .WithAuthor(author =>
-                            {
-                                author
-                                    .WithName("FleetUp Notification");
-                            })
-                            .AddInlineField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]))
-                            .AddInlineField($"Form Up System", $"[{location}](http://evemaps.dotlan.net/system/{location})")
-                            .AddField("Details", string.IsNullOrWhiteSpace(details) ? "None" : details)
-                            .WithTimestamp(startTime);
+                            var builder = new EmbedBuilder()
+                                .WithUrl(url)
+                                .WithColor(new Color(0x7CB0D0))
+                                .WithTitle(name)
+                                .WithThumbnailUrl("http://fleet-up.com/Content/Images/logo_title.png")
+                                .WithAuthor(author =>
+                                {
+                                    author
+                                        .WithName("FleetUp Notification");
+                                })
+                                .AddInlineField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]))
+                                .AddInlineField($"Form Up System", string.IsNullOrWhiteSpace(location) ? "None" : locationText)
+                                .AddField("Details", string.IsNullOrWhiteSpace(details) ? "None" : details)
+                                .WithTimestamp(startTime);
 
-                        var embed = builder.Build();
+                            var embed = builder.Build();
 
-                        var sendres = await Context.Channel.SendMessageAsync("", false, embed);
+                            var sendres = await Context.Channel.SendMessageAsync($"FleetUp Op <http://fleet-up.com/Operation#{operation.OperationId}>)", false, embed);
+                            count++;
+                        }
                     }
                 }
 
