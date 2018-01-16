@@ -24,7 +24,13 @@ services:
       MYSQL_USER: "discord"
       MYSQL_PASSWORD: "password"
     volumes:
-      - ./mysql:/var/lib/mysql
+      - opux-data:/var/lib/mysql
       - ./schema.sql:/docker-entrypoint-initdb.d/00-schema.sql
     healthcheck:
       test: ["CMD", "mysqladmin", "--host=localhost", "--password=password", "--user=discord", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  opux-data:
