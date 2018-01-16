@@ -266,7 +266,27 @@ namespace Opux
             {
                 try
                 {
-                    await Functions.Ops(Context);
+                    await Functions.Ops(Context, null);
+                }
+                catch (Exception ex)
+                {
+                    await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
+                    await Task.FromException(ex);
+                }
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [Command("ops", RunMode = RunMode.Async), Summary("Shows current Fleetup Operations")]
+        public async Task Ops([Remainder] string x)
+        {
+            if (Convert.ToBoolean(Program.Settings.GetSection("config")["fleetup"]))
+            {
+                try
+                {
+                        await Functions.Ops(Context, x);
                 }
                 catch (Exception ex)
                 {
