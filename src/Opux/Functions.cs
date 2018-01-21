@@ -2918,7 +2918,7 @@ namespace Opux
 
                                 var embed = builder.Build();
 
-                                var sendres = await channel.SendMessageAsync("@everyone FleetUp Op FleetUp Op <http://fleet-up.com/Operation#{operation.OperationId}>", false, embed);
+                                var sendres = await channel.SendMessageAsync($"@everyone FleetUp Op <http://fleet-up.com/Operation#{operation.OperationId}>", false, embed);
 
                                 await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup OP {name} ({operation.OperationId})"));
 
@@ -3059,6 +3059,7 @@ namespace Opux
                         .AddInlineField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]))
                         .AddInlineField($"Form Up System", string.IsNullOrWhiteSpace(location) ? "None" : locationText)
                         .AddField("Details", string.IsNullOrWhiteSpace(details) ? "None" : details)
+                        .AddField($"Total OPs {result.Data.Count()}", $"Use !ops # to list more")
                         .WithTimestamp(startTime);
 
                     var embed = builder.Build();
