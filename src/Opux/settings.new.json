@@ -3,6 +3,7 @@
     "token": "",
     "name": "Opux",
     "game": "Status",
+    "Systemd_Support": false,
     "commandprefix": "!",
     "logchan": 0,
     "guildId": 0,
