@@ -49,37 +49,47 @@ namespace Opux
             EveLib = new EveLib();
             MainAsync(args).GetAwaiter().GetResult();
 
-            while (!quit)
+            if (Convert.ToBoolean(Settings.GetSection("config")["Systemd_Support"]) == false)
             {
-                var command = Console.ReadLine();
-                switch (command.Split(" ")[0])
+                while (!quit)
                 {
-                    case "quit":
-                        Console.WriteLine($"Quitting Opux");
-                        quit = true;
-                        break;
-                    case "debug":
-                        if (!debug)
-                        {
-                            Console.WriteLine($"Debug mode Active");
-                            debug = true;
-                        }
-                        else
-                        {
-                            Console.WriteLine($"Debug mode Disabled");
-                            debug = false;
-                        }
-                        break;
-                    case "admin":
-                        var guild = Client.GetGuild(Convert.ToUInt64(Settings.GetSection("config")["guildId"]));
-                        var rolesToAdd = new List<SocketRole>();
-                        var GuildRoles = guild.Roles;
-                        guild.GetUser(Convert.ToUInt64(command.Split(" ")[2])).AddRoleAsync(GuildRoles.FirstOrDefault(x => x.Name == command.Split(" ")[1]));
-                        break;
+
+                    var command = Console.ReadLine();
+                    switch (command.Split(" ")[0])
+                    {
+                        case "quit":
+                            Console.WriteLine($"Quitting Opux");
+                            quit = true;
+                            break;
+                        case "debug":
+                            if (!debug)
+                            {
+                                Console.WriteLine($"Debug mode Active");
+                                debug = true;
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Debug mode Disabled");
+                                debug = false;
+                            }
+                            break;
+                        case "admin":
+                            var guild = Client.GetGuild(Convert.ToUInt64(Settings.GetSection("config")["guildId"]));
+                            var rolesToAdd = new List<SocketRole>();
+                            var GuildRoles = guild.Roles;
+                            guild.GetUser(Convert.ToUInt64(command.Split(" ")[2])).AddRoleAsync(GuildRoles.FirstOrDefault(x => x.Name == command.Split(" ")[1]));
+                            break;
+                    }
+                }
+            }
+            else if(Convert.ToBoolean(Settings.GetSection("config")["Systemd_Support"]) == true)
+            {
+                while (true)
+                {
+
                 }
             }
             Client.StopAsync();
-
         }
 
         internal static async Task LoggerAsync(Exception args)
