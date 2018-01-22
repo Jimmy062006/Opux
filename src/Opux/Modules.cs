@@ -363,6 +363,7 @@ namespace Opux
             try
             {
                 await Functions.Dupes(Context, null);
+                await Context.Channel.SendMessageAsync("Duplicates Removed. Check logs for errors", false, null, null).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
