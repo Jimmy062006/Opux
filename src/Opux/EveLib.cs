@@ -1,4 +1,5 @@
-﻿using JSONStuff;
+﻿using Discord;
+using JSONStuff;
 using Newtonsoft.Json.Linq;
 using Opux;
 using System;
@@ -31,24 +32,44 @@ namespace EveLibCore
 
         public async static Task<bool> SetApiKey(string keyid, string vcode, string characterid)
         {
-            KeyID = keyid;
-            VCode = vcode;
-            CharacterID = characterid;
-            await Task.CompletedTask;
-            return true;
+            try
+            {
+                KeyID = keyid;
+                VCode = vcode;
+                CharacterID = characterid;
+                await Task.CompletedTask;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await Functions.Client_Log(new LogMessage(LogSeverity.Info, "EveLib", $"GetChatChannels failed {ex.Message}", ex));
+
+                return false;
+            }
         }
 
         public async static Task<bool> SetMOTDKey(string keyid, string vcode, string characterid)
         {
-            MotdVCode = vcode;
-            MotdKeyID = keyid;
-            MotdCharID = characterid;
-            await Task.CompletedTask;
-            return true;
+            try
+            {
+                MotdVCode = vcode;
+                MotdKeyID = keyid;
+                MotdCharID = characterid;
+                await Task.CompletedTask;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await Functions.Client_Log(new LogMessage(LogSeverity.Info, "EveLib", $"GetChatChannels failed {ex.Message}", ex));
+
+                return false;
+            }
         }
 
         public async static Task<Dictionary<int, JToken>> GetNotifications()
         {
+            try
+            {
                 var document = new XmlDocument();
                 var dictionary = new Dictionary<int, JToken>();
 
@@ -85,6 +106,13 @@ namespace EveLibCore
                 }
 
                 return dictionary;
+            }
+            catch (Exception ex)
+            {
+                await Functions.Client_Log(new LogMessage(LogSeverity.Info, "EveLib", $"GetChatChannels failed {ex.Message}", ex));
+
+                return null;
+            }
         }
 
         public async static Task<Dictionary<int, YamlNode>> GetNotificationText(List<int> notificationID)
@@ -143,93 +171,121 @@ namespace EveLibCore
             catch (Exception ex)
             {
                 await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "EveLib", ex.Message, ex));
+
+                return null;
             }
-            return null;
         }
 
         public async static Task<Dictionary<Int64, string>> IDtoName(List<Int64> ids)
         {
-            var commaseperated = string.Join(",", ids);
-            var document = new XmlDocument();
-            var dictonary = new Dictionary<Int64, string>();
+            try
+            {
+                var commaseperated = string.Join(",", ids);
+                var document = new XmlDocument();
+                var dictonary = new Dictionary<Int64, string>();
 
-            var xml = await Program._httpClient.GetStreamAsync($"{XMLUrl}/eve/CharacterName.xml.aspx?ids={commaseperated}");
-            var xmlReader = XmlReader.Create(xml, new XmlReaderSettings { Async = true });
-            var complete = await xmlReader.ReadAsync();
-            var result = new JObject();
-            if (complete)
-            {
-                document.Load(xmlReader);
-                result = JObject.Parse(JSON.XmlToJSON(document));
-            }
-            var test = result["eveapi"]["result"]["rowset"]["row"];
-            if (ids.Count() == 1)
-            {
-                dictonary.Add((Int64)result["eveapi"]["result"]["rowset"]["row"]["characterID"],
-                    (string)result["eveapi"]["result"]["rowset"]["row"]["name"]);
-            }
-            else if (ids.Count() > 1)
-            {
-                foreach (var row in result["eveapi"]["result"]["rowset"]["row"])
+                var xml = await Program._httpClient.GetStreamAsync($"{XMLUrl}/eve/CharacterName.xml.aspx?ids={commaseperated}");
+                var xmlReader = XmlReader.Create(xml, new XmlReaderSettings { Async = true });
+                var complete = await xmlReader.ReadAsync();
+                var result = new JObject();
+                if (complete)
                 {
-                    dictonary.Add((Int64)row["characterID"], (string)row["name"]);
+                    document.Load(xmlReader);
+                    result = JObject.Parse(JSON.XmlToJSON(document));
                 }
+                var test = result["eveapi"]["result"]["rowset"]["row"];
+                if (ids.Count() == 1)
+                {
+                    dictonary.Add((Int64)result["eveapi"]["result"]["rowset"]["row"]["characterID"],
+                        (string)result["eveapi"]["result"]["rowset"]["row"]["name"]);
+                }
+                else if (ids.Count() > 1)
+                {
+                    foreach (var row in result["eveapi"]["result"]["rowset"]["row"])
+                    {
+                        dictonary.Add((Int64)row["characterID"], (string)row["name"]);
+                    }
+                }
+                return dictonary;
             }
-            return dictonary;
+            catch (Exception ex)
+            {
+                await Functions.Client_Log(new LogMessage(LogSeverity.Info, "EveLib", $"GetChatChannels failed {ex.Message}", ex));
+
+                return null;
+            }
         }
 
         public async static Task<Dictionary<Int64, string>> IDtoTypeName(List<Int64> ids)
         {
-            var commaseperated = string.Join(",", ids);
-            var document = new XmlDocument();
-            var dictonary = new Dictionary<Int64, string>();
+            try
+            {
+                var commaseperated = string.Join(",", ids);
+                var document = new XmlDocument();
+                var dictonary = new Dictionary<Int64, string>();
 
-            var xml = await Program._httpClient.GetStreamAsync($"{XMLUrl}/eve/TypeName.xml.aspx?ids={commaseperated}");
-            var xmlReader = XmlReader.Create(xml, new XmlReaderSettings { Async = true });
-            var complete = await xmlReader.ReadAsync();
-            var result = new JObject();
-            if (complete)
-            {
-                document.Load(xmlReader);
-                result = JObject.Parse(JSON.XmlToJSON(document));
-            }
-            if (ids.Count() == 1)
-            {
-                dictonary.Add((Int64)result["eveapi"]["result"]["rowset"]["row"]["typeID"],
-                    (string)result["eveapi"]["result"]["rowset"]["row"]["typeName"]);
-            }
-            else if (ids.Count() > 1)
-            {
-                foreach (var row in result["eveapi"]["result"]["rowset"]["row"])
+                var xml = await Program._httpClient.GetStreamAsync($"{XMLUrl}/eve/TypeName.xml.aspx?ids={commaseperated}");
+                var xmlReader = XmlReader.Create(xml, new XmlReaderSettings { Async = true });
+                var complete = await xmlReader.ReadAsync();
+                var result = new JObject();
+                if (complete)
                 {
-                    dictonary.Add((Int64)row["typeID"], (string)row["typeName"]);
+                    document.Load(xmlReader);
+                    result = JObject.Parse(JSON.XmlToJSON(document));
                 }
-            }
+                if (ids.Count() == 1)
+                {
+                    dictonary.Add((Int64)result["eveapi"]["result"]["rowset"]["row"]["typeID"],
+                        (string)result["eveapi"]["result"]["rowset"]["row"]["typeName"]);
+                }
+                else if (ids.Count() > 1)
+                {
+                    foreach (var row in result["eveapi"]["result"]["rowset"]["row"])
+                    {
+                        dictonary.Add((Int64)row["typeID"], (string)row["typeName"]);
+                    }
+                }
 
-            return dictonary;
+                return dictonary;
+            }
+            catch (Exception ex)
+            {
+                await Functions.Client_Log(new LogMessage(LogSeverity.Info, "EveLib", $"GetChatChannels failed {ex.Message}", ex));
+
+                return null;
+            }
         }
 
         public async static Task<List<JToken>> GetChatChannels()
         {
-            var chanName = Program.Settings.GetSection("config")["MOTDChan"];
-
-            var document = new XmlDocument();
-
-            var xml = await Program._httpClient.GetStreamAsync($"{XMLUrl}char/ChatChannels.xml.aspx?" +
-                $"keyID={MotdKeyID}&vCode={MotdVCode}&characterID={MotdCharID}");
-            var xmlReader = XmlReader.Create(xml, new XmlReaderSettings { Async = true });
-            var complete = await xmlReader.ReadAsync();
-            var result = new JObject();
-            if (complete)
+            try
             {
-                document.Load(xmlReader);
-                var tmp = JSON.XmlToJSON(document);
-                result = JObject.Parse(tmp);
+                var chanName = Program.Settings.GetSection("config")["MOTDChan"];
+
+                var document = new XmlDocument();
+
+                var xml = await Program._httpClient.GetStreamAsync($"{XMLUrl}char/ChatChannels.xml.aspx?" +
+                    $"keyID={MotdKeyID}&vCode={MotdVCode}&characterID={MotdCharID}");
+                var xmlReader = XmlReader.Create(xml, new XmlReaderSettings { Async = true });
+                var complete = await xmlReader.ReadAsync();
+                var result = new JObject();
+                if (complete)
+                {
+                    document.Load(xmlReader);
+                    var tmp = JSON.XmlToJSON(document);
+                    result = JObject.Parse(tmp);
+                }
+
+                var rowlist = result["eveapi"]["result"]["rowset"]["row"].ToList();
+
+                return rowlist;
             }
+            catch (Exception ex)
+            {
+                await Functions.Client_Log(new LogMessage(LogSeverity.Info, "EveLib", $"GetChatChannels failed {ex.Message}", ex));
 
-            var rowlist = result["eveapi"]["result"]["rowset"]["row"].ToList();
-
-            return rowlist;
+                return null;
+            }
         }
     }
 }
