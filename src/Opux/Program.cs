@@ -34,14 +34,11 @@ namespace Opux
 
         static Timer stateTimer = new Timer(Functions.RunTick, autoEvent, 100, 100);
 
-        static object ExitLock = new object();
-        static ManualResetEventSlim ended = new ManualResetEventSlim();
-
         public static void Main(string[] args)
         {
             ApplicationBase = Path.GetDirectoryName(new Uri(Assembly.GetEntryAssembly().CodeBase).LocalPath);
-            if (!File.Exists(Path.Combine(Program.ApplicationBase, "Opux.db")))
-                File.Copy(ApplicationBase + "/Opux.def.db", Path.Combine(Program.ApplicationBase, "Opux.db"));
+            if (!File.Exists(Path.Combine(ApplicationBase, "Opux.db")))
+                File.Copy(ApplicationBase + "/Opux.def.db", Path.Combine(ApplicationBase, "Opux.db"));
 
             _zKillhttpClient.Timeout = new TimeSpan(0, 0, 10);
             _zKillhttpClient.DefaultRequestHeaders.Add("User-Agent", "OpuxBot");
@@ -57,11 +54,8 @@ namespace Opux
 
             if (!headless)
             {
-<<<<<<< HEAD
                 var dockerMode = Environment.GetEnvironmentVariable("DOCKER_MODE");
-=======
-            var dockerMode = Environment.GetEnvironmentVariable("DOCKER_MODE");
->>>>>>> 61f365bd02b50a8acb97bc506ddc066203ff8455
+
                 if ( dockerMode != null ) {
                     Functions.Client_Log(new LogMessage(LogSeverity.Info, "Docker", "Docker mode enabled")).Wait();
                     if ( dockerMode == "debug" ) {
@@ -69,7 +63,6 @@ namespace Opux
                         debug = true;
                     }
 
-                    //AssemblyLoadContext.GetLoadContext(typeof(Program).GetTypeInfo().Assembly)
                     System.Runtime.Loader.AssemblyLoadContext.Default.Unloading += ctx =>
                     {
     					Functions.Client_Log(new LogMessage(LogSeverity.Info, "Docker", "Received termination signal")).Wait();
@@ -123,7 +116,6 @@ namespace Opux
             {
                 Functions.Client_Log(new LogMessage(LogSeverity.Info, "Headless", "Headless mode enabled")).Wait();
 
-                //AssemblyLoadContext.GetLoadContext(typeof(Program).GetTypeInfo().Assembly)
                 System.Runtime.Loader.AssemblyLoadContext.Default.Unloading += ctx =>
                 {
                     Functions.Client_Log(new LogMessage(LogSeverity.Info, "Headless", "Received termination signal")).Wait();
@@ -184,7 +176,7 @@ namespace Opux
                 Settings = new ConfigurationBuilder()
                 .SetBasePath(ApplicationBase)
                 .AddJsonFile("settings.json", optional: true, reloadOnChange: true).Build();
-                if (Convert.ToBoolean(Program.Settings.GetSection("config")["notificationFeed"]))
+                if (Convert.ToBoolean(Settings.GetSection("config")["notificationFeed"]))
                     Functions._nextNotificationCheck = DateTime.Parse(Functions.SQLiteDataQuery("cacheData", "data", "nextNotificationCheck").GetAwaiter().GetResult());
             }
             catch (Exception ex)
