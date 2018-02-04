@@ -27,6 +27,8 @@ namespace Opux
         internal static readonly HttpClient _zKillhttpClient = new HttpClient();
         internal static bool quit = false;
         internal static bool debug = false;
+        static object ExitLock = new object();
+        static ManualResetEventSlim ended = new ManualResetEventSlim();
 
         static AutoResetEvent autoEvent = new AutoResetEvent(true);
 
@@ -49,11 +51,12 @@ namespace Opux
             EveLib = new EveLib();
             MainAsync(args).GetAwaiter().GetResult();
 
-            if (Convert.ToBoolean(Settings.GetSection("config")["Systemd_Support"]) == false)
+            var headless = Convert.ToBoolean(Settings.GetSection("config")["Systemd_Support"]);
+
+            if (!headless)
             {
                 while (!quit)
                 {
-
                     var command = Console.ReadLine();
                     switch (command.Split(" ")[0])
                     {
@@ -82,14 +85,31 @@ namespace Opux
                     }
                 }
             }
-            else if(Convert.ToBoolean(Settings.GetSection("config")["Systemd_Support"]) == true)
+            else
             {
-                while (true)
-                {
+                Functions.Client_Log(new LogMessage(LogSeverity.Info, "Headless", "Headless mode enabled")).Wait();
 
+                //AssemblyLoadContext.GetLoadContext(typeof(Program).GetTypeInfo().Assembly)
+                System.Runtime.Loader.AssemblyLoadContext.Default.Unloading += ctx =>
+                {
+                    Functions.Client_Log(new LogMessage(LogSeverity.Info, "Headless", "Received termination signal")).Wait();
+                    lock (ExitLock)
+                    {
+                        Monitor.Pulse(ExitLock);
+                    }
+                    ended.Wait();
+                };
+
+                lock (ExitLock)
+                {
+                    Functions.Client_Log(new LogMessage(LogSeverity.Info, "Headless", "Waiting for termination")).Wait();
+                    Monitor.Wait(ExitLock);
+                    Functions.Client_Log(new LogMessage(LogSeverity.Info, "Headless", "Exiting")).Wait();
+                    quit = true;
                 }
             }
             Client.StopAsync();
+            ended.Set();
         }
 
         internal static async Task LoggerAsync(Exception args)
