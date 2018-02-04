@@ -8,3 +8,7 @@
 /src/Opux/bin
 /.vs
 /src/Opux/Opux.csproj.user
+
+settings.json
+mysql
+logs
