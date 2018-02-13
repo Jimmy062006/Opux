@@ -437,6 +437,9 @@ namespace Opux
                                     var _characterDetails = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{CharacterID}");
                                     if (!_characterDetails.IsSuccessStatusCode)
                                     {
+                                        var bleah = await _characterDetails.Content.ReadAsStringAsync();
+                                        await Client_Log(new LogMessage(LogSeverity.Error, "AuthWeb", $"Character Failure {_characterDetails.StatusCode} : {bleah}"));
+
                                         ESIFailure = true;
                                     }
 
@@ -447,6 +450,9 @@ namespace Opux
                                     var _corporationDetails = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corporationid}");
                                     if (!_corporationDetails.IsSuccessStatusCode)
                                     {
+                                        var bleah = await _characterDetails.Content.ReadAsStringAsync();
+                                        await Client_Log(new LogMessage(LogSeverity.Error, "AuthWeb", $"Corp Failure {_characterDetails.StatusCode} : {bleah}"));
+
                                         ESIFailure = true;
                                     }
 
