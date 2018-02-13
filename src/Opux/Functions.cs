@@ -438,7 +438,7 @@ namespace Opux
                                     if (!_characterDetails.IsSuccessStatusCode)
                                     {
                                         var bleah = await _characterDetails.Content.ReadAsStringAsync();
-                                        await Client_Log(new LogMessage(LogSeverity.Error, "AuthWeb", $"Character Failure {_characterDetails.StatusCode} : {bleah}"));
+                                        await Client_Log(new LogMessage(LogSeverity.Error, "AuthWeb", $"Character Failure ID:{CharacterID} Error: {_characterDetails.StatusCode} : {bleah}"));
 
                                         ESIFailure = true;
                                     }
@@ -451,7 +451,7 @@ namespace Opux
                                     if (!_corporationDetails.IsSuccessStatusCode)
                                     {
                                         var bleah = await _characterDetails.Content.ReadAsStringAsync();
-                                        await Client_Log(new LogMessage(LogSeverity.Error, "AuthWeb", $"Corp Failure {_characterDetails.StatusCode} : {bleah}"));
+                                        await Client_Log(new LogMessage(LogSeverity.Error, "AuthWeb", $"Corp Failure ID:{CharacterID} Error: {_characterDetails.StatusCode} : {bleah}"));
 
                                         ESIFailure = true;
                                     }
