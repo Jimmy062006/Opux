@@ -1,0 +1,10 @@
+C:\Users\Robert\source\repos\Opux2\PriceCheck\bin\Debug\netcoreapp2.0\PriceCheck.deps.json
+C:\Users\Robert\source\repos\Opux2\PriceCheck\bin\Debug\netcoreapp2.0\PriceCheck.dll
+C:\Users\Robert\source\repos\Opux2\PriceCheck\bin\Debug\netcoreapp2.0\PriceCheck.pdb
+C:\Users\Robert\source\repos\Opux2\PriceCheck\bin\Debug\netcoreapp2.0\BuildEvents.dll
+C:\Users\Robert\source\repos\Opux2\PriceCheck\bin\Debug\netcoreapp2.0\BuildEvents.pdb
+C:\Users\Robert\source\repos\Opux2\PriceCheck\obj\Debug\netcoreapp2.0\PriceCheck.csproj.CoreCompileInputs.cache
+C:\Users\Robert\source\repos\Opux2\PriceCheck\obj\Debug\netcoreapp2.0\PriceCheck.AssemblyInfoInputs.cache
+C:\Users\Robert\source\repos\Opux2\PriceCheck\obj\Debug\netcoreapp2.0\PriceCheck.AssemblyInfo.cs
+C:\Users\Robert\source\repos\Opux2\PriceCheck\obj\Debug\netcoreapp2.0\PriceCheck.dll
+C:\Users\Robert\source\repos\Opux2\PriceCheck\obj\Debug\netcoreapp2.0\PriceCheck.pdb

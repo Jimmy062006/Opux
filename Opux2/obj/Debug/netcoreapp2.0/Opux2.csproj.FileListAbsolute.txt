@@ -1,0 +1,13 @@
+C:\Users\Robert\source\repos\Opux2\Opux2\bin\Debug\netcoreapp2.0\log4net.config
+C:\Users\Robert\source\repos\Opux2\Opux2\bin\Debug\netcoreapp2.0\settings.json
+C:\Users\Robert\source\repos\Opux2\Opux2\bin\Debug\netcoreapp2.0\Opux2.deps.json
+C:\Users\Robert\source\repos\Opux2\Opux2\bin\Debug\netcoreapp2.0\Opux2.runtimeconfig.json
+C:\Users\Robert\source\repos\Opux2\Opux2\bin\Debug\netcoreapp2.0\Opux2.runtimeconfig.dev.json
+C:\Users\Robert\source\repos\Opux2\Opux2\bin\Debug\netcoreapp2.0\Opux2.dll
+C:\Users\Robert\source\repos\Opux2\Opux2\bin\Debug\netcoreapp2.0\Opux2.pdb
+C:\Users\Robert\source\repos\Opux2\Opux2\obj\Debug\netcoreapp2.0\Opux2.csprojResolveAssemblyReference.cache
+C:\Users\Robert\source\repos\Opux2\Opux2\obj\Debug\netcoreapp2.0\Opux2.csproj.CoreCompileInputs.cache
+C:\Users\Robert\source\repos\Opux2\Opux2\obj\Debug\netcoreapp2.0\Opux2.AssemblyInfoInputs.cache
+C:\Users\Robert\source\repos\Opux2\Opux2\obj\Debug\netcoreapp2.0\Opux2.AssemblyInfo.cs
+C:\Users\Robert\source\repos\Opux2\Opux2\obj\Debug\netcoreapp2.0\Opux2.dll
+C:\Users\Robert\source\repos\Opux2\Opux2\obj\Debug\netcoreapp2.0\Opux2.pdb

@@ -1,0 +1,10 @@
+C:\Users\Robert\source\repos\Opux2\TQStatus\bin\Debug\netcoreapp2.0\TQStatus.deps.json
+C:\Users\Robert\source\repos\Opux2\TQStatus\bin\Debug\netcoreapp2.0\TQStatus.dll
+C:\Users\Robert\source\repos\Opux2\TQStatus\bin\Debug\netcoreapp2.0\TQStatus.pdb
+C:\Users\Robert\source\repos\Opux2\TQStatus\bin\Debug\netcoreapp2.0\BuildEvents.dll
+C:\Users\Robert\source\repos\Opux2\TQStatus\bin\Debug\netcoreapp2.0\BuildEvents.pdb
+C:\Users\Robert\source\repos\Opux2\TQStatus\obj\Debug\netcoreapp2.0\TQStatus.csproj.CoreCompileInputs.cache
+C:\Users\Robert\source\repos\Opux2\TQStatus\obj\Debug\netcoreapp2.0\TQStatus.AssemblyInfoInputs.cache
+C:\Users\Robert\source\repos\Opux2\TQStatus\obj\Debug\netcoreapp2.0\TQStatus.AssemblyInfo.cs
+C:\Users\Robert\source\repos\Opux2\TQStatus\obj\Debug\netcoreapp2.0\TQStatus.dll
+C:\Users\Robert\source\repos\Opux2\TQStatus\obj\Debug\netcoreapp2.0\TQStatus.pdb

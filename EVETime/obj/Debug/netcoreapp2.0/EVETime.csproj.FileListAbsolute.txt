@@ -1,0 +1,10 @@
+C:\Users\Robert\source\repos\Opux2\EVETime\bin\Debug\netcoreapp2.0\EVETime.deps.json
+C:\Users\Robert\source\repos\Opux2\EVETime\bin\Debug\netcoreapp2.0\EVETime.dll
+C:\Users\Robert\source\repos\Opux2\EVETime\bin\Debug\netcoreapp2.0\EVETime.pdb
+C:\Users\Robert\source\repos\Opux2\EVETime\bin\Debug\netcoreapp2.0\BuildEvents.dll
+C:\Users\Robert\source\repos\Opux2\EVETime\bin\Debug\netcoreapp2.0\BuildEvents.pdb
+C:\Users\Robert\source\repos\Opux2\EVETime\obj\Debug\netcoreapp2.0\EVETime.csproj.CoreCompileInputs.cache
+C:\Users\Robert\source\repos\Opux2\EVETime\obj\Debug\netcoreapp2.0\EVETime.AssemblyInfoInputs.cache
+C:\Users\Robert\source\repos\Opux2\EVETime\obj\Debug\netcoreapp2.0\EVETime.AssemblyInfo.cs
+C:\Users\Robert\source\repos\Opux2\EVETime\obj\Debug\netcoreapp2.0\EVETime.dll
+C:\Users\Robert\source\repos\Opux2\EVETime\obj\Debug\netcoreapp2.0\EVETime.pdb

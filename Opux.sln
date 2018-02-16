@@ -1,13 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.8
+VisualStudioVersion = 15.0.27004.2009
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{7B372C57-D38E-4D41-A5DF-3ADEC27C3D06}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Opux2", "Opux2\Opux2.csproj", "{2AE02ABA-4E90-4F01-80C5-92EF8596FED5}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{AD2B0E05-EA76-4791-925C-A6FD86C73DD1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PriceCheck", "PriceCheck\PriceCheck.csproj", "{374A4851-369B-454F-9BCA-68FEE5DF2075}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Opux", "src\Opux\Opux.csproj", "{ABF03EBA-6D08-4F95-8431-9534BC2B6781}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthWeb", "AuthWeb\AuthWeb.csproj", "{D6482828-D843-4B9B-920B-74CBEECA79B9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EVETime", "EVETime\EVETime.csproj", "{D5E54747-5D96-4387-AE18-4B93EDA23C20}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TQStatus", "TQStatus\TQStatus.csproj", "{44A59EF1-DFDF-47E1-822A-E6E3A4536B26}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildEvents", "BuildEvents\BuildEvents.csproj", "{D429B50E-1A62-4E75-8BBF-C3A3E2536B16}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,18 +21,35 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{ABF03EBA-6D08-4F95-8431-9534BC2B6781}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ABF03EBA-6D08-4F95-8431-9534BC2B6781}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ABF03EBA-6D08-4F95-8431-9534BC2B6781}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ABF03EBA-6D08-4F95-8431-9534BC2B6781}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2AE02ABA-4E90-4F01-80C5-92EF8596FED5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2AE02ABA-4E90-4F01-80C5-92EF8596FED5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2AE02ABA-4E90-4F01-80C5-92EF8596FED5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2AE02ABA-4E90-4F01-80C5-92EF8596FED5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{374A4851-369B-454F-9BCA-68FEE5DF2075}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{374A4851-369B-454F-9BCA-68FEE5DF2075}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{374A4851-369B-454F-9BCA-68FEE5DF2075}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{374A4851-369B-454F-9BCA-68FEE5DF2075}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D6482828-D843-4B9B-920B-74CBEECA79B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6482828-D843-4B9B-920B-74CBEECA79B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D6482828-D843-4B9B-920B-74CBEECA79B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6482828-D843-4B9B-920B-74CBEECA79B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5E54747-5D96-4387-AE18-4B93EDA23C20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5E54747-5D96-4387-AE18-4B93EDA23C20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5E54747-5D96-4387-AE18-4B93EDA23C20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5E54747-5D96-4387-AE18-4B93EDA23C20}.Release|Any CPU.Build.0 = Release|Any CPU
+		{44A59EF1-DFDF-47E1-822A-E6E3A4536B26}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44A59EF1-DFDF-47E1-822A-E6E3A4536B26}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44A59EF1-DFDF-47E1-822A-E6E3A4536B26}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44A59EF1-DFDF-47E1-822A-E6E3A4536B26}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D429B50E-1A62-4E75-8BBF-C3A3E2536B16}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D429B50E-1A62-4E75-8BBF-C3A3E2536B16}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D429B50E-1A62-4E75-8BBF-C3A3E2536B16}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D429B50E-1A62-4E75-8BBF-C3A3E2536B16}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{ABF03EBA-6D08-4F95-8431-9534BC2B6781} = {7B372C57-D38E-4D41-A5DF-3ADEC27C3D06}
-	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {46E7FA70-ECA0-49F6-A26D-66CEA014383F}
+		SolutionGuid = {3AC0A3F4-1478-4E81-9A03-1AF7641AF7D5}
 	EndGlobalSection
 EndGlobal

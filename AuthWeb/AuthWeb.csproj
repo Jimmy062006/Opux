@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Discord.Net" Version="1.0.2" />
+    <PackageReference Include="ESIClient.Dotcore" Version="1.0.3" />
+    <PackageReference Include="NETStandard.HttpListener" Version="1.0.3.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Opux2\Opux2.csproj">
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="cd $(SolutionDir)/BuildEvents/bin/Debug/netcoreapp2.0/&#xD;&#xA;dotnet BuildEvents.dll $(ProjectName) $(SolutionDir) $(TargetDir)" />
+  </Target>
+
+</Project>

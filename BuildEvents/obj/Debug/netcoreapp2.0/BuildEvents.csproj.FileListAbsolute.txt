@@ -1,0 +1,11 @@
+C:\Users\Robert\source\repos\Opux2\BuildEvents\bin\Debug\netcoreapp2.0\BuildEvents.deps.json
+C:\Users\Robert\source\repos\Opux2\BuildEvents\bin\Debug\netcoreapp2.0\BuildEvents.runtimeconfig.json
+C:\Users\Robert\source\repos\Opux2\BuildEvents\bin\Debug\netcoreapp2.0\BuildEvents.runtimeconfig.dev.json
+C:\Users\Robert\source\repos\Opux2\BuildEvents\bin\Debug\netcoreapp2.0\BuildEvents.dll
+C:\Users\Robert\source\repos\Opux2\BuildEvents\bin\Debug\netcoreapp2.0\BuildEvents.pdb
+C:\Users\Robert\source\repos\Opux2\BuildEvents\obj\Debug\netcoreapp2.0\BuildEvents.csprojResolveAssemblyReference.cache
+C:\Users\Robert\source\repos\Opux2\BuildEvents\obj\Debug\netcoreapp2.0\BuildEvents.csproj.CoreCompileInputs.cache
+C:\Users\Robert\source\repos\Opux2\BuildEvents\obj\Debug\netcoreapp2.0\BuildEvents.AssemblyInfoInputs.cache
+C:\Users\Robert\source\repos\Opux2\BuildEvents\obj\Debug\netcoreapp2.0\BuildEvents.AssemblyInfo.cs
+C:\Users\Robert\source\repos\Opux2\BuildEvents\obj\Debug\netcoreapp2.0\BuildEvents.dll
+C:\Users\Robert\source\repos\Opux2\BuildEvents\obj\Debug\netcoreapp2.0\BuildEvents.pdb

@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Opux2\Opux2.csproj">
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="cd $(SolutionDir)/BuildEvents/bin/Debug/netcoreapp2.0/&#xD;&#xA;dotnet BuildEvents.dll $(ProjectName) $(SolutionDir) $(TargetDir)" />
+  </Target>
+
+</Project>
