@@ -26,7 +26,6 @@ namespace tqStatus
             {
                 var Players = result.Data.Players;
                 var ServerVersion = result.Data.ServerVersion;
-                var StartTime = result.Data.StartTime;
 
                 var builder = new EmbedBuilder()
                     .WithColor(new Color(0x00D000))
@@ -37,7 +36,7 @@ namespace tqStatus
                     })
                     .AddInlineField("Players Online:", $"{Players}")
                     .AddInlineField("Version", $"{ServerVersion}")
-                    .AddInlineField("StartTime", $"{StartTime}");
+                    .AddInlineField("StartTime", $"{starttime}");
 
                 builder.WithTimestamp(DateTime.UtcNow);
 
@@ -85,7 +84,7 @@ namespace tqStatus
                         {
 
 
-                            if (VIP != (result.Data.Vip??false) || version != result.Data.ServerVersion || starttime < result.Data.StartTime)
+                            if (VIP != (result.Data.Vip??false) || version != result.Data.ServerVersion || result.Data.StartTime > starttime.AddMinutes(1))
                             {
                                 VIP = result.Data.Vip??false;
                                 version = result.Data.ServerVersion;
