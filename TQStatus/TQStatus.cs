@@ -13,6 +13,11 @@ namespace tqStatus
         static DateTime lastRun = new DateTime();
         StatusApi status = new StatusApi();
 
+        internal static bool _Running = false;
+        internal static bool VIP = false;
+        internal static string version = "";
+        internal static DateTime starttime = new DateTime();
+
         [Command("status", RunMode = RunMode.Async), Summary("Gets and displays the status of the eve server")]
         public async Task Status()
         {
@@ -53,57 +58,99 @@ namespace tqStatus
 
         public async Task Pulse()
         {
-            if (DateTime.UtcNow > lastRun.AddSeconds(30))
+            try
             {
-                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, Name, $"Running EVE Server Status Check"));
-                //Needs settings file for these
-                var channel = 396445945501319188U;
-                var guildid = 161913760544456704U;
-
-                var textchannel = Base.DiscordClient.GetGuild(guildid).GetTextChannel(channel);
-
-                var result = await status.GetStatusAsync();
-                var VIP = result.Vip != null ? "Active" : "Inactive";
-
-                if (result == null && online)
+                if ( !_Running && DateTime.UtcNow > lastRun.AddSeconds(30))
                 {
-                    online = false;
+                    _Running = true;
+                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, Name, $"Running EVE Server Status Check"));
+                    //Needs settings file for these
+                    var channelRaw = Base.Configuration.GetSection("channelid");
+                    var guildidRaw = Base.Configuration.GetSection("guildid");
 
-                    var builder = new EmbedBuilder()
-                        .WithColor(new Color(0x00D000))
-                        .WithAuthor(author =>
+                    if (channelRaw.Value != null & guildidRaw.Value != null)
+                    {
+                        UInt64.TryParse(channelRaw.Value, out ulong channelid);
+                        UInt64.TryParse(guildidRaw.Value, out ulong guildid);
+
+                        var textchannel = Base.DiscordClient.GetGuild(guildid).GetTextChannel(channelid);
+
+                        var result = await status.GetStatusAsyncWithHttpInfo();
+                        if (result.StatusCode == 200)
                         {
-                            author
-                                .WithName($"EVE Sever status changed");
-                        })
-                        .AddField("Status", "Offline");
 
-                    var embed = builder.Build();
 
-                    await textchannel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
-                }
-                if (result != null && !online)
-                {
-                    online = true;
+                            if (VIP != (result.Data.Vip??false) || version != result.Data.ServerVersion || starttime < result.Data.StartTime)
+                            {
+                                VIP = result.Data.Vip??false;
+                                version = result.Data.ServerVersion;
+                                starttime = result.Data.StartTime ?? DateTime.MinValue;
 
-                    var builder = new EmbedBuilder()
-                        .WithColor(new Color(0x00D000))
-                        .WithAuthor(author =>
+                                var builder = new EmbedBuilder()
+                                    .WithColor(new Color(0x00D000))
+                                    .WithAuthor(author =>
+                                    {
+                                        author
+                                            .WithName($"EVE Sever status changed");
+                                    })
+                                    .AddInlineField("Status", "Online")
+                                    .AddInlineField("Players", $"{result.Data.Players}");
+                                if (VIP)
+                                    builder.AddInlineField("VIP", "VIP Mode Only!!");
+
+                                var embed = builder.Build();
+
+                                await textchannel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
+                            }
+                            //if (result != null && !online)
+                            //{
+                            //    online = true;
+
+                            //    var builder = new EmbedBuilder()
+                            //        .WithColor(new Color(0x00D000))
+                            //        .WithAuthor(author =>
+                            //        {
+                            //            author
+                            //                .WithName($"EVE Sever status changed");
+                            //        })
+                            //        .AddInlineField("Status", "Online")
+                            //        .AddInlineField("Players", $"{result.Data.Players}")
+                            //        .AddInlineField("VIP", VIP);
+
+                            //    var embed = builder.Build();
+
+                            //    await textchannel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
+                            //}
+                        }
+                        else
                         {
-                            author
-                                .WithName($"EVE Sever status changed");
-                        })
-                        .AddInlineField("Status", "Online")
-                        .AddInlineField("Players", $"{result.Players}")
-                        .AddInlineField("VIP", VIP);
+                            var builder = new EmbedBuilder()
+                                .WithColor(new Color(0x00D000))
+                                .WithAuthor(author =>
+                                {
+                                    author
+                                        .WithName($"EVE Sever status changed");
+                                })
+                                .AddInlineField("Status", "Offline")
+                                .AddInlineField("Players", $"Offline");
 
-                    var embed = builder.Build();
-
-                    await textchannel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
+                            var embed = builder.Build();
+                        }
+                        lastRun = DateTime.UtcNow;
+                        _Running = false;
+                    }
+                    else
+                    {
+                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, Name, $"ChannelID or GuildID is not set in main settings. EVEStatus Disabled."));
+                    }
                 }
-                lastRun = DateTime.UtcNow;
             }
-
+            catch (Exception ex)
+            {
+                lastRun = DateTime.UtcNow;
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, Name, $"{ex.Message}"));
+                _Running = false;
+            }
             await Task.CompletedTask;
         }
     }

@@ -1,4 +1,6 @@
 {
   "token": "",
+  "guildid": 0,
+  "channelid": 0,
   "debugger": false
 }
