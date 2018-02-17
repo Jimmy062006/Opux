@@ -9,7 +9,6 @@ namespace tqStatus
 {
     public class TQStatus : ModuleBase, IPlugin
     {
-        static bool online = false;
         static DateTime lastRun = new DateTime();
         StatusApi status = new StatusApi();
 
@@ -18,13 +17,17 @@ namespace tqStatus
         internal static string version = "";
         internal static DateTime starttime = new DateTime();
 
-        [Command("status", RunMode = RunMode.Async), Summary("Gets and displays the status of the eve server")]
+        [Command("status", RunMode = RunMode.Async), Summary("Gets and displays the status of the EVE server")]
         public async Task Status()
         {
-            var result = await status.GetStatusAsync();
+            var result = await status.GetStatusAsyncWithHttpInfo();
 
-            if (result != null)
+            if (result.StatusCode == 200)
             {
+                var Players = result.Data.Players;
+                var ServerVersion = result.Data.ServerVersion;
+                var StartTime = result.Data.StartTime;
+
                 var builder = new EmbedBuilder()
                     .WithColor(new Color(0x00D000))
                     .WithAuthor(author =>
@@ -32,9 +35,9 @@ namespace tqStatus
                         author
                             .WithName($"EVE Online Server Status");
                     })
-                    .AddInlineField("Players Online:", $"{result.Players}")
-                    .AddInlineField("Version", $"{result.ServerVersion}")
-                    .AddInlineField("StartTime", $"{result.StartTime}");
+                    .AddInlineField("Players Online:", $"{Players}")
+                    .AddInlineField("Version", $"{ServerVersion}")
+                    .AddInlineField("StartTime", $"{StartTime}");
 
                 var embed = builder.Build();
 
@@ -44,7 +47,7 @@ namespace tqStatus
 
         public string Name => "TQStatus";
 
-        public string Description => "Gets and displays the status of the eve server";
+        public string Description => "Gets and displays the status of the EVE server";
 
         public string Author => "Jimmy06";
 
@@ -102,25 +105,6 @@ namespace tqStatus
 
                                 await textchannel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
                             }
-                            //if (result != null && !online)
-                            //{
-                            //    online = true;
-
-                            //    var builder = new EmbedBuilder()
-                            //        .WithColor(new Color(0x00D000))
-                            //        .WithAuthor(author =>
-                            //        {
-                            //            author
-                            //                .WithName($"EVE Sever status changed");
-                            //        })
-                            //        .AddInlineField("Status", "Online")
-                            //        .AddInlineField("Players", $"{result.Data.Players}")
-                            //        .AddInlineField("VIP", VIP);
-
-                            //    var embed = builder.Build();
-
-                            //    await textchannel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
-                            //}
                         }
                         else
                         {
