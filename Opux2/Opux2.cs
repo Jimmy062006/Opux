@@ -102,16 +102,18 @@ namespace Opux2
                     {
                         builder = new ConfigurationBuilder()
                             .SetBasePath(currentDirectory)
-                            .AddJsonFile("settings.custom.json");
+                            .AddJsonFile("settings.custom.json", false, true);
+
                     }
                     else
                     {
                         builder = new ConfigurationBuilder()
                             .SetBasePath(currentDirectory)
-                            .AddJsonFile("settings.json");
+                            .AddJsonFile("settings.json", false, true);
                     }
 
                     Configuration = builder.Build();
+
                 }
                 catch (Exception ex)
                 {

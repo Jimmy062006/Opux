@@ -12,11 +12,11 @@ namespace tqStatus
         static DateTime lastRun = new DateTime();
         StatusApi status = new StatusApi();
 
-        internal static bool _Running = false;
-        internal static bool _FirstRunDone = false;
-        internal static bool VIP = false;
-        internal static string version = "";
-        internal static DateTime starttime = new DateTime();
+        static bool _Running { get; set; }
+        static bool _FirstRunDone { get; set; }
+        static bool _VIP { get; set; }
+        static string _Version { get; set; }
+        static DateTime _Starttime { get; set; }
 
         [Command("status", RunMode = RunMode.Async), Summary("Gets and displays the status of the EVE server")]
         public async Task Status()
@@ -27,6 +27,7 @@ namespace tqStatus
             {
                 var Players = result.Data.Players;
                 var ServerVersion = result.Data.ServerVersion;
+                var StartTime = result.Data.StartTime;
 
                 var builder = new EmbedBuilder()
                     .WithColor(new Color(0x00D000))
@@ -37,7 +38,7 @@ namespace tqStatus
                     })
                     .AddInlineField("Players Online:", $"{Players}")
                     .AddInlineField("Version", $"{ServerVersion}")
-                    .AddInlineField("StartTime", $"{starttime}");
+                    .AddInlineField("StartTime", $"{StartTime}");
 
                 builder.WithTimestamp(DateTime.UtcNow);
 
@@ -83,11 +84,11 @@ namespace tqStatus
                         var status = await this.status.GetStatusAsyncWithHttpInfo();
                         if (status.StatusCode == 200 && Convert.ToInt16(status.Headers["X-Esi-Error-Limit-Remain"]) > 10 && _FirstRunDone)
                         {
-                            if (VIP != (status.Data.Vip ?? false) || version != status.Data.ServerVersion || status.Data.StartTime > starttime.AddMinutes(1))
+                            if (_VIP != (status.Data.Vip ?? false) || _Version != status.Data.ServerVersion || status.Data.StartTime > _Starttime.AddMinutes(1))
                             {
-                                VIP = status.Data.Vip ?? false;
-                                version = status.Data.ServerVersion;
-                                starttime = status.Data.StartTime ?? DateTime.MinValue;
+                                _VIP = status.Data.Vip ?? false;
+                                _Version = status.Data.ServerVersion;
+                                _Starttime = status.Data.StartTime ?? DateTime.MinValue;
 
                                 var builder = new EmbedBuilder()
                                     .WithColor(new Color(0x00D000))
@@ -98,7 +99,7 @@ namespace tqStatus
                                     })
                                     .AddInlineField("Status", "Online")
                                     .AddInlineField("Players", $"{status.Data.Players}");
-                                if (VIP)
+                                if (_VIP)
                                     builder.AddInlineField("VIP", "VIP Mode Only!!");
 
                                 builder.WithTimestamp(DateTime.UtcNow);
@@ -107,11 +108,11 @@ namespace tqStatus
 
                                 await textchannel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
                             }
-                            else if (_FirstRunDone)
+                            else if (!_FirstRunDone)
                             {
-                                VIP = status.Data.Vip ?? false;
-                                version = status.Data.ServerVersion;
-                                starttime = status.Data.StartTime ?? DateTime.MinValue;
+                                _VIP = status.Data.Vip ?? false;
+                                _Version = status.Data.ServerVersion;
+                                _Starttime = status.Data.StartTime ?? DateTime.MinValue;
 
                                 _FirstRunDone = true;
                             }

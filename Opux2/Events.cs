@@ -27,7 +27,7 @@ namespace Opux2
 
             int argPos = 0;
 
-            if (!(message.HasCharPrefix(Convert.ToChar(Base.Configuration.GetSection("trigger")), ref argPos) || message.HasMentionPrefix(Base.DiscordClient.CurrentUser, ref argPos))) return;
+            if (!(message.HasCharPrefix(Convert.ToChar(Base.Configuration.GetSection("trigger").Value), ref argPos) || message.HasMentionPrefix(Base.DiscordClient.CurrentUser, ref argPos))) return;
 
             var context = new CommandContext(Base.DiscordClient, message);
 
