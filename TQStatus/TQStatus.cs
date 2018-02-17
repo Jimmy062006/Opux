@@ -39,6 +39,8 @@ namespace tqStatus
                     .AddInlineField("Version", $"{ServerVersion}")
                     .AddInlineField("StartTime", $"{StartTime}");
 
+                builder.WithTimestamp(DateTime.UtcNow);
+
                 var embed = builder.Build();
 
                 await ReplyAsync($"", false, embed).ConfigureAwait(false);
@@ -100,6 +102,8 @@ namespace tqStatus
                                     .AddInlineField("Players", $"{result.Data.Players}");
                                 if (VIP)
                                     builder.AddInlineField("VIP", "VIP Mode Only!!");
+
+                                builder.WithTimestamp(DateTime.UtcNow);
 
                                 var embed = builder.Build();
 
