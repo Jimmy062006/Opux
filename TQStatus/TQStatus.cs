@@ -13,6 +13,7 @@ namespace tqStatus
         StatusApi status = new StatusApi();
 
         internal static bool _Running = false;
+        internal static bool _FirstRunDone = false;
         internal static bool VIP = false;
         internal static string version = "";
         internal static DateTime starttime = new DateTime();
@@ -79,16 +80,14 @@ namespace tqStatus
 
                         var textchannel = Base.DiscordClient.GetGuild(guildid).GetTextChannel(channelid);
 
-                        var result = await status.GetStatusAsyncWithHttpInfo();
-                        if (result.StatusCode == 200)
+                        var status = await this.status.GetStatusAsyncWithHttpInfo();
+                        if (status.StatusCode == 200 && Convert.ToInt16(status.Headers["X-Esi-Error-Limit-Remain"]) > 10 && _FirstRunDone)
                         {
-
-
-                            if (VIP != (result.Data.Vip??false) || version != result.Data.ServerVersion || result.Data.StartTime > starttime.AddMinutes(1))
+                            if (VIP != (status.Data.Vip ?? false) || version != status.Data.ServerVersion || status.Data.StartTime > starttime.AddMinutes(1))
                             {
-                                VIP = result.Data.Vip??false;
-                                version = result.Data.ServerVersion;
-                                starttime = result.Data.StartTime ?? DateTime.MinValue;
+                                VIP = status.Data.Vip ?? false;
+                                version = status.Data.ServerVersion;
+                                starttime = status.Data.StartTime ?? DateTime.MinValue;
 
                                 var builder = new EmbedBuilder()
                                     .WithColor(new Color(0x00D000))
@@ -98,7 +97,7 @@ namespace tqStatus
                                             .WithName($"EVE Sever status changed");
                                     })
                                     .AddInlineField("Status", "Online")
-                                    .AddInlineField("Players", $"{result.Data.Players}");
+                                    .AddInlineField("Players", $"{status.Data.Players}");
                                 if (VIP)
                                     builder.AddInlineField("VIP", "VIP Mode Only!!");
 
@@ -107,6 +106,14 @@ namespace tqStatus
                                 var embed = builder.Build();
 
                                 await textchannel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
+                            }
+                            else if (_FirstRunDone)
+                            {
+                                VIP = status.Data.Vip ?? false;
+                                version = status.Data.ServerVersion;
+                                starttime = status.Data.StartTime ?? DateTime.MinValue;
+
+                                _FirstRunDone = true;
                             }
                         }
                         else

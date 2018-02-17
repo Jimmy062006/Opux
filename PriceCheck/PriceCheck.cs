@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using ESIClient.Api;
 using ESIClient.Model;
 using Newtonsoft.Json;
 using Opux2;
@@ -18,22 +19,28 @@ namespace priceChecks
             await PriceCheck(null, x, Context);
         }
 
-        [Command("jita", RunMode = RunMode.Async), Summary("Use !pc itemname to get the Global Price for the item")]
+        [Command("jita", RunMode = RunMode.Async), Summary("Use !jita itemname to get the Jita Price for the item")]
         public async Task Jita([Remainder] string x)
         {
             await PriceCheck("Jita", x, Context);
         }
 
-        [Command("dodixie", RunMode = RunMode.Async), Summary("Use !pc itemname to get the Global Price for the item")]
+        [Command("dodixie", RunMode = RunMode.Async), Summary("Use !dodixie itemname to get the Dodixie Price for the item")]
         public async Task Dodixie([Remainder] string x)
         {
             await PriceCheck("Dodixie", x, Context);
         }
 
-        [Command("rens", RunMode = RunMode.Async), Summary("Use !pc itemname to get the Global Price for the item")]
+        [Command("rens", RunMode = RunMode.Async), Summary("Use !rens itemname to get the Rens Price for the item")]
         public async Task Rens([Remainder] string x)
         {
             await PriceCheck("Rens", x, Context);
+        }
+
+        [Command("hek", RunMode = RunMode.Async), Summary("Use !hek itemname to get the Hek Price for the item")]
+        public async Task Hek([Remainder] string x)
+        {
+            await PriceCheck("Hek", x, Context);
         }
 
         public string Name => "PriceChecks";
@@ -61,64 +68,69 @@ namespace priceChecks
             {
                 var channel = Context.Channel;
 
-                var UniverseApi = new ESIClient.Api.UniverseApi();
-                var IDs = new List<string> { String };
+                var status = await new StatusApi().GetStatusAsyncWithHttpInfo();
 
-                if (!String.IsNullOrWhiteSpace(System))
-                    IDs.Add(System);
-
-                var IDstoNames = UniverseApi.PostUniverseIds(IDs);
-
-                if (IDstoNames.InventoryTypes == null)
+                if (status.StatusCode == 200 && Convert.ToInt16(status.Headers["X-Esi-Error-Limit-Remain"]) > 10)
                 {
-                    await channel.SendMessageAsync($"{Context.User.Mention}, {String} was not found", false, null).ConfigureAwait(false);
-                    return;
-                }
+                    var UniverseApi = new UniverseApi();
+                    var IDs = new List<string> { String };
 
-                var ItemType = IDstoNames.InventoryTypes.FirstOrDefault(x => x.Name.ToLower() == String.ToLower());
+                    if (!String.IsNullOrWhiteSpace(System))
+                        IDs.Add(System);
 
-                PostUniverseIdsSystem SystemName = new PostUniverseIdsSystem { Name = "Global", Id = 0 };
+                    var IDstoNames = UniverseApi.PostUniverseIds(IDs);
 
-                if (IDstoNames.Systems != null && IDstoNames.Systems.Count > 0)
-                    SystemName = IDstoNames.Systems.FirstOrDefault(x => x.Name == System);
-
-                var url = "https://api.evemarketer.com/ec";
-
-                var eveCentralReply = "";
-
-                if (System == null)
-                     eveCentralReply = await Base._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={ItemType.Id}");
-                else
-                    eveCentralReply = await Base._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={ItemType.Id}&usesystem={SystemName.Id}");
-
-                var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
-
-                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {Context.Message.Author}'s Price check to {channel.Name}"));
-                var builder = new EmbedBuilder()
-                    .WithColor(new Color(0x00D000))
-                    .WithThumbnailUrl($"https://image.eveonline.com/Type/{ItemType.Id}_64.png")
-                    .WithAuthor(author =>
+                    if (IDstoNames.InventoryTypes == null)
                     {
-                        author
-                            .WithName($"Item: {ItemType.Name}")
-                            .WithUrl($"https://www.fuzzwork.co.uk/info/?typeid={ItemType.Id}/")
-                            .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
-                    })
-                    .WithDescription($"{SystemName.Name} Prices")
-                    .AddInlineField("Buy", $"Low: {centralreply.buy.min.ToString("N2")}{Environment.NewLine}" +
-                    $"Avg: {centralreply.buy.avg.ToString("N2")}{Environment.NewLine}" +
-                    $"High: {centralreply.buy.max.ToString("N2")}")
-                    .AddInlineField("Sell", $"Low: {centralreply.sell.min.ToString("N2")}{Environment.NewLine}" +
-                    $"Avg: {centralreply.sell.avg.ToString("N2")}{Environment.NewLine}" +
-                    $"High: {centralreply.sell.max.ToString("N2")}")
-                    .AddField($"Extra Data", $"\u200b")
-                    .AddInlineField("Buy", $"5%: {centralreply.buy.fivePercent.ToString("N2")}{Environment.NewLine}" +
-                    $"Volume: {centralreply.buy.volume}")
-                    .AddInlineField("Sell", $"5%: {centralreply.sell.fivePercent.ToString("N2")}{Environment.NewLine}" +
-                    $"Volume: {centralreply.sell.volume.ToString("N0")}");
-                var embed = builder.Build();
+                        await channel.SendMessageAsync($"{Context.User.Mention}, {String} was not found", false, null).ConfigureAwait(false);
+                        return;
+                    }
 
-                await channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
+                    var ItemType = IDstoNames.InventoryTypes.FirstOrDefault(x => x.Name.ToLower() == String.ToLower());
+
+                    PostUniverseIdsSystem SystemName = new PostUniverseIdsSystem { Name = "Global", Id = 0 };
+
+                    if (IDstoNames.Systems != null && IDstoNames.Systems.Count > 0)
+                        SystemName = IDstoNames.Systems.FirstOrDefault(x => x.Name == System);
+
+                    var url = "https://api.evemarketer.com/ec";
+
+                    var eveCentralReply = "";
+
+                    if (System == null)
+                        eveCentralReply = await Base._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={ItemType.Id}");
+                    else
+                        eveCentralReply = await Base._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={ItemType.Id}&usesystem={SystemName.Id}");
+
+                    var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
+
+                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {Context.Message.Author}'s Price check to {channel.Name}"));
+                    var builder = new EmbedBuilder()
+                        .WithColor(new Color(0x00D000))
+                        .WithThumbnailUrl($"https://image.eveonline.com/Type/{ItemType.Id}_64.png")
+                        .WithAuthor(author =>
+                        {
+                            author
+                                .WithName($"Item: {ItemType.Name}")
+                                .WithUrl($"https://www.fuzzwork.co.uk/info/?typeid={ItemType.Id}/")
+                                .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                        })
+                        .WithDescription($"{SystemName.Name} Prices")
+                        .AddInlineField("Buy", $"Low: {centralreply.buy.min.ToString("N2")}{Environment.NewLine}" +
+                        $"Avg: {centralreply.buy.avg.ToString("N2")}{Environment.NewLine}" +
+                        $"High: {centralreply.buy.max.ToString("N2")}")
+                        .AddInlineField("Sell", $"Low: {centralreply.sell.min.ToString("N2")}{Environment.NewLine}" +
+                        $"Avg: {centralreply.sell.avg.ToString("N2")}{Environment.NewLine}" +
+                        $"High: {centralreply.sell.max.ToString("N2")}")
+                        .AddField($"Extra Data", $"\u200b")
+                        .AddInlineField("Buy", $"5%: {centralreply.buy.fivePercent.ToString("N2")}{Environment.NewLine}" +
+                        $"Volume: {centralreply.buy.volume}")
+                        .AddInlineField("Sell", $"5%: {centralreply.sell.fivePercent.ToString("N2")}{Environment.NewLine}" +
+                        $"Volume: {centralreply.sell.volume.ToString("N0")}");
+                    var embed = builder.Build();
+
+                    await channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
+                }
             }
             catch (Exception ex)
             {

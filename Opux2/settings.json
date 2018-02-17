@@ -2,5 +2,6 @@
   "token": "",
   "guildid": 0,
   "channelid": 0,
+  "triiger": "!",
   "debugger": false
 }
