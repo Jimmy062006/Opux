@@ -97,9 +97,19 @@ namespace Opux2
                 //Load Settings
                 try
                 {
-                    var builder = new ConfigurationBuilder()
-                        .SetBasePath(currentDirectory)
-                        .AddJsonFile("settings.json");
+                    IConfigurationBuilder builder;
+                    if (File.Exists($"{currentDirectory}/settings.custom.json"))
+                    {
+                        builder = new ConfigurationBuilder()
+                            .SetBasePath(currentDirectory)
+                            .AddJsonFile("settings.custom.json");
+                    }
+                    else
+                    {
+                        builder = new ConfigurationBuilder()
+                            .SetBasePath(currentDirectory)
+                            .AddJsonFile("settings.json");
+                    }
 
                     Configuration = builder.Build();
                 }
