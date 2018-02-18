@@ -3,5 +3,6 @@
   "guildid": 0,
   "channelid": 0,
   "trigger": "!",
+  "LogLevel": 3,
   "debugger": false
 }

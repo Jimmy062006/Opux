@@ -38,7 +38,7 @@ namespace tqStatus
                     })
                     .AddInlineField("Players Online:", $"{Players}")
                     .AddInlineField("Version", $"{ServerVersion}")
-                    .AddInlineField("StartTime", $"{StartTime}");
+                    .AddInlineField("StartTime", $"{_Starttime}");
 
                 builder.WithTimestamp(DateTime.UtcNow);
 
@@ -82,31 +82,34 @@ namespace tqStatus
                         var textchannel = Base.DiscordClient.GetGuild(guildid).GetTextChannel(channelid);
 
                         var status = await this.status.GetStatusAsyncWithHttpInfo();
-                        if (status.StatusCode == 200 && Convert.ToInt16(status.Headers["X-Esi-Error-Limit-Remain"]) > 10 && _FirstRunDone)
+                        if (status.StatusCode == 200 && Convert.ToInt16(status.Headers["X-Esi-Error-Limit-Remain"]) > 10)
                         {
-                            if (_VIP != (status.Data.Vip ?? false) || _Version != status.Data.ServerVersion || status.Data.StartTime > _Starttime.AddMinutes(1))
+                            if (_FirstRunDone)
                             {
-                                _VIP = status.Data.Vip ?? false;
-                                _Version = status.Data.ServerVersion;
-                                _Starttime = status.Data.StartTime ?? DateTime.MinValue;
+                                if (_VIP != (status.Data.Vip ?? false) || _Version != status.Data.ServerVersion || status.Data.StartTime > _Starttime.AddMinutes(1))
+                                {
+                                    _VIP = status.Data.Vip ?? false;
+                                    _Version = status.Data.ServerVersion;
+                                    _Starttime = status.Data.StartTime ?? DateTime.MinValue;
 
-                                var builder = new EmbedBuilder()
-                                    .WithColor(new Color(0x00D000))
-                                    .WithAuthor(author =>
-                                    {
-                                        author
-                                            .WithName($"EVE Sever status changed");
-                                    })
-                                    .AddInlineField("Status", "Online")
-                                    .AddInlineField("Players", $"{status.Data.Players}");
-                                if (_VIP)
-                                    builder.AddInlineField("VIP", "VIP Mode Only!!");
+                                    var builder = new EmbedBuilder()
+                                        .WithColor(new Color(0x00D000))
+                                        .WithAuthor(author =>
+                                        {
+                                            author
+                                                .WithName($"EVE Sever status changed");
+                                        })
+                                        .AddInlineField("Status", "Online")
+                                        .AddInlineField("Players", $"{status.Data.Players}");
+                                    if (_VIP)
+                                        builder.AddInlineField("VIP", "VIP Mode Only!!");
 
-                                builder.WithTimestamp(DateTime.UtcNow);
+                                    builder.WithTimestamp(DateTime.UtcNow);
 
-                                var embed = builder.Build();
+                                    var embed = builder.Build();
 
-                                await textchannel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
+                                    await textchannel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
+                                }
                             }
                             else if (!_FirstRunDone)
                             {

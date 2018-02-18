@@ -38,11 +38,7 @@ namespace Opux2
         {
             try
             {
-                //Get a Discord Client Instance
                 DiscordClient = new DiscordSocketClient();
-
-                //Settings need to be moved later
-                LogLevel = LogSeverity.Critical;
 
                 var result = MainAsync(args).GetAwaiter().GetResult();
 
