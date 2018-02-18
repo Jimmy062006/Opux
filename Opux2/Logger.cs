@@ -85,7 +85,7 @@ namespace Opux2
     {
         override protected void Convert(TextWriter writer, object state)
         {
-            string specialFolder = Base.currentDirectory;
+            string specialFolder = Path.Combine(Base.currentDirectory, "Logs", "log.txt");
             writer.Write(specialFolder);
         }
     }

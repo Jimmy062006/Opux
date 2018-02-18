@@ -98,7 +98,8 @@ namespace Opux2
                 try
                 {
                     IConfigurationBuilder builder;
-                    if (File.Exists($"{currentDirectory}/settings.custom.json"))
+                    var path = Path.Combine(currentDirectory, "settings.custom.json");
+                    if (File.Exists(path))
                     {
                         builder = new ConfigurationBuilder()
                             .SetBasePath(currentDirectory)
