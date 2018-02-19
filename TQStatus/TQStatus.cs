@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using ESIClient.Api;
+using Microsoft.Extensions.Configuration;
 using Opux2;
 using System;
 using System.Threading.Tasks;
@@ -9,9 +10,9 @@ namespace tqStatus
 {
     public class TQStatus : ModuleBase, IPlugin
     {
-        static DateTime lastRun = new DateTime();
         StatusApi status = new StatusApi();
 
+        static DateTime lastRun { get; set; }
         static bool _Running { get; set; }
         static bool _FirstRunDone { get; set; }
         static bool _VIP { get; set; }
@@ -69,15 +70,14 @@ namespace tqStatus
                 if ( !_Running && DateTime.UtcNow > lastRun.AddSeconds(30))
                 {
                     _Running = true;
-                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, Name, $"Running EVE Server Status Check"));
-                    //Needs settings file for these
-                    var channelRaw = Base.Configuration.GetSection("channelid");
-                    var guildidRaw = Base.Configuration.GetSection("guildid");
 
-                    if (channelRaw.Value != null & guildidRaw.Value != null)
+                    var channelRaw = Base.Configuration.GetValue<string>("channelid");
+                    var guildidRaw = Base.Configuration.GetValue<string>("guildid");
+
+                    if (channelRaw != null & guildidRaw != null)
                     {
-                        UInt64.TryParse(channelRaw.Value, out ulong channelid);
-                        UInt64.TryParse(guildidRaw.Value, out ulong guildid);
+                        UInt64.TryParse(channelRaw, out ulong channelid);
+                        UInt64.TryParse(guildidRaw, out ulong guildid);
 
                         var textchannel = Base.DiscordClient.GetGuild(guildid).GetTextChannel(channelid);
 
@@ -118,6 +118,7 @@ namespace tqStatus
                                 _Starttime = status.Data.StartTime ?? DateTime.MinValue;
 
                                 _FirstRunDone = true;
+                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, Name, $"EVE Server Status Check Active"));
                             }
                         }
                         else

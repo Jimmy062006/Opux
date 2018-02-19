@@ -4,5 +4,12 @@
   "channelid": 0,
   "trigger": "!",
   "LogLevel": 3,
-  "debugger": false
+  "debugger": false,
+  "MySqlConfig": {
+    "hostname": "localhost",
+    "port": "3306",
+    "username": "test",
+    "password": "test",
+    "database": "test"
+  }
 }

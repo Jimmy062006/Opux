@@ -13,7 +13,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EVETime", "EVETime\EVETime.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TQStatus", "TQStatus\TQStatus.csproj", "{44A59EF1-DFDF-47E1-822A-E6E3A4536B26}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildEvents", "BuildEvents\BuildEvents.csproj", "{D429B50E-1A62-4E75-8BBF-C3A3E2536B16}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildEvents", "BuildEvents\BuildEvents.csproj", "{D429B50E-1A62-4E75-8BBF-C3A3E2536B16}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FleetUp", "FleetUp\FleetUp.csproj", "{A6B03A15-FF22-4D22-B2B3-B37F6A4D3B1E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{D429B50E-1A62-4E75-8BBF-C3A3E2536B16}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D429B50E-1A62-4E75-8BBF-C3A3E2536B16}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D429B50E-1A62-4E75-8BBF-C3A3E2536B16}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6B03A15-FF22-4D22-B2B3-B37F6A4D3B1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6B03A15-FF22-4D22-B2B3-B37F6A4D3B1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6B03A15-FF22-4D22-B2B3-B37F6A4D3B1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6B03A15-FF22-4D22-B2B3-B37F6A4D3B1E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

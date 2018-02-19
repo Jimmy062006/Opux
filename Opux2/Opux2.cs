@@ -24,8 +24,8 @@ namespace Opux2
         public static IServiceProvider ServiceCollection { get; private set; }
         public static readonly HttpClient _httpClient = new HttpClient();
 
-        internal static bool Avaliable { get; set; }
         internal static bool Quit { get; private set; }
+        internal static bool MySqlAvaliable { get; set; }
         internal static LogSeverity LogLevel = default(LogSeverity);
         internal static Dictionary<string, IPlugin> _plugins;
 
@@ -81,16 +81,14 @@ namespace Opux2
             try
             {
                 #region eventhooking
-                //Hook Events
+
                 DiscordClient.Ready += Events.DiscordClient_Ready;
                 DiscordClient.Disconnected += Events.DiscordClient_Disconnected;
                 DiscordClient.MessageReceived += Events.DiscordClient_HandleCommand;
 
-                //Discord Logging (to CLI)
                 DiscordClient.Log += Logger.DiscordClient_Log;
                 #endregion
 
-                //Load Settings
                 try
                 {
                     IConfigurationBuilder builder;
@@ -110,14 +108,13 @@ namespace Opux2
                     }
 
                     Configuration = builder.Build();
-
+                    await mySql.MySqlCheck();
                 }
                 catch (Exception ex)
                 {
                     await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Critical, "MainAsync", ex.Message, ex));
                 }
 
-                //If Debugger is needed wait for it to attach
                 if (Convert.ToBoolean(Configuration.GetValue<string>("debugger")))
                 {
                     while(!Debugger.IsAttached)
@@ -127,19 +124,16 @@ namespace Opux2
                     }
                 }
 
-                //Load all plugins before doing anything.
                 _plugins = new Dictionary<string, IPlugin>();
                 Plugins = PluginLoader<IPlugin>.LoadPlugins("Plugins");
 
-                //Setup Command Events
                 Commands = new CommandService();
                 await Commands.AddModulesAsync(Assembly.GetEntryAssembly());
 
-                //Establish connection to Discord
                 await DiscordClient.LoginAsync(TokenType.Bot, Configuration.GetValue<string>("token"), true);
                 await DiscordClient.StartAsync();
 
-                while (!Avaliable)
+                while (DiscordClient.ConnectionState != ConnectionState.Connected)
                 {
                     await Task.Delay(500);
                 }
@@ -166,7 +160,7 @@ namespace Opux2
 
         static async Task Pulse()
         {
-            if (Avaliable)
+            if (DiscordClient.ConnectionState == ConnectionState.Connected)
             {
                 try
                 {

@@ -9,13 +9,11 @@ namespace Opux2
     {
         internal static Task DiscordClient_Disconnected(Exception arg)
         {
-            Base.Avaliable = false;
             return Task.CompletedTask;
         }
 
         internal static Task DiscordClient_Ready()
         {
-            Base.Avaliable = true;
             return Task.CompletedTask;
         }
 
