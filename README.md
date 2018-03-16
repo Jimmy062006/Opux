@@ -14,7 +14,7 @@ This bot is currently under development and needs to run with dotnet SDK/Runtime
 
 For any further questions contact us on discord:
 
-https://discord.gg/KX5Wrkj
+https://discord.gg/csc7HNM
 
 # Docker
 
