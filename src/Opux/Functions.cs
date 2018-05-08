@@ -18,10 +18,13 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
+using TentacleSoftware.TeamSpeakQuery;
+using TentacleSoftware.TeamSpeakQuery.NotifyResult;
 using YamlDotNet.RepresentationModel;
 using static Opux.JsonClasses;
 
@@ -36,9 +39,11 @@ namespace Opux
         static bool _avaliable = false;
         static bool _running = false;
         static bool _jabberRunning = false;
+        static bool _teamspeakRunning = false;
         static string _motdtopic;
         static int lastPosted = 0;
         static DateTime _lastTopicCheck = DateTime.Now;
+        public static DateTime _tsLastRan { get; private set; }
 
         //Timer is setup here
         #region Timer stuff
@@ -117,6 +122,12 @@ namespace Opux
                     if (Program.debug)
                         Console.WriteLine($"Checking jabber");
                     await Jabber();
+                }
+                if (Convert.ToBoolean(Program.Settings.GetSection("config")["teamspeak"]))
+                {
+                    if (Program.debug)
+                        Console.WriteLine($"Checking teamspeak");
+                    await TeamspeakCheck();
                 }
 
                 _running = false;
@@ -1144,11 +1155,14 @@ namespace Opux
                                     roles.Add(exemptRole);
                             }
 
+                            var active = false;
+
                             //Check for Corp roles
                             if (corps.ContainsKey(characterData.corporation_id.ToString()))
                             {
                                 var cinfo = corps.FirstOrDefault(x => x.Key == characterData.corporation_id.ToString());
                                 roles.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == cinfo.Value));
+                                active = true;
                             }
 
                             //Check for Alliance roles
@@ -1158,7 +1172,14 @@ namespace Opux
                                 {
                                     var ainfo = alliance.FirstOrDefault(x => x.Key == characterData.alliance_id.ToString());
                                     roles.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == ainfo.Value));
+                                    active = true;
                                 }
+                            }
+
+                            if (!active)
+                            {
+                                string queryUpdate = $"UPDATE authUsers SET active=\"no\" WHERE discordID=\"{u.Id}\"";
+                                var responceUpdate = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], queryUpdate);
                             }
 
                             bool changed = false;
@@ -1264,10 +1285,66 @@ namespace Opux
                         await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Fatal Error: {ex.Message}", ex));
                     }
                 }
+
                 if (Context != null)
                 {
                     var channel = discordGuild.GetTextChannel(logchan);
                     await channel.SendMessageAsync($"{Context.Message.Author.Mention} REAUTH COMPLETED");
+                }
+            }
+        }
+        #endregion
+
+        //Auth Maintenence
+        #region authMaint
+        internal async static Task AuthMaint(ICommandContext Context)
+        {
+
+            var authgroups = Program.Settings.GetSection("auth").GetSection("authgroups").GetChildren().ToList();
+            var exemptRoles = Program.Settings.GetSection("auth").GetSection("exempt").GetChildren().ToArray();
+            var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
+            var logchan = Convert.ToUInt64(Program.Settings.GetSection("auth")["alertChannel"]);
+            var discordUsers = Program.Client.GetGuild(guildID).Users;
+            var discordGuild = Program.Client.GetGuild(guildID);
+            var corps = new Dictionary<string, string>();
+            var alliance = new Dictionary<string, string>();
+
+            foreach (var config in authgroups)
+            {
+                var configChildren = config.GetChildren();
+
+                var corpID = configChildren.FirstOrDefault(x => x.Key == "corpID").Value ?? "";
+                var allianceID = configChildren.FirstOrDefault(x => x.Key == "allianceID").Value ?? "";
+                var corpMemberRole = configChildren.FirstOrDefault(x => x.Key == "corpMemberRole").Value ?? "";
+                var allianceMemberRole = configChildren.FirstOrDefault(x => x.Key == "allianceMemberRole").Value ?? "";
+
+                if (Convert.ToInt32(corpID) != 0)
+                {
+                    corps.Add(corpID, corpMemberRole);
+                }
+                if (Convert.ToInt32(allianceID) != 0)
+                {
+                    alliance.Add(allianceID, allianceMemberRole);
+                }
+            }
+
+            string query = $"SELECT * FROM authUsers";
+            var responce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query);
+
+            if (responce.Count > 0)
+            {
+                foreach (var r in responce)
+                {
+                    var user = discordGuild.GetUser(Convert.ToUInt64(r["discordID"]));
+                    if (user == null)
+                    {
+                        string delQuery = $"DELETE FROM authUsers WHERE id = {r["id"]}";
+                        var delResponce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query);
+                    }
+                    else
+                    {
+
+                    }
                 }
             }
         }
@@ -1689,6 +1766,364 @@ namespace Opux
                 await Client_Log(new LogMessage(LogSeverity.Error, $"killFeed", ex.Message, ex));
                 killfeedrunning = false;
             }
+        }
+        #endregion
+
+        //Teamspeak
+        #region Teamspeak
+        internal static ServerQueryClient TS_client;
+
+        internal async static Task TeamspeakCheck()
+        {
+            var hostname = Program.Settings.GetSection("teamspeak")["hostname"];
+            var queryport = Convert.ToInt16(Program.Settings.GetSection("teamspeak")["queryport"]);
+            var username = Program.Settings.GetSection("teamspeak")["username"];
+            var password = Program.Settings.GetSection("teamspeak")["password"];
+            var serverport = Convert.ToInt16(Program.Settings.GetSection("teamspeak")["serverport"]);
+
+            var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
+            var discordUsers = Program.Client.GetGuild(guildID).Users;
+            var discordGuild = Program.Client.GetGuild(guildID);
+
+            var queryCheck = $"SELECT * FROM teamspeakUsers";
+            try
+            {
+                var responceCheck = MysqlQuery(Program.Settings.GetSection("config")["connstring"], queryCheck).Result;
+            }
+            catch (AggregateException ex)
+            {
+                try
+                {
+                    ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                }
+                catch (MySqlException error) when (error.Number == (int)MySqlErrorCode.NoSuchTable)
+                {
+                    var queryTableAdd = $"CREATE TABLE teamspeakUsers (id VARCHAR(64) NOT NULL, uid varchar(64) NOT NULL, PRIMARY KEY (id))";
+                    try
+                    {
+                        var responceCheck = MysqlQuery(Program.Settings.GetSection("config")["connstring"], queryTableAdd).Result;
+                    }
+                    catch (Exception taberror)
+                    {
+
+                    }
+                }
+            }
+
+            if (!_teamspeakRunning)
+            {
+                TS_client = new ServerQueryClient(hostname, queryport, TimeSpan.FromMilliseconds(50));
+
+                await TS_client.Initialize();
+                var result = await TS_client.Login(username, password);
+
+                if (result.Success)
+                {
+                    _teamspeakRunning = true;
+                    await TS_client.Use(UseServerBy.Port, serverport);
+                    var whoAmI = await TS_client.WhoAmI();
+                    var server = await TS_client.ServerInfo();
+                    await TS_client.ServerNotifyRegister(Event.textchannel);
+                    await TS_client.ServerNotifyRegister(Event.textprivate);
+                    await TS_client.ServerNotifyRegister(Event.textserver);
+                    await TS_client.ClientUpdate(Program.Settings.GetSection("config")["name"]);
+                    await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Connected to {server.VirtualServerName} as {whoAmI.ClientLoginName}"));
+                    //await TS_client.SendTextMessage(TextMessageTargetMode.TextMessageTarget_SERVER, server.VirtualServerId, "Opux Connected");
+                    TS_client.ConnectionClosed += Teamspeak_Closed;
+                    TS_client.NotifyTextMessage += Teamspeak_TextMessage;
+                }
+            }
+            else if (_teamspeakRunning)
+            {
+                if (DateTime.Now > _tsLastRan.AddMinutes(5))
+                {
+                    var clientList = await TS_client.ClientList();
+                    var serverGroups = await TS_client.SendCommandAsync(new ServerQueryCommand<ServerGroupListResult>(Command.servergrouplist));
+
+                    foreach (var client in clientList.Values)
+                    {
+                        if (client.ClientType == "0")
+                        {
+                            var TSquery = $"SELECT * FROM teamspeakUsers WHERE uid=\"{client.ClientUniqueIdentifier}\"";
+                            var TSresponce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], TSquery);
+
+                            String disID = "";
+                            IList<IDictionary<string, object>> responce = null;
+
+                            if (TSresponce.Count > 0)
+                            {
+                                disID = TSresponce == null ? "0" : TSresponce[0]["id"].ToString();
+                                var query = $"SELECT * FROM authUsers WHERE discordID=\"{disID}\"";
+                                responce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query);
+                            }
+
+                            var discordUser = discordUsers.FirstOrDefault(x => x.Id.ToString() == disID);
+
+                            if (responce == null || responce.Count > 0 && responce[0]["active"].ToString() == "no")
+                            {
+                                foreach (int i in Array.ConvertAll(client.ClientServerGroups.Split(','), int.Parse))
+                                {
+                                    var tmp = serverGroups.Values.FirstOrDefault(x => x.Sgid == i);
+                                    if (tmp.Name != "Server Admin")
+                                    {
+                                        if (tmp.Name != "Guest")
+                                        {
+                                            var result = await TS_client.SendCommandAsync($"servergroupdelclient sgid={tmp.Sgid} cldbid={client.ClientDatabaseId}");
+                                            await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Revoking group {tmp.Name} from {client.ClientNickname}"));
+                                        }
+                                    }
+                                }
+                                if (discordUser != null)
+                                {
+                                    var queryDel = $"DELETE FROM teamspeakUsers WHERE id=\"{discordUser.Id}\"";
+                                    var responceDel = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], queryDel);
+                                }
+                            }
+                            else if (responce.Count > 0 && responce[0]["active"].ToString() == "yes" && discordUser != null)
+                            {
+                                if (client.ClientNickname != responce[0]["eveName"].ToString())
+                                {
+                                    foreach (int i in Array.ConvertAll(client.ClientServerGroups.Split(','), int.Parse))
+                                    {
+                                        var tmp = serverGroups.Values.FirstOrDefault(x => x.Sgid == i);
+                                        if (tmp.Name != "Server Admin")
+                                        {
+                                            var result = await TS_client.SendCommandAsync($"servergroupdelclient sgid={tmp.Sgid} cldbid={client.ClientDatabaseId}");
+                                            await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Revoking group {tmp.Name} from {client.ClientNickname}"));
+                                        }
+                                    }
+                                    if (discordUser != null)
+                                    {
+                                        var queryDel = $"DELETE FROM teamspeakUsers WHERE id=\"{discordUser.Id}\"";
+                                        var responceDel = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], queryDel);
+                                    }
+                                    await discordUser.SendMessageAsync($"Roles have been revoked on Teamspeak due to your Nickname being wrong. Please set your teamspeak Nickname to {responce[0]["eveName"]}");
+                                }
+                            }
+                            else if (responce.Count == 0)
+                            {
+                                foreach (int i in Array.ConvertAll(client.ClientServerGroups.Split(','), int.Parse))
+                                {
+                                    var tmp = serverGroups.Values.FirstOrDefault(x => x.Sgid == i);
+                                    if (tmp.Name != "Server Admin")
+                                    {
+                                        var result = await TS_client.SendCommandAsync($"servergroupdelclient sgid={tmp.Sgid} cldbid={client.ClientDatabaseId}");
+                                        await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Revoking group {tmp.Name} from {client.ClientNickname}"));
+                                    }
+                                    if (discordUser != null)
+                                    {
+                                        var queryDel = $"DELETE FROM teamspeakUsers WHERE id=\"{discordUser.Id}\"";
+                                        var responceDel = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], queryDel);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    _tsLastRan = DateTime.Now;
+                }
+            }
+        }
+
+        private static async void Teamspeak_TextMessage(object sender, NotifyTextMessageResult e)
+        {
+            await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Message From: {e.Invokername}, {e.Msg}"));
+        }
+
+        private static async void Teamspeak_Closed(object sender, EventArgs e)
+        {
+            var username = Program.Settings.GetSection("teamspeak")["username"];
+            var password = Program.Settings.GetSection("teamspeak")["password"];
+
+            await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Connection Lost"));
+            TS_client = null;
+            _teamspeakRunning = false;
+        }
+
+        internal static async Task TS_Check(ICommandContext context)
+        {
+            try
+            {
+                var hostname = Program.Settings.GetSection("teamspeak")["hostname"];
+                var queryport = Convert.ToInt16(Program.Settings.GetSection("teamspeak")["queryport"]);
+                var username = Program.Settings.GetSection("teamspeak")["username"];
+                var password = Program.Settings.GetSection("teamspeak")["password"];
+                var serverport = Convert.ToInt16(Program.Settings.GetSection("teamspeak")["serverport"]);
+
+                var authgroups = Program.Settings.GetSection("auth").GetSection("authgroups").GetChildren().ToList();
+                var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
+                var discordUsers = Program.Client.GetGuild(guildID).Users;
+                var discordGuild = Program.Client.GetGuild(guildID);
+                var corps = new Dictionary<string, string>();
+                var alliance = new Dictionary<string, string>();
+
+                var serverGroups = TS_client.SendCommandAsync(new ServerQueryCommand<ServerGroupListResult>(Command.servergrouplist)).Result.Values.ToList();
+
+                var test = await TS_client.ServerInfo();
+
+                foreach (var config in authgroups)
+                {
+                    var configChildren = config.GetChildren();
+
+                    var corpID = configChildren.FirstOrDefault(x => x.Key == "corpID").Value ?? "";
+                    var allianceID = configChildren.FirstOrDefault(x => x.Key == "allianceID").Value ?? "";
+                    var corpMemberRole = configChildren.FirstOrDefault(x => x.Key == "corpMemberRole").Value ?? "";
+                    var allianceMemberRole = configChildren.FirstOrDefault(x => x.Key == "allianceMemberRole").Value ?? "";
+
+                    if (Convert.ToInt32(corpID) != 0)
+                    {
+                        corps.Add(corpID, corpMemberRole);
+                    }
+                    if (Convert.ToInt32(allianceID) != 0)
+                    {
+                        alliance.Add(allianceID, allianceMemberRole);
+                    }
+                }
+
+                var TSUsers = await TS_client.ClientList();
+                var query = $"SELECT * FROM authUsers WHERE discordID=\"{context.User.Id}\" AND active=\"yes\"";
+
+                var responce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query);
+                if (responce.Count() == 0)
+                {
+                    await context.Channel.SendMessageAsync($"{context.Message.Author.Mention} not authed on Discord yet use !auth");
+                }
+                else
+                {
+                    var count = 1;
+                    foreach (var c in TSUsers.Values)
+                    {
+                        var teamspeakUIDS = $"SELECT * FROM teamspeakUsers";
+                        var reponceTeamspeak = MysqlQuery(Program.Settings.GetSection("config")["connstring"], teamspeakUIDS).Result;
+
+                        var characterID = responce.OrderByDescending(x => x["id"]).FirstOrDefault()["characterID"];
+                        var teamspeakEntry = reponceTeamspeak.FirstOrDefault(x => x["id"].ToString() == context.User.Id.ToString());
+
+                        if (responce[0]["eveName"].ToString() == c.ClientNickname && Convert.ToUInt64(responce[0]["discordID"]) == context.User.Id && teamspeakEntry == null)
+                        {
+                            var responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{characterID}/?datasource=tranquility");
+                            var characterData = JsonConvert.DeserializeObject<CharacterData>(await responceMessage.Content.ReadAsStringAsync());
+
+                            responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.corporation_id}/?datasource=tranquility");
+                            var corporationData = JsonConvert.DeserializeObject<CorporationData>(await responceMessage.Content.ReadAsStringAsync());
+
+                            //Check for Corp roles
+                            if (corps.ContainsKey(characterData.corporation_id.ToString()))
+                            {
+                                var corp = corps.FirstOrDefault(x => x.Key == characterData.corporation_id.ToString());
+                                var group = serverGroups.FirstOrDefault(x => x.Name == corp.Value);
+                                if (group != null)
+                                {
+                                    var result = await TS_client.SendCommandAsync($"servergroupaddclient sgid={group.Sgid} cldbid={c.ClientDatabaseId}");
+                                    if (result.Success)
+                                    {
+                                        var teamspeakAddUIDS = $"INSERT INTO teamspeakUsers (id, uid) values(\"{context.User.Id}\", \"{c.ClientUniqueIdentifier}\")";
+                                        var reponceAddTeamspeak = MysqlQuery(Program.Settings.GetSection("config")["connstring"], teamspeakAddUIDS).Result;
+
+                                        await context.Channel.SendMessageAsync($"{context.User.Mention}, Roles were given for Corp {corp.Value}");
+                                        await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Giving group {group.Name} to {c.ClientNickname}"));
+                                    }
+                                    else if (result.ErrorId == 2561)
+                                    {
+                                        await context.Channel.SendMessageAsync($"{context.User.Mention}, You all ready have the role for {corp.Value}");
+                                    }
+                                    else
+                                    {
+                                        await context.Channel.SendMessageAsync($"{context.User.Mention}, your request failed.");
+                                    }
+                                }
+                                else
+                                {
+                                    await context.Channel.SendMessageAsync($"{context.User.Mention}, Teamspeak Role {corp.Value} is missing contact the Teamspeak Admin");
+                                }
+                            }
+
+                            //Check for Alliance roles
+                            if (characterData.alliance_id != null)
+                            {
+                                if (alliance.ContainsKey(characterData.alliance_id.ToString()))
+                                {
+                                    var ally = alliance.FirstOrDefault(x => x.Key == characterData.alliance_id.ToString());
+                                    var group = serverGroups.FirstOrDefault(x => x.Name == ally.Value);
+                                    if (group != null)
+                                    {
+                                        var result = await TS_client.SendCommandAsync($"servergroupaddclient sgid={group.Sgid} cldbid={c.ClientDatabaseId}");
+                                        if (result.Success)
+                                        {
+                                            var teamspeakAddUIDS = $"INSERT INTO teamspeakUsers (id, uid) values(\"{context.User.Id}\", \"{c.ClientUniqueIdentifier}\")";
+                                            var reponceAddTeamspeak = MysqlQuery(Program.Settings.GetSection("config")["connstring"], teamspeakAddUIDS).Result;
+                                            await context.Channel.SendMessageAsync($"{context.User.Mention}, Roles were given for Alliance {ally.Value}");
+                                            await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Giving group {group.Name} to {c.ClientNickname}"));
+                                        }
+                                        else if (result.ErrorId == 2561)
+                                        {
+                                            await context.Channel.SendMessageAsync($"{context.User.Mention}, You all ready have the role for {ally.Value}");
+                                        }
+                                        else
+                                        {
+                                            await context.Channel.SendMessageAsync($"{context.User.Mention}, your request failed.");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        await context.Channel.SendMessageAsync($"{context.User.Mention}, Teamspeak Role {ally.Value} is missing contact the Teamspeak Admin");
+                                    }
+                                }
+                            }
+                            continue;
+                        }
+                        else if (responce[0]["eveName"].ToString() == c.ClientNickname && Convert.ToUInt64(responce[0]["discordID"]) == context.User.Id && teamspeakEntry != null)
+                        {
+                            await context.Channel.SendMessageAsync($"Please release your Other Teamspeak account binding with BLEAH");
+                        }
+                        else if (TSUsers.Values.Count() == count)
+                        {
+                            await context.Channel.SendMessageAsync($"Please connect to teamspeak first ts3server://{hostname}:{serverport} with username {responce[0]["eveName"].ToString()}");
+                        }
+                        count++;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"ERROR {ex.Message}", ex));
+            }
+        }
+
+        internal static async Task TS_Reset(ICommandContext context)
+        {
+            var TSquery = $"SELECT * FROM teamspeakUsers WHERE id=\"{context.User.Id}\"";
+            var TSresponce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], TSquery);
+
+            String disID = "";
+            IList<IDictionary<string, object>> responce = null;
+
+            if (TSresponce.Count > 0)
+            {
+                disID = TSresponce == null ? "0" : TSresponce[0]["id"].ToString();
+                var query = $"SELECT * FROM authUsers WHERE discordID=\"{disID}\"";
+                responce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query);
+            }
+
+            var clientList = await TS_client.ClientList();
+
+            var client = clientList.Values.SingleOrDefault(x => x.ClientUniqueIdentifier == TSresponce[0]["uid"].ToString());
+            var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
+            var serverGroups = await TS_client.SendCommandAsync(new ServerQueryCommand<ServerGroupListResult>(Command.servergrouplist));
+            var discordUser = Program.Client.GetGuild(guildID).GetUser(context.Message.Author.Id);
+
+            foreach (int i in Array.ConvertAll(client.ClientServerGroups.Split(','), int.Parse))
+            {
+                var tmp = serverGroups.Values.FirstOrDefault(x => x.Sgid == i);
+                if (tmp.Name != "Server Admin")
+                {
+                    var result = await TS_client.SendCommandAsync($"servergroupdelclient sgid={tmp.Sgid} cldbid={client.ClientDatabaseId}");
+                    await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Revoking group {tmp.Name} from {client.ClientNickname}"));
+                }
+            }
+            var queryDel = $"DELETE FROM teamspeakUsers WHERE id=\"{discordUser.Id}\"";
+            var responceDel = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], queryDel);
+            await context.Channel.SendMessageAsync($"{context.User.Mention}, Roles have been revoked on Teamspeak because of your reset request");
         }
         #endregion
 
@@ -3003,7 +3438,7 @@ namespace Opux
 
                                 var embed = builder.Build();
 
-                                var sendres = await channel.SendMessageAsync("@everyone FORMUP Now FleetUp Op <http://fleet-up.com/Operation#{operation.OperationId}>", false, embed).ConfigureAwait(false);
+                                var sendres = await channel.SendMessageAsync($"@everyone FORMUP Now FleetUp Op <http://fleet-up.com/Operation#{operation.OperationId}>", false, embed).ConfigureAwait(false);
 
                                 await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup FORMUP Now {name} ({operation.OperationId})"));
                             }
@@ -3509,7 +3944,7 @@ namespace Opux
                 cmd.CommandText = query;
                 try
                 {
-                    var mysqlConfig = Program.Settings.GetSection("mysqlCOnfig");
+                    var mysqlConfig = Program.Settings.GetSection("mysqlConfig");
 
                     conn.ConnectionString = $"datasource={mysqlConfig["hostname"]};port={mysqlConfig["port"]};" +
                         $"username={mysqlConfig["username"]};password={mysqlConfig["password"]};database={mysqlConfig["database"]};";
