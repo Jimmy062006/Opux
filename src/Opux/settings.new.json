@@ -17,6 +17,7 @@
     "time": false,
     "fleetup": false,
     "jabber": false,
+    "teamspeak": false,
     "MOTD": false,
     "notificationFeed": false,
     "timeformat": "yyyy/MM/dd/ HH:mm:ss",
@@ -113,5 +114,13 @@
       "BLOPS": "0000000000000"
     },
     "prepend": "@here"
+  },
+  "teamspeak": {
+    "hostname": "localhost",
+    "username": "serveradmin",
+    "password": "passwordhere",
+    "queryport": 10011,
+    "serverport": 9987,
+    "checkinterval": 5
   }
 }
