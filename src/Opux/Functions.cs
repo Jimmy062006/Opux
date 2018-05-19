@@ -1999,86 +1999,39 @@ namespace Opux
 
                         var characterID = responce.OrderByDescending(x => x["id"]).FirstOrDefault()["characterID"];
                         var teamspeakEntry = reponceTeamspeak.FirstOrDefault(x => x["id"].ToString() == context.User.Id.ToString());
+                        var test1 = (responce[0]["eveName"].ToString() == c.ClientNickname);
+                        var test2 = Convert.ToUInt64(responce[0]["discordID"]) == context.User.Id;
+                        var test3 = teamspeakEntry == null;
 
-                        if (responce[0]["eveName"].ToString() == c.ClientNickname && Convert.ToUInt64(responce[0]["discordID"]) == context.User.Id && teamspeakEntry == null)
+                        if (test1 && test2 && test3)
                         {
-                            var responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{characterID}/?datasource=tranquility");
-                            var characterData = JsonConvert.DeserializeObject<CharacterData>(await responceMessage.Content.ReadAsStringAsync());
-
-                            responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.corporation_id}/?datasource=tranquility");
-                            var corporationData = JsonConvert.DeserializeObject<CorporationData>(await responceMessage.Content.ReadAsStringAsync());
-
-                            //Check for Corp roles
-                            if (corps.ContainsKey(characterData.corporation_id.ToString()))
+                            try
                             {
-                                var corp = corps.FirstOrDefault(x => x.Key == characterData.corporation_id.ToString());
-                                var group = serverGroups.FirstOrDefault(x => x.Name == corp.Value);
-                                if (group != null)
-                                {
-                                    var result = await TS_client.SendCommandAsync($"servergroupaddclient sgid={group.Sgid} cldbid={c.ClientDatabaseId}");
-                                    if (result.Success)
-                                    {
-                                        var teamspeakAddUIDS = $"INSERT INTO teamspeakUsers (id, uid) values(\"{context.User.Id}\", \"{c.ClientUniqueIdentifier}\")";
-                                        var reponceAddTeamspeak = MysqlQuery(Program.Settings.GetSection("config")["connstring"], teamspeakAddUIDS).Result;
+                                var responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{characterID}/?datasource=tranquility");
+                                var characterData = JsonConvert.DeserializeObject<CharacterData>(await responceMessage.Content.ReadAsStringAsync());
 
-                                        await context.Channel.SendMessageAsync($"{context.User.Mention}, Roles were given for Corp {corp.Value}");
-                                        await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Giving group {group.Name} to {c.ClientNickname}"));
-                                    }
-                                    else if (result.ErrorId == 2561)
-                                    {
-                                        await context.Channel.SendMessageAsync($"{context.User.Mention}, You all ready have the role for {corp.Value}");
-                                    }
-                                    else
-                                    {
-                                        await context.Channel.SendMessageAsync($"{context.User.Mention}, your request failed.");
-                                    }
-                                }
-                                else
-                                {
-                                    await context.Channel.SendMessageAsync($"{context.User.Mention}, Teamspeak Role {corp.Value} is missing contact the Teamspeak Admin");
-                                }
-                            }
+                                responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.corporation_id}/?datasource=tranquility");
+                                var corporationData = JsonConvert.DeserializeObject<CorporationData>(await responceMessage.Content.ReadAsStringAsync());
 
-                            //Check for Alliance roles
-                            if (characterData.alliance_id != null)
-                            {
-                                if (alliance.ContainsKey(characterData.alliance_id.ToString()))
+                                //Check for Corp roles
+                                if (corps.ContainsKey(characterData.corporation_id.ToString()))
                                 {
-                                    var ally = alliance.FirstOrDefault(x => x.Key == characterData.alliance_id.ToString());
-                                    var group = serverGroups.FirstOrDefault(x => x.Name == ally.Value);
                                     var corp = corps.FirstOrDefault(x => x.Key == characterData.corporation_id.ToString());
-                                    var groupCorp = serverGroups.FirstOrDefault(x => x.Name == corp.Value);
+                                    var group = serverGroups.FirstOrDefault(x => x.Name == corp.Value);
                                     if (group != null)
                                     {
                                         var result = await TS_client.SendCommandAsync($"servergroupaddclient sgid={group.Sgid} cldbid={c.ClientDatabaseId}");
-                                        TextResult resultCorp = new TextResult();
-                                        if (Convert.ToBoolean(Program.Settings.GetSection("teasmspeak")["corpaswell"]))
-                                        {
-                                            resultCorp = await TS_client.SendCommandAsync($"servergroupaddclient sgid={groupCorp.Sgid} cldbid={c.ClientDatabaseId}");
-                                            if (resultCorp.Success)
-                                            {
-                                                await context.Channel.SendMessageAsync($"{context.User.Mention}, Roles were given for Corp {corp.Value}");
-                                                await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Giving group {group.Name} to {c.ClientNickname}"));
-                                            }
-                                            else if (result.ErrorId == 2561)
-                                            {
-                                                await context.Channel.SendMessageAsync($"{context.User.Mention}, You all ready have the role for {corp.Value}");
-                                            }
-                                            else
-                                            {
-                                                await context.Channel.SendMessageAsync($"{context.User.Mention}, your request failed.");
-                                            }
-                                        }
                                         if (result.Success)
                                         {
                                             var teamspeakAddUIDS = $"INSERT INTO teamspeakUsers (id, uid) values(\"{context.User.Id}\", \"{c.ClientUniqueIdentifier}\")";
                                             var reponceAddTeamspeak = MysqlQuery(Program.Settings.GetSection("config")["connstring"], teamspeakAddUIDS).Result;
-                                            await context.Channel.SendMessageAsync($"{context.User.Mention}, Roles were given for Alliance {ally.Value}");
+
+                                            await context.Channel.SendMessageAsync($"{context.User.Mention}, Roles were given for Corp {corp.Value}");
                                             await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Giving group {group.Name} to {c.ClientNickname}"));
                                         }
                                         else if (result.ErrorId == 2561)
                                         {
-                                            await context.Channel.SendMessageAsync($"{context.User.Mention}, You all ready have the role for {ally.Value}");
+                                            await context.Channel.SendMessageAsync($"{context.User.Mention}, You all ready have the role for {corp.Value}");
                                         }
                                         else
                                         {
@@ -2087,11 +2040,72 @@ namespace Opux
                                     }
                                     else
                                     {
-                                        await context.Channel.SendMessageAsync($"{context.User.Mention}, Teamspeak Role {ally.Value} is missing contact the Teamspeak Admin");
+                                        await context.Channel.SendMessageAsync($"{context.User.Mention}, Teamspeak Role {corp.Value} is missing contact the Teamspeak Admin");
                                     }
                                 }
+
+                                //Check for Alliance roles
+                                if (characterData.alliance_id != null)
+                                {
+                                    if (alliance.ContainsKey(characterData.alliance_id.ToString()))
+                                    {
+                                        var ally = alliance.FirstOrDefault(x => x.Key == characterData.alliance_id.ToString());
+                                        var group = serverGroups.FirstOrDefault(x => x.Name == ally.Value);
+                                        var groupCorp = serverGroups.FirstOrDefault(x => x.Name == corporationData.ticker);
+                                        if (group != null)
+                                        {
+                                            var result = await TS_client.SendCommandAsync($"servergroupaddclient sgid={group.Sgid} cldbid={c.ClientDatabaseId}");
+                                            TextResult resultCorp;
+                                            if (Convert.ToBoolean(Program.Settings.GetSection("teamspeak")["corpaswell"]))
+                                            {
+                                                try
+                                                {
+                                                    resultCorp = await TS_client.SendCommandAsync($"servergroupaddclient sgid={groupCorp.Sgid} cldbid={c.ClientDatabaseId}");
+
+                                                    if (resultCorp.Success)
+                                                    {
+                                                        await context.Channel.SendMessageAsync($"{context.User.Mention}, Roles were given for Corp {corporationData.ticker}");
+                                                        await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Giving group {group.Name} to {c.ClientNickname}"));
+                                                    }
+                                                    else if (result.ErrorId == 2561)
+                                                    {
+                                                        await context.Channel.SendMessageAsync($"{context.User.Mention}, You all ready have the role for {corporationData.ticker}");
+                                                    }
+                                                    else
+                                                    {
+                                                        await context.Channel.SendMessageAsync($"{context.User.Mention}, your request failed.");
+                                                    }
+                                                }
+                                                catch { }
+                                            }
+                                            if (result.Success)
+                                            {
+                                                var teamspeakAddUIDS = $"INSERT INTO teamspeakUsers (id, uid) values(\"{context.User.Id}\", \"{c.ClientUniqueIdentifier}\")";
+                                                var reponceAddTeamspeak = MysqlQuery(Program.Settings.GetSection("config")["connstring"], teamspeakAddUIDS).Result;
+                                                await context.Channel.SendMessageAsync($"{context.User.Mention}, Roles were given for Alliance {ally.Value}");
+                                                await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Giving group {group.Name} to {c.ClientNickname}"));
+                                            }
+                                            else if (result.ErrorId == 2561)
+                                            {
+                                                await context.Channel.SendMessageAsync($"{context.User.Mention}, You all ready have the role for {ally.Value}");
+                                            }
+                                            else
+                                            {
+                                                await context.Channel.SendMessageAsync($"{context.User.Mention}, your request failed.");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            await context.Channel.SendMessageAsync($"{context.User.Mention}, Teamspeak Role {ally.Value} is missing contact the Teamspeak Admin");
+                                        }
+                                    }
+                                }
+                                continue;
                             }
-                            continue;
+                            catch (Exception ex)
+                            {
+                                var error = ex;
+                            }
                         }
                         else if (responce[0]["eveName"].ToString() == c.ClientNickname && Convert.ToUInt64(responce[0]["discordID"]) == context.User.Id && teamspeakEntry != null)
                         {
