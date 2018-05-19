@@ -17,6 +17,7 @@
     "time": false,
     "fleetup": false,
     "jabber": false,
+    "teamspeak": false,
     "MOTD": false,
     "notificationFeed": false,
     "timeformat": "yyyy/MM/dd/ HH:mm:ss",
