@@ -113,5 +113,14 @@
       "BLOPS": "0000000000000"
     },
     "prepend": "@here"
+  },
+  "teamspeak": {
+    "hostname": "localhost",
+    "username": "serveradmin",
+    "password": "passwordhere",
+    "corpaswell":  false,
+    "queryport": 10011,
+    "serverport": 9987,
+    "checkinterval": 5
   }
 }

@@ -25,6 +25,7 @@ using System.Threading.Tasks;
 using System.Web;
 using TentacleSoftware.TeamSpeakQuery;
 using TentacleSoftware.TeamSpeakQuery.NotifyResult;
+using TentacleSoftware.TeamSpeakQuery.ServerQueryResult;
 using YamlDotNet.RepresentationModel;
 using static Opux.JsonClasses;
 
@@ -2045,9 +2046,29 @@ namespace Opux
                                 {
                                     var ally = alliance.FirstOrDefault(x => x.Key == characterData.alliance_id.ToString());
                                     var group = serverGroups.FirstOrDefault(x => x.Name == ally.Value);
+                                    var corp = corps.FirstOrDefault(x => x.Key == characterData.corporation_id.ToString());
+                                    var groupCorp = serverGroups.FirstOrDefault(x => x.Name == corp.Value);
                                     if (group != null)
                                     {
                                         var result = await TS_client.SendCommandAsync($"servergroupaddclient sgid={group.Sgid} cldbid={c.ClientDatabaseId}");
+                                        TextResult resultCorp = new TextResult();
+                                        if (Convert.ToBoolean(Program.Settings.GetSection("teasmspeak")["corpaswell"]))
+                                        {
+                                            resultCorp = await TS_client.SendCommandAsync($"servergroupaddclient sgid={groupCorp.Sgid} cldbid={c.ClientDatabaseId}");
+                                            if (resultCorp.Success)
+                                            {
+                                                await context.Channel.SendMessageAsync($"{context.User.Mention}, Roles were given for Corp {corp.Value}");
+                                                await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Giving group {group.Name} to {c.ClientNickname}"));
+                                            }
+                                            else if (result.ErrorId == 2561)
+                                            {
+                                                await context.Channel.SendMessageAsync($"{context.User.Mention}, You all ready have the role for {corp.Value}");
+                                            }
+                                            else
+                                            {
+                                                await context.Channel.SendMessageAsync($"{context.User.Mention}, your request failed.");
+                                            }
+                                        }
                                         if (result.Success)
                                         {
                                             var teamspeakAddUIDS = $"INSERT INTO teamspeakUsers (id, uid) values(\"{context.User.Id}\", \"{c.ClientUniqueIdentifier}\")";
