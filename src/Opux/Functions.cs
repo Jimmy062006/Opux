@@ -3728,12 +3728,13 @@ namespace Opux
                     {
                         characterStats = JsonConvert.DeserializeObject<CharacterStats>(await responce.Content.ReadAsStringAsync());
                     }
-                    responce = await Program._httpClient.GetAsync($"https://zkillboard.com/api/losses/characterID/{characterID.character[0]}/orderDirection/asc/");
+                    responce = await Program._httpClient.GetAsync($"https://zkillboard.com/api/losses/characterID/{characterID.character[0]}/");
 
                     List<Kill> zkillLosses = new List<Kill>();
                     if (responce.IsSuccessStatusCode)
                     {
-                        zkillLosses = JsonConvert.DeserializeObject<List<Kill>>(await responce.Content.ReadAsStringAsync());
+                        var result = await responce.Content.ReadAsStringAsync();
+                        zkillLosses = JsonConvert.DeserializeObject<List<Kill>>(result);
                     }
 
                     Kill zkillLast = zkillContent.Count > 0 ? zkillContent[0] : new Kill();
