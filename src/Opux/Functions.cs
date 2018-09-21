@@ -2005,15 +2005,18 @@ namespace Opux
                         var test2 = Convert.ToUInt64(responce[0]["discordID"]) == context.User.Id;
                         var test3 = teamspeakEntry == null;
 
+                        CharacterData characterData = new CharacterData();
+                        CorporationData corporationData = new CorporationData();
+
                         if (test1 && test2 && test3)
                         {
                             try
                             {
                                 var responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{characterID}/?datasource=tranquility");
-                                var characterData = JsonConvert.DeserializeObject<CharacterData>(await responceMessage.Content.ReadAsStringAsync());
+                                characterData = JsonConvert.DeserializeObject<CharacterData>(await responceMessage.Content.ReadAsStringAsync());
 
                                 responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.corporation_id}/?datasource=tranquility");
-                                var corporationData = JsonConvert.DeserializeObject<CorporationData>(await responceMessage.Content.ReadAsStringAsync());
+                                corporationData = JsonConvert.DeserializeObject<CorporationData>(await responceMessage.Content.ReadAsStringAsync());
 
                                 //Check for Corp roles
                                 if (corps.ContainsKey(characterData.corporation_id.ToString()))
@@ -2115,7 +2118,7 @@ namespace Opux
                         }
                         else if (TSUsers.Values.Count() == count)
                         {
-                            await context.Channel.SendMessageAsync($"Please connect to teamspeak first http://www.teamspeak.com/invite/{hostname}/?port{serverport}&?password={serverpassword} with username {responce[0]["eveName"].ToString()}");
+                            await context.Channel.SendMessageAsync($"Please connect to teamspeak first http://www.teamspeak.com/invite/{hostname}/?port{serverport}&password={serverpassword}&nickname={characterData.name} with username {responce[0]["eveName"].ToString()}");
                         }
                         count++;
                     }
