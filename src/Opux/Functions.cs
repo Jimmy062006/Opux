@@ -1951,7 +1951,7 @@ namespace Opux
                 var username = Program.Settings.GetSection("teamspeak")["username"];
                 var password = Program.Settings.GetSection("teamspeak")["password"];
                 var serverport = Convert.ToInt16(Program.Settings.GetSection("teamspeak")["serverport"]);
-                var serverpassword = Program.Settings.GetSection("teamspeak")["password"];
+                var serverpassword = Program.Settings.GetSection("teamspeak")["serverpassword"];
 
                 var authgroups = Program.Settings.GetSection("auth").GetSection("authgroups").GetChildren().ToList();
                 var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
@@ -2168,7 +2168,6 @@ namespace Opux
             var TSquery = $"SELECT * FROM teamspeakUsers WHERE id=\"{DiscordID}\"";
             var TSresponce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], TSquery);
 
-            String disID = "";
             IList<IDictionary<string, object>> responce = null;
 
             if (TSresponce.Count > 0)
