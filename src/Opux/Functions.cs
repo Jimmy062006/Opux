@@ -2153,11 +2153,9 @@ namespace Opux
             var serverGroups = await TS_client.SendCommandAsync(new ServerQueryCommand<ServerGroupListResult>(Command.servergrouplist));
             var discordUser = Program.Client.GetGuild(guildID).GetUser(context.Message.Author.Id);
 
-            var ClientServerGroups = Array.ConvertAll(client.ClientServerGroups.Split(','), int.Parse);
-
-            if (ClientServerGroups.Count() != 0)
+            if (client.ClientServerGroups.Count() != 0)
             {
-                foreach (int i in ClientServerGroups)
+                foreach (int i in Array.ConvertAll(client.ClientServerGroups.Split(','), int.Parse))
                 {
                     var tmp = serverGroups.Values.FirstOrDefault(x => x.Sgid == i);
                     if (tmp.Name != "Server Admin")
