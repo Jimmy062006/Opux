@@ -2115,6 +2115,7 @@ namespace Opux
                         else if (responce[0]["eveName"].ToString() == c.ClientNickname && Convert.ToUInt64(responce[0]["discordID"]) == context.User.Id && teamspeakEntry != null)
                         {
                             await context.Channel.SendMessageAsync($"Please release your Other Teamspeak account binding with !ts reset whilst connected (If this fails contact support)");
+                            continue;
                         }
                         else if (TSUsers.Values.Count() == count)
                         {
