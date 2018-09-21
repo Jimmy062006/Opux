@@ -2153,13 +2153,18 @@ namespace Opux
             var serverGroups = await TS_client.SendCommandAsync(new ServerQueryCommand<ServerGroupListResult>(Command.servergrouplist));
             var discordUser = Program.Client.GetGuild(guildID).GetUser(context.Message.Author.Id);
 
-            foreach (int i in Array.ConvertAll(client.ClientServerGroups.Split(','), int.Parse))
+            var ClientServerGroups = Array.ConvertAll(client.ClientServerGroups.Split(','), int.Parse);
+
+            if (ClientServerGroups.Count() != 0)
             {
-                var tmp = serverGroups.Values.FirstOrDefault(x => x.Sgid == i);
-                if (tmp.Name != "Server Admin")
+                foreach (int i in ClientServerGroups)
                 {
-                    var result = await TS_client.SendCommandAsync($"servergroupdelclient sgid={tmp.Sgid} cldbid={client.ClientDatabaseId}");
-                    await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Revoking group {tmp.Name} from {client.ClientNickname}"));
+                    var tmp = serverGroups.Values.FirstOrDefault(x => x.Sgid == i);
+                    if (tmp.Name != "Server Admin")
+                    {
+                        var result = await TS_client.SendCommandAsync($"servergroupdelclient sgid={tmp.Sgid} cldbid={client.ClientDatabaseId}");
+                        await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Revoking group {tmp.Name} from {client.ClientNickname}"));
+                    }
                 }
             }
             var queryDel = $"DELETE FROM teamspeakUsers WHERE id=\"{discordUser.Id}\"";
