@@ -412,6 +412,26 @@ namespace Opux
         /// 
         /// </summary>
         /// <returns></returns>
+        [Command("ts reset", RunMode = RunMode.Async), Summary("Activates Teamspeak check")]
+        [CheckForRole]
+        public async Task TsReset([Remainder] string x)
+        {
+            try
+            {
+                await Functions.TS_Reset(Context, x);
+            }
+            catch (Exception ex)
+            {
+                await Context.Message.Channel.SendMessageAsync("ERROR");
+                await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "TeamSpeak", ex.Message, ex));
+                await Task.FromException(ex);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         [Command("authmaint", RunMode = RunMode.Async), Summary("Activates Teamspeak check")]
         [CheckForRole]
         public async Task AuthMaint()
