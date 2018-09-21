@@ -1782,6 +1782,7 @@ namespace Opux
             var password = Program.Settings.GetSection("teamspeak")["password"];
             var serverport = Convert.ToInt16(Program.Settings.GetSection("teamspeak")["serverport"]);
 
+            var botName = Program.Settings.GetSection("config")["name"];
             var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
             var discordUsers = Program.Client.GetGuild(guildID).Users;
             var discordGuild = Program.Client.GetGuild(guildID);
@@ -1829,7 +1830,7 @@ namespace Opux
                     await TS_client.ServerNotifyRegister(Event.textserver);
                     await TS_client.ClientUpdate(Program.Settings.GetSection("config")["name"]);
                     await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Connected to {server.VirtualServerName} as {whoAmI.ClientLoginName}"));
-                    //await TS_client.SendTextMessage(TextMessageTargetMode.TextMessageTarget_SERVER, server.VirtualServerId, "Opux Connected");
+                    await TS_client.SendTextMessage(TextMessageTargetMode.TextMessageTarget_SERVER, server.VirtualServerId, $"{botName} Connected");
                     TS_client.ConnectionClosed += Teamspeak_Closed;
                     TS_client.NotifyTextMessage += Teamspeak_TextMessage;
                 }
