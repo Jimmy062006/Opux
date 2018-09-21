@@ -2118,7 +2118,7 @@ namespace Opux
                         }
                         else if (TSUsers.Values.Count() == count)
                         {
-                            await context.Channel.SendMessageAsync($"Please connect to teamspeak first http://www.teamspeak.com/invite/{hostname}/?port{serverport}&password={serverpassword}&nickname={characterData.name} with username {responce[0]["eveName"].ToString()}");
+                            await context.Channel.SendMessageAsync($"Please connect to teamspeak first http://www.teamspeak.com/invite/{hostname}/?port{serverport}&password={serverpassword}&nickname={responce[0]["eveName"].ToString()}");
                         }
                         count++;
                     }
