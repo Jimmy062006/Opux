@@ -3984,7 +3984,7 @@ namespace Opux
                     var mysqlConfig = Program.Settings.GetSection("mysqlConfig");
 
                     conn.ConnectionString = $"datasource={mysqlConfig["hostname"]};port={mysqlConfig["port"]};" +
-                        $"username={mysqlConfig["username"]};password={mysqlConfig["password"]};database={mysqlConfig["database"]};";
+                        $"username={mysqlConfig["username"]};password={mysqlConfig["password"]};database={mysqlConfig["database"]};SslMode=none;";
                     conn.Open();
                     using (MySqlDataReader reader = cmd.ExecuteReader())
                     {
