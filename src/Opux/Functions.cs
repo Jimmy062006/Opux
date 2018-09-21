@@ -2173,8 +2173,8 @@ namespace Opux
 
             if (TSresponce.Count > 0)
             {
-                disID = TSresponce == null ? "0" : TSresponce[0]["id"].ToString();
-                var query = $"SELECT * FROM authUsers WHERE discordID=\"{disID}\"";
+                //disID = TSresponce == null ? "0" : TSresponce[0]["id"].ToString();
+                var query = $"SELECT * FROM authUsers WHERE discordID=\"{DiscordID}\"";
                 responce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query);
             }
 
@@ -2194,7 +2194,7 @@ namespace Opux
                     await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Revoking group {tmp.Name} from {client.ClientNickname}"));
                 }
             }
-            var queryDel = $"DELETE FROM teamspeakUsers WHERE id=\"{discordUser.Id}\"";
+            var queryDel = $"DELETE FROM teamspeakUsers WHERE id=\"{DiscordID}\"";
             var responceDel = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], queryDel);
             await context.Channel.SendMessageAsync($"{context.User.Mention}, Roles have been revoked on Teamspeak because of your reset request");
         }
