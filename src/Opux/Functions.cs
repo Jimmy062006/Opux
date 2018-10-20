@@ -1852,7 +1852,7 @@ namespace Opux
                     await TS_client.ServerNotifyRegister(Event.textserver);
                     await TS_client.ClientUpdate(Program.Settings.GetSection("config")["name"]);
                     await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Connected to {server.VirtualServerName} as {whoAmI.ClientLoginName}"));
-                    await TS_client.SendTextMessage(TextMessageTargetMode.TextMessageTarget_SERVER, server.VirtualServerId, $"{botName} Connected");
+                    //await TS_client.SendTextMessage(TextMessageTargetMode.TextMessageTarget_SERVER, server.VirtualServerId, $"{botName} Connected");
                     TS_client.ConnectionClosed += Teamspeak_Closed;
                     TS_client.NotifyTextMessage += Teamspeak_TextMessage;
                 }
