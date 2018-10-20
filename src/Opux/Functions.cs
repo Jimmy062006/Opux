@@ -2,6 +2,9 @@
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using ESIClient.Dotcore.Api;
+using ESIClient.Dotcore.Client;
+using ESIClient.Dotcore.Model;
 using EveLibCore;
 using Matrix.Xmpp.Chatstates;
 using Matrix.Xmpp.Client;
@@ -26,6 +29,7 @@ using System.Web;
 using TentacleSoftware.TeamSpeakQuery;
 using TentacleSoftware.TeamSpeakQuery.NotifyResult;
 using TentacleSoftware.TeamSpeakQuery.ServerQueryResult;
+using WebSocketSharp;
 using YamlDotNet.RepresentationModel;
 using static Opux.JsonClasses;
 
@@ -34,7 +38,6 @@ namespace Opux
     internal class Functions
     {
         static DateTime _lastAuthCheck = DateTime.Now;
-        internal static bool killfeedrunning;
         internal static DateTime _nextNotificationCheck = DateTime.FromFileTime(0);
         static int _lastNotification;
         static bool _avaliable = false;
@@ -45,6 +48,8 @@ namespace Opux
         static int lastPosted = 0;
         static DateTime _lastTopicCheck = DateTime.Now;
         public static DateTime _tsLastRan { get; private set; }
+        public static bool ZkillInit { get; private set; }
+        public static List<int> Lastkill = new List<int>();
 
         //Timer is setup here
         #region Timer stuff
@@ -90,7 +95,8 @@ namespace Opux
                 {
                     if (Program.debug)
                         Console.WriteLine($"Checking killFeed");
-                    await KillFeed(null);
+                    //await KillFeed(null);
+                    ZKillMain();
                 }
                 if (Program.debug)
                     Console.WriteLine($"Checking notificationFeed Enabled");
@@ -1353,185 +1359,187 @@ namespace Opux
 
         //Complete Update to Embeds
         #region killFeed
-        private static async Task KillFeed(CommandContext Context)
+
+        public static WebSocket ws = new WebSocket("wss://zkillboard.com:2096");
+
+        public static void ZKillMain()
         {
-            ZKillboard kill = new ZKillboard();
+            if (!ZkillInit)
+            {
+                ws.OnMessage += Ws_OnMessageAsync;
+                ws.OnOpen += Ws_OnOpen;
+                ws.OnError += Ws_OnError;
+                ws.OnClose += Ws_OnClose;
+                ws.WaitTime = new TimeSpan(0, 60, 0);
+
+                ws.Connect();
+                ws.Send("{\"action\":\"sub\",\"channel\":\"killstream\"}");
+
+                ZkillInit = true;
+            }
+        }
+
+        private static void Ws_OnClose(object sender, CloseEventArgs e)
+        {
+            ws.OnMessage -= Ws_OnMessageAsync;
+            ws.OnOpen -= Ws_OnOpen;
+            ws.OnError -= Ws_OnError;
+            ws.OnClose -= Ws_OnClose;
+            ZkillInit = false;
+            //throw new NotImplementedException();
+        }
+
+        private static void Ws_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
+        {
+            //throw new NotImplementedException();
+        }
+
+        private static void Ws_OnOpen(object sender, EventArgs e)
+        {
+            //throw new NotImplementedException();
+        }
+
+        private static async void Ws_OnMessageAsync(object sender, WebSocketSharp.MessageEventArgs e)
+        {
             try
             {
-                if (!killfeedrunning)
+                var kill = JsonConvert.DeserializeObject<JsonClasszKill.zKill>(e.Data);
+
+                if (Lastkill.Contains(kill.killmail_id))
                 {
-                    killfeedrunning = true;
+                    Debug.WriteLine($"Skipping {kill.killmail_id}");
+                    return;
+                }
+
+                var count = Lastkill.Count();
+                if (count >= 50)
+                {
+                    Lastkill.RemoveRange(0, count - 50);
+                }
+
+                if (kill != null)
+                {
+                    var iD = kill.killmail_id;
+                    var killTime = kill.killmail_time;
+                    var shipID = kill.victim.ship_type_id;
+                    var value = kill.zkb.totalValue;
+                    var victimCharacterID = kill.victim.character_id;
+                    var victimCorpID = kill.victim.corporation_id;
+                    var victimAllianceID = kill.victim.alliance_id;
+                    var attackers = kill.attackers;
+                    var systemId = kill.solar_system_id;
+                    var npckill = kill.zkb.npc;
+
+                    CharacterApi characterApi = new CharacterApi();
+                    CorporationApi corporationApi = new CorporationApi();
+                    AllianceApi allianceApi = new AllianceApi();
+                    UniverseApi universeApi = new UniverseApi();
+                    SearchApi searchApi = new SearchApi();
+                    RoutesApi routeApi = new RoutesApi();
+
+                    GetCharactersCharacterIdOk victim;
+                    GetCorporationsCorporationIdOk victimCorp;
+                    GetAlliancesAllianceIdOk victimAlliance;
+
+                    var loop = 1;
+                    GetInfo:
+
+                    try
+                    {
+                        victim = victimCharacterID != 0 ? (await characterApi.GetCharactersCharacterIdAsync(victimCharacterID)) : null;
+                        victimCorp = victimCorpID != 0 ? (await corporationApi.GetCorporationsCorporationIdAsync(victimCorpID)) : null;
+                        victimAlliance = victimAllianceID != 0 ? await allianceApi.GetAlliancesAllianceIdAsync(victimAllianceID) : null;
+                    }
+                    catch (Exception ex)
+                    {
+                        if (loop == 5)
+                        {
+                            await Client_Log(new LogMessage(LogSeverity.Error, $"killFeed", $"ESI Error Tryed {loop} times and giving up"));
+                            return;
+                        }
+
+                        await Client_Log(new LogMessage(LogSeverity.Error, $"killFeed", $"ESI Issue Trying Again KillId {kill.killmail_id} " +
+                            $"(Loop {loop})"));
+                        loop++;
+                        goto GetInfo;
+                    }
+
+                    string victimName;
+                    if (victimCharacterID == 0)
+                    {
+                        victimName = universeApi.GetUniverseTypesTypeId(kill.victim.ship_type_id).Name;
+                    }
+                    else
+                    {
+                        victimName = victim.Name;
+                    }
+
+                    var system = await universeApi.GetUniverseSystemsSystemIdAsync(systemId);
+                    var ship = await universeApi.GetUniverseTypesTypeIdAsync(shipID);
+                    var secstatus = Math.Round((decimal)system.SecurityStatus, 1).ToString("N2");
+
                     Dictionary<string, IEnumerable<IConfigurationSection>> feedGroups = new Dictionary<string, IEnumerable<IConfigurationSection>>();
 
                     UInt64 guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
                     UInt64 logchan = Convert.ToUInt64(Program.Settings.GetSection("auth")["alertChannel"]);
                     var discordGuild = Program.Client.Guilds.FirstOrDefault(X => X.Id == guildID);
-                    var redisQID = Program.Settings.GetSection("killFeed")["reDisqID"].ToString();
-                    var redisqResponse = await (await Program._httpClient.GetAsync(String.IsNullOrEmpty(redisQID) ?
-                        $"https://redisq.zkillboard.com/listen.php" : $"https://redisq.zkillboard.com/listen.php?queueID={redisQID}")).Content.ReadAsStringAsync();
+                    var bigKillGlobal = Convert.ToInt64(Program.Settings.GetSection("killFeed")["bigKill"]);
+                    var bigKillGlobalChan = Convert.ToUInt64(Program.Settings.GetSection("killFeed")["bigKillChannel"]);
+                    var losses = Convert.ToBoolean(Program.Settings.GetSection("killFeed")["losses"]);
+                    var radius = Convert.ToInt16(Program.Settings.GetSection("killFeed")["radius"]);
+                    var radiusSystem = Program.Settings.GetSection("killFeed")["radiusSystem"];
+                    var radiusChannel = Convert.ToUInt64(Program.Settings.GetSection("killFeed")["radiusChannel"]);
 
-                    kill = JsonConvert.DeserializeObject<ZKillboard>(redisqResponse);
+                    var postedRadius = false;
+                    var postedGlobalBigKill = false;
 
-                    if (kill != null && kill.package != null && lastPosted != kill.package.killID)
+                    UInt64 lastChannel = 0;
+
+                    foreach (var i in Program.Settings.GetSection("killFeed").GetSection("groupsConfig").GetChildren().ToList())
                     {
-                        var bigKillGlobal = Convert.ToInt64(Program.Settings.GetSection("killFeed")["bigKill"]);
-                        var bigKillGlobalChan = Convert.ToUInt64(Program.Settings.GetSection("killFeed")["bigKillChannel"]);
-                        var iD = kill.package.killmail.killmail_id;
-                        var killTime = kill.package.killmail.killmail_time;
-                        var shipID = kill.package.killmail.victim.ship_type_id;
-                        var value = kill.package.zkb.totalValue;
-                        var victimCharacterID = kill.package.killmail.victim.character_id;
-                        var victimCorpID = kill.package.killmail.victim.corporation_id;
-                        var victimAllianceID = kill.package.killmail.victim.alliance_id;
-                        var attackers = kill.package.killmail.attackers;
-                        var systemId = kill.package.killmail.solar_system_id;
-                        var losses = Convert.ToBoolean(Program.Settings.GetSection("killFeed")["losses"]);
-                        var radius = Convert.ToInt16(Program.Settings.GetSection("killFeed")["radius"]);
-                        var radiusSystem = Program.Settings.GetSection("killFeed")["radiusSystem"];
-                        var radiusChannel = Convert.ToUInt64(Program.Settings.GetSection("killFeed")["radiusChannel"]);
-                        var npckill = kill.package.zkb.npc;
+                        var minimumValue = Convert.ToInt64(i["minimumValue"]);
+                        var minimumLossValue = Convert.ToInt64(i["minimumLossValue"]);
+                        var allianceID = Convert.ToInt32(i["allianceID"]);
+                        var corpID = Convert.ToInt32(i["corpID"]);
+                        var bigKillValue = Convert.ToInt64(i["bigKill"]);
+                        var bigKillChannel = Convert.ToUInt64(i["bigKillChannel"]);
+                        var c = Convert.ToUInt64(i["channel"]);
+                        var SystemID = 0;
 
-                        var postedRadius = false;
-                        var postedGlobalBigKill = false;
-
-                        var CharacterResponce = "";
-                        if (victimCharacterID != 0)
+                        if ((!(system.Name[0] == 'J' && Int32.TryParse(system.Name.Substring(1), out int disposable)) ||
+                            system.Name[0] == 'J' && Int32.TryParse(system.Name.Substring(1), out disposable) && radius == 0) &&
+                            !string.IsNullOrWhiteSpace(radiusSystem) && radiusChannel > 0)
                         {
-                            var Responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{victimCharacterID}/?datasource=tranquility");
-                            if (Responce.IsSuccessStatusCode)
+                            var SystemName = await searchApi.GetSearchAsync(new List<string> { $"solar_system" }, radiusSystem, strict: true);
+
+                            SystemID = SystemName.SolarSystem.FirstOrDefault().Value;
+                            var systemID = kill.solar_system_id;
+
+                            try
                             {
-                                CharacterResponce = await Responce.Content.ReadAsStringAsync();
-                            }
-                            else
-                            {
-                                await Client_Log(new LogMessage(LogSeverity.Error, "killFeed", $"CharacterResponce error {Responce.StatusCode}"));
-                            }
-                        }
+                                var data = await routeApi.GetRouteOriginDestinationAsync(systemId, SystemID);
 
-                        var SysNameResponce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/universe/systems/{systemId}/?datasource=tranquility&language=en-us");
-                        var SysNameContent = "";
-                        if (SysNameResponce.IsSuccessStatusCode)
-                        {
-                            SysNameContent = await SysNameResponce.Content.ReadAsStringAsync();
-                        }
-                        else
-                        {
-                            await Client_Log(new LogMessage(LogSeverity.Error, "killFeed", $"SysNameContent error {SysNameResponce.StatusCode}"));
-                        }
-
-                        var CorpNameResponce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{victimCorpID}/?datasource=tranquility");
-                        var CorpNameContent = "";
-                        if (CorpNameResponce.IsSuccessStatusCode)
-                        {
-                            CorpNameContent = await CorpNameResponce.Content.ReadAsStringAsync();
-                        }
-                        else
-                        {
-                            await Client_Log(new LogMessage(LogSeverity.Error, "killFeed", $"CorpName error {CorpNameResponce.StatusCode}"));
-                        }
-
-                        var AllyNameContent = "";
-                        if (victimAllianceID != 0)
-                        {
-                            var AllyNameResponce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{victimAllianceID}/?datasource=tranquility");
-                            if (AllyNameResponce.IsSuccessStatusCode)
-                            {
-                                AllyNameContent = await AllyNameResponce.Content.ReadAsStringAsync();
-                            }
-                            else
-                            {
-                                await Client_Log(new LogMessage(LogSeverity.Error, "killFeed", $"AllyName error {AllyNameResponce.StatusCode}"));
-                            }
-                        }
-
-                        var shipIDResponce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/universe/types/{shipID}/?datasource=tranquility&language=en-us");
-                        var shipIDContent = "";
-                        if (shipIDResponce.IsSuccessStatusCode)
-                        {
-                            shipIDContent = await shipIDResponce.Content.ReadAsStringAsync();
-                        }
-                        else
-                        {
-                            await Client_Log(new LogMessage(LogSeverity.Error, "killFeed", $"shipID error {shipIDResponce.StatusCode}"));
-                        }
-
-                        var Type_idResponce = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/universe/types/{shipID}/?datasource=tranquility&language=en-us");
-                        var systemDataResponce = await Program._httpClient.GetStringAsync($"https://esi.tech.ccp.is/latest/universe/systems/{systemId}/?datasource=tranquility&language=en-us");
-                        var Typeid = JsonConvert.DeserializeObject<Type_id>(Type_idResponce);
-
-                        var sysName = JsonConvert.DeserializeObject<SystemName>(SysNameContent).name;
-                        var victimCharacter = JsonConvert.DeserializeObject<CharacterData>(CharacterResponce);
-                        var victimCorp = JsonConvert.DeserializeObject<CorporationSearch>(CorpNameContent);
-                        var victimAlliance = JsonConvert.DeserializeObject<AllianceSearch>(AllyNameContent);
-                        var systemData = JsonConvert.DeserializeObject<SystemData>(systemDataResponce);
-                        var ship = JsonConvert.DeserializeObject<Type_id>(shipIDContent);
-
-                        var secstatus = Math.Round(systemData.security_status, 1).ToString("N2");
-                        UInt64 lastChannel = 0;
-
-                        foreach (var i in Program.Settings.GetSection("killFeed").GetSection("groupsConfig").GetChildren().ToList())
-                        {
-                            var minimumValue = Convert.ToInt64(i["minimumValue"]);
-                            var minimumLossValue = Convert.ToInt64(i["minimumLossValue"]);
-                            var allianceID = Convert.ToInt32(i["allianceID"]);
-                            var corpID = Convert.ToInt32(i["corpID"]);
-                            var bigKillValue = Convert.ToInt64(i["bigKill"]);
-                            var bigKillChannel = Convert.ToUInt64(i["bigKillChannel"]);
-                            var c = Convert.ToUInt64(i["channel"]);
-                            var SystemID = "0";
-
-                            if ((!(sysName[0] == 'J' && Int32.TryParse(sysName.Substring(1), out int disposable)) ||
-                                sysName[0] == 'J' && Int32.TryParse(sysName.Substring(1), out disposable) && radius == 0) &&
-                                !string.IsNullOrWhiteSpace(radiusSystem) && radiusChannel > 0)
-                            {
-                                var SystemNameResponce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/search/?categories=solar_system&datasource=tranquility&language=en-us" +
-                                    $"&search={radiusSystem}&strict=true");
-                                var SystemName = "";
-                                if (SystemNameResponce.IsSuccessStatusCode)
-                                {
-                                    SystemName = await SystemNameResponce.Content.ReadAsStringAsync();
-                                }
-                                else
-                                {
-                                    await Client_Log(new LogMessage(LogSeverity.Error, "killFeed", $"SystemName error {SystemNameResponce.StatusCode}"));
-                                }
-                                var httpresult = JsonConvert.DeserializeObject<SystemIDSearch>(SystemName);
-
-                                SystemID = httpresult.solar_system[0].ToString();
-                                var systemID = kill.package.killmail.solar_system_id;
-                                string radiusSystems = "";
-
-                                var radiusSystemsResponce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/route/{SystemID}/{systemId}/?datasource=tranquility&flag=shortest");
-                                if (radiusSystemsResponce.IsSuccessStatusCode)
-                                {
-                                    radiusSystems = await radiusSystemsResponce.Content.ReadAsStringAsync();
-                                }
-                                else
-                                {
-                                    await Client_Log(new LogMessage(LogSeverity.Error, "killFeed", $"radiusSystems error {radiusSystemsResponce.StatusCode}"));
-                                }
-                                var data = JArray.Parse(radiusSystems);
 
                                 var gg = data.Count() - 1;
                                 if (gg < radius && !postedRadius)
                                 {
                                     postedRadius = true;
-                                    var jumpsText = data.Count() > 1 ? $"{gg} from {radiusSystem}" : $"in {sysName} ({secstatus})";
+                                    var jumpsText = data.Count() > 1 ? $"{gg} from {radiusSystem}" : $"in {system.Name} ({secstatus})";
                                     var builder = new EmbedBuilder()
                                         .WithColor(new Color(0x989898))
                                         .WithThumbnailUrl($"https://image.eveonline.com/Type/{shipID}_64.png")
                                         .WithAuthor(author =>
                                         {
                                             author
-                                                .WithName($"Radius Kill Reported: {ship.name} destroyed {jumpsText}")
+                                                .WithName($"Radius Kill Reported: {ship.Name} destroyed {jumpsText}")
                                                 .WithUrl($"https://zkillboard.com/kill/{iD}/")
                                                 .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                         })
                                         .WithDescription($"Died {killTime}")
-                                        .AddInlineField("Victim", victimCharacter == null ? Typeid.name : victimCharacter.name)
-                                        .AddInlineField("System", $"{sysName} ({secstatus})")
-                                        .AddInlineField("Corporation", victimCorp.name)
-                                        .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.name)
+                                        .AddInlineField("Victim", victimName)
+                                        .AddInlineField("System", $"{system.Name} ({secstatus})")
+                                        .AddInlineField("Corporation", victimCorp.Name)
+                                        .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name)
                                         .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
                                         .AddInlineField("Involved Count", attackers.Count());
                                     var embed = builder.Build();
@@ -1541,199 +1549,139 @@ namespace Opux
 
                                     var stringVal = string.Format("{0:n0} ISK", value);
 
-                                    await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting  Radius Kill: {kill.package.killID}  Value: {stringVal}"));
+                                    await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting  Radius Kill: {kill.killmail_id}  Value: {stringVal}"));
+                                }
+                            }
+                            catch (ApiException ex)
+                            {
+                                if (ex.Message == "Error calling GetRouteOriginDestination: {\"error\":\"No route found\"}")
+                                {
+                                    await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Radius Kill: {kill.killmail_id} Inside a WH"));
+                                }
+                                else
+                                {
+                                    await Client_Log(new LogMessage(LogSeverity.Error, $"killFeed", $"{ex.Message}"));
 
                                 }
                             }
+                        }
 
-                            if (bigKillGlobal != 0 && value >= bigKillGlobal && !postedGlobalBigKill)
+                        if (bigKillGlobal != 0 && value >= bigKillGlobal && !postedGlobalBigKill)
+                        {
+                            postedGlobalBigKill = true;
+                            var builder = new EmbedBuilder()
+                                .WithColor(new Color(0xFA2FF4))
+                                .WithThumbnailUrl($"https://image.eveonline.com/Type/{shipID}_64.png")
+                                .WithAuthor(author =>
+                                {
+                                    author
+                                        .WithName($"Big Kill Reported: {ship.Name} destroyed in {system.Name} ({secstatus})")
+                                        .WithUrl($"https://zkillboard.com/kill/{iD}/")
+                                        .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                })
+                                .WithDescription($"Died {killTime}")
+                                .AddField("Victim", victimName)
+                                .AddInlineField("Corporation", victimCorp.Name)
+                                .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name)
+                                .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
+                                .AddInlineField("Involved Count", attackers.Count());
+                            var embed = builder.Build();
+
+                            var _Channel = discordGuild.GetTextChannel(bigKillGlobalChan);
+                            await _Channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
+
+                            var stringVal = string.Format("{0:n0} ISK", value);
+
+                            await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting Global Big Kill: {kill.killmail_id}  Value: {stringVal}"));
+
+                        }
+                        if (allianceID == 0 && corpID == 0)
+                        {
+                            if (value >= minimumValue)
                             {
-                                postedGlobalBigKill = true;
                                 var builder = new EmbedBuilder()
-                                    .WithColor(new Color(0xFA2FF4))
+                                    .WithColor(new Color(0x00FF00))
                                     .WithThumbnailUrl($"https://image.eveonline.com/Type/{shipID}_64.png")
                                     .WithAuthor(author =>
                                     {
                                         author
-                                            .WithName($"Big Kill Reported: {ship.name} destroyed in {sysName} ({secstatus})")
+                                            .WithName($"Kill Reported: {ship.Name} destroyed in {system.Name} ({secstatus})")
                                             .WithUrl($"https://zkillboard.com/kill/{iD}/")
                                             .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                     })
                                     .WithDescription($"Died {killTime}")
-                                    .AddField("Victim", victimCharacter == null ? Typeid.name : victimCharacter.name)
-                                    .AddInlineField("Corporation", victimCorp.name)
-                                    .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.name)
+                                    .AddInlineField("Victim", victimName)
+                                    .AddInlineField("Corporation", victimCorp.Name)
+                                    .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name)
                                     .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
                                     .AddInlineField("Involved Count", attackers.Count());
                                 var embed = builder.Build();
 
-                                var _Channel = discordGuild.GetTextChannel(bigKillGlobalChan);
-                                await _Channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
+                                var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["channel"]));
+                                await Channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
 
                                 var stringVal = string.Format("{0:n0} ISK", value);
 
-                                await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting Global Big Kill: {kill.package.killID}  Value: {stringVal}"));
-
+                                await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting Global Kills: {kill.killmail_id}  Value: {stringVal}"));
                             }
-                            if (allianceID == 0 && corpID == 0)
+                        }
+                        else
+                        {
+                            //Losses
+                            if (bigKillValue != 0 && value >= bigKillValue)
                             {
-                                if (value >= minimumValue)
+                                if (victimAllianceID == allianceID && lastChannel != c || victimCorpID == corpID && lastChannel != c)
                                 {
                                     var builder = new EmbedBuilder()
-                                        .WithColor(new Color(0x00FF00))
+                                        .WithColor(new Color(0xD00000))
                                         .WithThumbnailUrl($"https://image.eveonline.com/Type/{shipID}_64.png")
                                         .WithAuthor(author =>
                                         {
                                             author
-                                                .WithName($"Kill Reported: {ship.name} destroyed in {sysName} ({secstatus})")
+                                                .WithName($"Big Loss Reported: {ship.Name} destroyed in {system.Name} ({secstatus})")
                                                 .WithUrl($"https://zkillboard.com/kill/{iD}/")
                                                 .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                         })
                                         .WithDescription($"Died {killTime}")
-                                        .AddInlineField("Victim", victimCharacter == null ? Typeid.name : victimCharacter.name)
-                                        .AddInlineField("Corporation", victimCorp.name)
-                                        .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.name)
+                                        .AddInlineField("Victim", victimName)
+                                        .AddInlineField("Corporation", victimCorp.Name)
+                                        .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name)
                                         .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
                                         .AddInlineField("Involved Count", attackers.Count());
                                     var embed = builder.Build();
 
-                                    var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["channel"]));
+                                    var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["bigKillChannel"]));
                                     await Channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
 
                                     var stringVal = string.Format("{0:n0} ISK", value);
 
-                                    await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting Global Kills: {kill.package.killID}  Value: {stringVal}"));
+                                    await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting     Big Loss: {kill.killmail_id}  Value: {stringVal}"));
+
+                                    lastChannel = c;
+
+                                    continue;
                                 }
                             }
                             else
                             {
-                                //Losses
-                                if (bigKillValue != 0 && value >= bigKillValue)
+                                if (minimumLossValue == 0 || minimumLossValue <= value)
                                 {
-                                    if (victimAllianceID == allianceID && lastChannel != c || victimCorpID == corpID && lastChannel != c)
+                                    if (victimAllianceID != 0 && victimAllianceID == allianceID && lastChannel != c || victimCorpID == corpID && lastChannel != c)
                                     {
                                         var builder = new EmbedBuilder()
-                                            .WithColor(new Color(0xD00000))
+                                            .WithColor(new Color(0xFF0000))
                                             .WithThumbnailUrl($"https://image.eveonline.com/Type/{shipID}_64.png")
                                             .WithAuthor(author =>
                                             {
                                                 author
-                                                    .WithName($"Big Loss Reported: {ship.name} destroyed in {sysName} ({secstatus})")
+                                                    .WithName($"Loss Reported: {ship.Name} destroyed in {system.Name} ({secstatus})")
                                                     .WithUrl($"https://zkillboard.com/kill/{iD}/")
                                                     .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                             })
                                             .WithDescription($"Died {killTime}")
-                                            .AddInlineField("Victim", victimCharacter == null ? Typeid.name : victimCharacter.name)
-                                            .AddInlineField("Corporation", victimCorp.name)
-                                            .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.name)
-                                            .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
-                                            .AddInlineField("Involved Count", attackers.Count());
-                                        var embed = builder.Build();
-
-                                        var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["bigKillChannel"]));
-                                        await Channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
-
-                                        var stringVal = string.Format("{0:n0} ISK", value);
-
-                                        await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting     Big Loss: {kill.package.killID}  Value: {stringVal}"));
-
-                                        lastChannel = c;
-
-                                        continue;
-                                    }
-                                }
-                                else
-                                {
-                                    if (minimumLossValue == 0 || minimumLossValue <= value)
-                                    {
-                                        if (victimAllianceID != 0 && victimAllianceID == allianceID && lastChannel != c || victimCorpID == corpID && lastChannel != c)
-                                        {
-                                            var builder = new EmbedBuilder()
-                                                .WithColor(new Color(0xFF0000))
-                                                .WithThumbnailUrl($"https://image.eveonline.com/Type/{shipID}_64.png")
-                                                .WithAuthor(author =>
-                                                {
-                                                    author
-                                                        .WithName($"Loss Reported: {ship.name} destroyed in {sysName} ({secstatus})")
-                                                        .WithUrl($"https://zkillboard.com/kill/{iD}/")
-                                                        .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
-                                                })
-                                                .WithDescription($"Died {killTime}")
-                                                .AddInlineField("Victim", victimCharacter == null ? Typeid.name : victimCharacter.name)
-                                                .AddInlineField("Corporation", victimCorp.name)
-                                                .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.name)
-                                                .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
-                                                .AddInlineField("Involved Count", attackers.Count());
-                                            var embed = builder.Build();
-
-                                            var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["channel"]));
-                                            await Channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
-
-                                            var stringVal = string.Format("{0:n0} ISK", value);
-
-                                            await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting         Loss: {kill.package.killID}  Value: {stringVal}"));
-
-                                            lastChannel = c;
-
-                                            continue;
-                                        }
-                                    }
-                                }
-
-                                //Killed
-                                foreach (var attacker in attackers.ToList())
-                                {
-                                    if (bigKillValue != 0 && value >= bigKillValue && !npckill)
-                                    {
-                                        if (attacker.alliance_id != 0 && attacker.alliance_id == allianceID && lastChannel != c || allianceID == 0 && attacker.corporation_id == corpID && lastChannel != c)
-                                        {
-                                            var builder = new EmbedBuilder()
-                                                .WithColor(new Color(0x00D000))
-                                                .WithThumbnailUrl($"https://image.eveonline.com/Type/{shipID}_64.png")
-                                                .WithAuthor(author =>
-                                                {
-                                                    author
-                                                        .WithName($"Big Kill Reported: {ship.name} destroyed in {sysName} ({secstatus})")
-                                                        .WithUrl($"https://zkillboard.com/kill/{iD}/")
-                                                        .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
-                                                })
-                                                .WithDescription($"Died {killTime}")
-                                                .AddInlineField("Victim", victimCharacter == null ? Typeid.name : victimCharacter.name)
-                                                .AddInlineField("Corporation", victimCorp.name)
-                                                .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.name)
-                                                .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
-                                                .AddInlineField("Involved Count", attackers.Count());
-                                            var embed = builder.Build();
-
-                                            var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["bigKillChannel"]));
-                                            await Channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
-
-                                            var stringVal = string.Format("{0:n0} ISK", value);
-
-                                            await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting     Big Kill: {kill.package.killID}  Value: {stringVal}"));
-
-                                            lastChannel = c;
-
-                                            break;
-                                        }
-                                    }
-                                    else if (!npckill && attacker.alliance_id != 0 && allianceID != 0 && attacker.alliance_id == allianceID && lastChannel != c ||
-                                        !npckill && allianceID == 0 && attacker.corporation_id == corpID && lastChannel != c)
-                                    {
-                                        var builder = new EmbedBuilder()
-                                            .WithColor(new Color(0x00FF00))
-                                            .WithThumbnailUrl($"https://image.eveonline.com/Type/{shipID}_64.png")
-                                            .WithAuthor(author =>
-                                            {
-                                                author
-                                                    .WithName($"Kill Reported: {ship.name} destroyed in {sysName} ({secstatus})")
-                                                    .WithUrl($"https://zkillboard.com/kill/{iD}/")
-                                                    .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
-                                            })
-                                            .WithDescription($"Died {killTime}")
-                                            .AddInlineField("Victim", victimCharacter == null ? Typeid.name : victimCharacter.name)
-                                            .AddInlineField("Corporation", victimCorp.name)
-                                            .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.name)
+                                            .AddInlineField("Victim", victimName)
+                                            .AddInlineField("Corporation", victimCorp.Name)
+                                            .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name)
                                             .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
                                             .AddInlineField("Involved Count", attackers.Count());
                                         var embed = builder.Build();
@@ -1743,31 +1691,105 @@ namespace Opux
 
                                         var stringVal = string.Format("{0:n0} ISK", value);
 
-                                        await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting         Kill: {kill.package.killID}  Value: {stringVal}"));
+                                        await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting         Loss: {kill.killmail_id}  Value: {stringVal}"));
+
+                                        lastChannel = c;
+
+                                        continue;
+                                    }
+                                }
+                            }
+
+                            //Killed
+                            foreach (var attacker in attackers.ToList())
+                            {
+                                if (bigKillValue != 0 && value >= bigKillValue && !npckill)
+                                {
+                                    if (attacker.alliance_id != 0 && attacker.alliance_id == allianceID && lastChannel != c || allianceID == 0 && attacker.corporation_id == corpID && lastChannel != c)
+                                    {
+                                        var builder = new EmbedBuilder()
+                                            .WithColor(new Color(0x00D000))
+                                            .WithThumbnailUrl($"https://image.eveonline.com/Type/{shipID}_64.png")
+                                            .WithAuthor(author =>
+                                            {
+                                                author
+                                                    .WithName($"Big Kill Reported: {ship.Name} destroyed in {system.Name} ({secstatus})")
+                                                    .WithUrl($"https://zkillboard.com/kill/{iD}/")
+                                                    .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                            })
+                                            .WithDescription($"Died {killTime}")
+                                            .AddInlineField("Victim", victimName)
+                                            .AddInlineField("Corporation", victimCorp.Name)
+                                            .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name)
+                                            .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
+                                            .AddInlineField("Involved Count", attackers.Count());
+                                        var embed = builder.Build();
+
+                                        var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["bigKillChannel"]));
+                                        await Channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
+
+                                        var stringVal = string.Format("{0:n0} ISK", value);
+
+                                        await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting     Big Kill: {kill.killmail_id}  Value: {stringVal}"));
 
                                         lastChannel = c;
 
                                         break;
                                     }
                                 }
+                                else if (!npckill && attacker.alliance_id != 0 && allianceID != 0 && attacker.alliance_id == allianceID && lastChannel != c ||
+                                    !npckill && allianceID == 0 && attacker.corporation_id == corpID && lastChannel != c)
+                                {
+                                    if(kill.victim.character_id == 0)
+                                    {
+                                        var test = false;
+                                    }
+                                    var builder = new EmbedBuilder()
+                                        .WithColor(new Color(0x00FF00))
+                                        .WithThumbnailUrl($"https://image.eveonline.com/Type/{shipID}_64.png")
+                                        .WithAuthor(author =>
+                                        {
+                                            author
+                                                .WithName($"Kill Reported: {ship.Name} destroyed in {system.Name} ({secstatus})")
+                                                .WithUrl($"https://zkillboard.com/kill/{iD}/")
+                                                .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                        })
+                                            .WithDescription($"Died {killTime}")
+                                            .AddInlineField("Victim", victim == null ? victimName : victimName)
+                                            .AddInlineField("Corporation", victimCorp.Name)
+                                            .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name)
+                                            .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
+                                            .AddInlineField("Involved Count", attackers.Count());
+                                    var embed = builder.Build();
+
+                                    var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["channel"]));
+                                    await Channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
+
+                                    var stringVal = string.Format("{0:n0} ISK", value);
+
+                                    await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting         Kill: {kill.killmail_id}  Value: {stringVal}"));
+
+                                    lastChannel = c;
+                                    lastPosted = iD;
+                                    break;
+
+                                }
+                                else if (kill != null && kill != null && lastPosted != 0 && lastPosted == kill.killmail_id && lastChannel == c)
+                                {
+                                    await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Skipping kill: {kill.killmail_id} as its been posted recently"));
+                                }
                             }
                         }
-                        lastPosted = iD;
                     }
-                    else if (kill != null && kill.package != null && lastPosted != 0 && lastPosted == kill.package.killID)
-                    {
-                        await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Skipping kill: {kill.package.killID} as its been posted recently"));
-                    }
-                    await Task.Delay(500);
-                    killfeedrunning = false;
+                    Lastkill.Add(kill.killmail_id);
                 }
             }
             catch (Exception ex)
             {
                 await Client_Log(new LogMessage(LogSeverity.Error, $"killFeed", ex.Message, ex));
-                killfeedrunning = false;
             }
         }
+
         #endregion
 
         //Teamspeak
@@ -2985,7 +3007,6 @@ namespace Opux
                         var interval = 30 / keyCount;
                         await SQLiteDataUpdate("cacheData", "data", "nextNotificationCheck", DateTime.Now.AddMinutes(interval).ToString());
                         _nextNotificationCheck = DateTime.Now.AddMinutes(interval);
-
                     }
                 }
             }
@@ -3694,7 +3715,7 @@ namespace Opux
 
         }
 
-        internal static async void OnMessage(object sender, MessageEventArgs e)
+        internal static async void OnMessage(object sender, Matrix.Xmpp.Client.MessageEventArgs e)
         {
             var filtered = false;
             if (e.Message.Chatstate != Chatstate.Composing && !string.IsNullOrWhiteSpace(e.Message.Value))
