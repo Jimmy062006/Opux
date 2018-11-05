@@ -47,8 +47,4 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="JsonClasszKill\" />
-  </ItemGroup>
-
 </Project>

@@ -3,7 +3,7 @@
 namespace JsonClasszKill
 {
 
-    public class zKill
+    public class ZKill
     {
         public Attacker[] attackers { get; set; }
         public int killmail_id { get; set; }

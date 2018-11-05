@@ -6,6 +6,8 @@ using ESIClient.Dotcore.Api;
 using ESIClient.Dotcore.Client;
 using ESIClient.Dotcore.Model;
 using EveLibCore;
+using JsonClasszAPIKill;
+using JsonClasszKill;
 using Matrix.Xmpp.Chatstates;
 using Matrix.Xmpp.Client;
 using Microsoft.Data.Sqlite;
@@ -1403,7 +1405,7 @@ namespace Opux
         {
             try
             {
-                var kill = JsonConvert.DeserializeObject<JsonClasszKill.zKill>(e.Data);
+                var kill = JsonConvert.DeserializeObject<JsonClasszKill.ZKill>(e.Data);
 
                 if (Lastkill.Contains(kill.killmail_id))
                 {
@@ -1450,7 +1452,7 @@ namespace Opux
                         victimCorp = victimCorpID != 0 ? (await corporationApi.GetCorporationsCorporationIdAsync(victimCorpID)) : null;
                         victimAlliance = victimAllianceID != 0 ? await allianceApi.GetAlliancesAllianceIdAsync(victimAllianceID) : null;
                     }
-                    catch (Exception ex)
+                    catch
                     {
                         if (loop == 5)
                         {
@@ -1740,10 +1742,6 @@ namespace Opux
                                 else if (!npckill && attacker.alliance_id != 0 && allianceID != 0 && attacker.alliance_id == allianceID && lastChannel != c ||
                                     !npckill && allianceID == 0 && attacker.corporation_id == corpID && lastChannel != c)
                                 {
-                                    if(kill.victim.character_id == 0)
-                                    {
-                                        var test = false;
-                                    }
                                     var builder = new EmbedBuilder()
                                         .WithColor(new Color(0x00FF00))
                                         .WithThumbnailUrl($"https://image.eveonline.com/Type/{shipID}_64.png")
@@ -1827,7 +1825,7 @@ namespace Opux
                     {
                         var responceCheck = MysqlQuery(Program.Settings.GetSection("config")["connstring"], queryTableAdd).Result;
                     }
-                    catch (Exception taberror)
+                    catch
                     {
 
                     }
@@ -3787,178 +3785,182 @@ namespace Opux
         #region Char
         internal async static Task Char(ICommandContext context, string x)
         {
+            var characterName = x.ToLower();
             var channel = context.Channel;
-            var responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/search/?categories=character&datasource=tranquility&language=en-us&search={x}&strict=true");
-            CharacterID characterID = new CharacterID();
-            if (!responce.IsSuccessStatusCode)
+
+            SearchApi searchApi = new SearchApi();
+            CharacterApi characterapi = new CharacterApi();
+            CorporationApi corporationApi = new CorporationApi();
+            AllianceApi allianceApi = new AllianceApi();
+            KillmailsApi killmailsApi = new KillmailsApi();
+            UniverseApi universeApi = new UniverseApi();
+
+            var CharacterIDList = await searchApi.GetSearchAsync(new List<string> { "character" }, characterName, strict: true);
+            var Id = 0;
+
+            GetCharactersCharacterIdOk character = null;
+            GetCorporationsCorporationIdOk corporation = null;
+            GetAlliancesAllianceIdOk alliance = null;
+
+            int cynoCount = 0;
+            int covertCount = 0;
+
+            if (CharacterIDList.Character.Count >= 1)
             {
-                await channel.SendMessageAsync($"{context.User.Mention}, Character ESI Failure, Please try again later");
-            }
-            else
-            {
-                characterID = JsonConvert.DeserializeObject<CharacterID>(await responce.Content.ReadAsStringAsync());
+                var message = await channel.SendMessageAsync("Checking for Character this may take some time...");
 
-                if (characterID.character == null)
+                foreach (var id in CharacterIDList.Character)
                 {
-                    await channel.SendMessageAsync($"{context.User.Mention}, Char not found please try again");
+                    var testchar = await characterapi.GetCharactersCharacterIdAsync(id.Value);
+                    if (testchar.Name.ToLower() == characterName)
+                    {
+                        Id = id.Value;
+                        character = testchar;
+                        break;
+                    }
                 }
-                else
+
+                if (Id == 0 )
                 {
-                    responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{characterID.character[0]}/?datasource=tranquility");
-                    CharacterData characterData = new CharacterData();
-                    if (responce.IsSuccessStatusCode)
-                    {
-                        characterData = JsonConvert.DeserializeObject<CharacterData>(await responce.Content.ReadAsStringAsync());
-                    }
-                    responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.corporation_id}/?datasource=tranquility");
-                    CorporationData corporationData = new CorporationData();
-                    if (responce.IsSuccessStatusCode)
-                    {
-                        corporationData = JsonConvert.DeserializeObject<CorporationData>(await responce.Content.ReadAsStringAsync());
-                    }
-                    responce = await Program._httpClient.GetAsync($"https://zkillboard.com/api/kills/characterID/{characterID.character[0]}/");
-
-                    List<Kill> zkillContent = new List<Kill>();
-                    if (responce.IsSuccessStatusCode)
-                    {
-                        zkillContent = JsonConvert.DeserializeObject<List<Kill>>(await responce.Content.ReadAsStringAsync());
-                    }
-                    responce = await Program._httpClient.GetAsync($"https://zkillboard.com/api/stats/characterID/{characterID.character[0]}/");
-
-                    CharacterStats characterStats = new CharacterStats();
-                    if (responce.IsSuccessStatusCode)
-                    {
-                        characterStats = JsonConvert.DeserializeObject<CharacterStats>(await responce.Content.ReadAsStringAsync());
-                    }
-                    responce = await Program._httpClient.GetAsync($"https://zkillboard.com/api/losses/characterID/{characterID.character[0]}/");
-
-                    List<Kill> zkillLosses = new List<Kill>();
-                    if (responce.IsSuccessStatusCode)
-                    {
-                        var result = await responce.Content.ReadAsStringAsync();
-                        zkillLosses = JsonConvert.DeserializeObject<List<Kill>>(result);
-                    }
-
-                    Kill zkillLast = zkillContent.Count > 0 ? zkillContent[0] : new Kill();
-                    SystemData systemData = new SystemData();
-                    ShipType lastShip = new ShipType();
-                    AllianceData allianceData = new AllianceData();
-                    try
-                    {
-                        responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/universe/systems/{zkillLast.solar_system_id}/?datasource=tranquility&language=en-us");
-                        if (responce.IsSuccessStatusCode)
-                        {
-                            systemData = JsonConvert.DeserializeObject<SystemData>(await responce.Content.ReadAsStringAsync());
-                        }
-                    }
-                    catch (HttpRequestException ex)
-                    {
-                        await Client_Log(new LogMessage(LogSeverity.Error, "char", ex.Message, ex));
-                    }
-
-                    var lastShipType = "Unknown";
-
-                    if (zkillLast.victim != null && zkillLast.victim.character_id == characterID.character.FirstOrDefault())
-                    {
-                        lastShipType = zkillLast.victim.ship_type_id.ToString();
-                    }
-                    else if (zkillLast.victim != null)
-                    {
-                        foreach (var attacker in zkillLast.attackers)
-                        {
-                            if (attacker.character_id == characterID.character.FirstOrDefault())
-                            {
-                                lastShipType = attacker.ship_type_id.ToString();
-                            }
-                        }
-                    }
-
-                    try
-                    {
-                        responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/universe/types/{lastShipType}/?datasource=tranquility&language=en-us");
-                        if (responce.IsSuccessStatusCode)
-                        {
-                            lastShip = JsonConvert.DeserializeObject<ShipType>(await responce.Content.ReadAsStringAsync());
-                        }
-                    }
-                    catch (HttpRequestException ex)
-                    {
-                        await Client_Log(new LogMessage(LogSeverity.Error, "char", ex.Message, ex));
-                    }
-
-                    var lastSeen = zkillLast.killmail_time;
-
-                    try
-                    {
-                        if (characterData.alliance_id != null)
-                        {
-                            responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{characterData.alliance_id}/?datasource=tranquility");
-                            if (responce.IsSuccessStatusCode)
-                            {
-                                allianceData = JsonConvert.DeserializeObject<AllianceData>(await responce.Content.ReadAsStringAsync());
-                            }
-                        }
-                    }
-                    catch (HttpRequestException ex)
-                    {
-                        await Client_Log(new LogMessage(LogSeverity.Error, "char", ex.Message, ex));
-                    }
-
-                    var alliance = allianceData.name ?? "None";
-                    var lastSeenSystem = systemData.name ?? "None";
-                    var lastSeenShip = lastShip.name ?? "None";
-                    var lastSeenTime = lastSeen == DateTime.MinValue ? "Too Long Ago" : $"{lastSeen}";
-                    var dangerous = characterStats.dangerRatio > 75 ? "Dangerous" : "Snuggly";
-                    var gang = characterStats.gangRatio > 70 ? "chance they are Fleeted" : "chance they are Solo";
-
-                    var cynoCount = 0;
-                    var covertCount = 0;
-
-                    foreach (var kill in zkillLosses)
-                    {
-                        if (kill.victim.character_id == characterID.character[0])
-                        {
-                            foreach (var item in kill.victim.items)
-                            {
-                                if (item.item_type_id == 21096)
-                                    cynoCount++;
-                                if (item.item_type_id == 28646)
-                                    covertCount++;
-                            }
-                        }
-                    }
-
-                    var text1 = characterStats.dangerRatio == 0 ? "Unavailable" : Helpers.GenerateUnicodePercentage(characterStats.dangerRatio);
-                    var text2 = characterStats.gangRatio == 0 ? "Unavailable" : Helpers.GenerateUnicodePercentage(characterStats.gangRatio);
-
-                    var builder = new EmbedBuilder()
-                        .WithDescription($"[zKillboard](https://zkillboard.com/character/{characterID.character[0]}/) / [EVEWho](https://evewho.com/pilot/{HttpUtility.UrlEncode(characterData.name)})")
-                        .WithColor(new Color(0x4286F4))
-                        .WithThumbnailUrl($"https://image.eveonline.com/Character/{characterID.character[0]}_64.jpg")
-                        .WithAuthor(author =>
-                        {
-                            author
-                                .WithName($"{characterData.name}");
-                        })
-                        .AddField("Details", $"\u200b")
-                        .AddInlineField("Corporation:", $"{corporationData.name}")
-                        .AddInlineField("Alliance:", $"{alliance}")
-                        .AddInlineField("Last Seen Location:", $"{lastSeenSystem}")
-                        .AddInlineField("Last Seen Ship:", $"{lastSeenShip}")
-                        .AddInlineField("Last Seen:", $"{lastSeenTime}")
-                        .AddField("\u200b", "\u200b")
-                        .AddInlineField("Regular Cynos(Last 200 losses)", $"{cynoCount}")
-                        .AddInlineField("Covert Cynos(Last 200 losses)", $"{covertCount}")
-                        .AddInlineField("Threat", $"{text1}{Environment.NewLine}{Environment.NewLine}**{dangerous} {characterStats.dangerRatio}%**")
-                        .AddInlineField("Chance in Fleet", $"{text2}{Environment.NewLine}{Environment.NewLine}**{characterStats.gangRatio}% {gang}**");
-
-                    var embed = builder.Build();
-
-                    await channel.SendMessageAsync($"", false, embed);
-                    await Client_Log(new LogMessage(LogSeverity.Info, "Char", $"Sending {context.Message.Author} Character Info Request to {context.Message.Channel}" +
-                        $" {context.Guild.Name}"));
+                    await message.ModifyAsync(msg => { msg.Content = "Character not found"; });
                 }
+
+                corporation = await corporationApi.GetCorporationsCorporationIdAsync(character.CorporationId);
+
+                if (character.AllianceId != null && character.AllianceId != 0)
+                {
+                    alliance = await allianceApi.GetAlliancesAllianceIdAsync(character.AllianceId);
+                }
+
+                //Get last 200 kill
+                List<GetKillmailsKillmailIdKillmailHashOk> Kills = new List<GetKillmailsKillmailIdKillmailHashOk>();
+
+                var responce = await Program._httpClient.GetAsync($"https://zkillboard.com/api/kills/characterID/{Id}/");
+
+                List<ZKillAPI> zkillContent = new List<ZKillAPI>();
+                if (responce.IsSuccessStatusCode)
+                {
+                    var result = await responce.Content.ReadAsStringAsync();
+                    var kills = JsonConvert.DeserializeObject<List<ZKillAPI>>(result);
+
+                    foreach (var kill in kills)
+                    {
+                        Kills.Add(await killmailsApi.GetKillmailsKillmailIdKillmailHashAsync($"{kill.zkb.hash}", kill.killmail_id));
+                    }
+                }
+
+                //Get last 200 losses
+                List<GetKillmailsKillmailIdKillmailHashOk> Losses = new List<GetKillmailsKillmailIdKillmailHashOk>();
+
+                responce = await Program._httpClient.GetAsync($"https://zkillboard.com/api/losses/characterID/{Id}/");
+
+                List<ZKillAPI> zkillLosses = new List<ZKillAPI>();
+                if (responce.IsSuccessStatusCode)
+                {
+                    var result = await responce.Content.ReadAsStringAsync();
+                    var losses = JsonConvert.DeserializeObject<List<ZKillAPI>>(result);
+                    foreach (var loss in losses)
+                    {
+                        Losses.Add(await killmailsApi.GetKillmailsKillmailIdKillmailHashAsync($"{loss.zkb.hash}", loss.killmail_id));
+                    }
+                }
+
+                responce = await Program._httpClient.GetAsync($"https://zkillboard.com/api/stats/characterID/{Id}/");
+
+                CharacterStats characterStats = new CharacterStats();
+
+                if (responce.IsSuccessStatusCode)
+                {
+                    var result = await responce.Content.ReadAsStringAsync();
+                    characterStats = JsonConvert.DeserializeObject<CharacterStats>(result);
+                }
+
+                if (Kills.Count != 0)
+                {
+
+                }
+
+                foreach (var loss in Losses)
+                {
+                    if (loss.Victim.CharacterId == Id)
+                    {
+                        foreach (var item in loss.Victim.Items)
+                        {
+                            if (item.ItemTypeId == 21096)
+                                cynoCount++;
+                            if (item.ItemTypeId == 28646)
+                                covertCount++;
+                        }
+                    }
+                }
+
+                var lastKill = Kills.Count() > 0 ? Kills.FirstOrDefault() : new GetKillmailsKillmailIdKillmailHashOk();
+                var lastLoss = Losses.Count() > 0 ? Losses.FirstOrDefault() : new GetKillmailsKillmailIdKillmailHashOk();
+
+                var last = lastKill.KillmailTime > lastLoss.KillmailTime ? lastKill : lastLoss;
+
+                var lastShipType = "Unknown";
+
+                try
+                {
+                    if (last.Victim != null && last.Victim.CharacterId == Id)
+                    {
+                        lastShipType = last.Victim.ShipTypeId.ToString();
+                    }
+                    else if (last.Victim != null)
+                    {
+                        foreach (var attacker in last.Attackers)
+                        {
+                            if (attacker.CharacterId == Id)
+                            {
+                                lastShipType = (await universeApi.GetUniverseTypesTypeIdAsync(attacker.ShipTypeId)).Name;
+                            }
+                        }
+                    }
+                }
+                catch { }
+
+                var lastSeenSystem = (await universeApi.GetUniverseSystemsSystemIdAsync(Kills.FirstOrDefault().SolarSystemId)).Name;
+                var lastSeenTime = Kills.FirstOrDefault().KillmailTime.ToString();
+
+                var dangerous = characterStats.dangerRatio > 75 ? "Dangerous" : "Snuggly";
+                var gang = characterStats.gangRatio > 70 ? "chance they are Fleeted" : "chance they are Solo";
+
+                var text1 = characterStats.dangerRatio == 0 ? "Unavailable" : Helpers.GenerateUnicodePercentage(characterStats.dangerRatio);
+                var text2 = characterStats.gangRatio == 0 ? "Unavailable" : Helpers.GenerateUnicodePercentage(characterStats.gangRatio);
+
+                var allianceName = alliance == null ? "None" : alliance.Name;
+
+                var builder = new EmbedBuilder()
+                    .WithDescription($"[zKillboard](https://zkillboard.com/character/{Id}/) / [EVEWho](https://evewho.com/pilot/{HttpUtility.UrlEncode(corporation.Name)})")
+                    .WithColor(new Color(0x4286F4))
+                    .WithThumbnailUrl($"https://image.eveonline.com/Character/{Id}_64.jpg")
+                    .WithAuthor(author =>
+                    {
+                        author
+                            .WithName($"{character.Name}");
+                    })
+                    .AddField("Details", $"\u200b")
+                    .AddInlineField("Corporation:", $"{corporation.Name}")
+                    .AddInlineField("Alliance:", $"{allianceName}")
+                    .AddInlineField("Last Seen Location:", $"{lastSeenSystem}")
+                    .AddInlineField("Last Seen Ship:", $"{lastShipType}")
+                    .AddInlineField("Last Seen:", $"{lastSeenTime}")
+                    .AddField("\u200b", "\u200b")
+                    .AddInlineField("Regular Cynos(Last 200 losses)", $"{cynoCount}")
+                    .AddInlineField("Covert Cynos(Last 200 losses)", $"{covertCount}")
+                    .AddInlineField("Threat", $"{text1}{Environment.NewLine}{Environment.NewLine}**{dangerous} {characterStats.dangerRatio}%**")
+                    .AddInlineField("Chance in Fleet", $"{text2}{Environment.NewLine}{Environment.NewLine}**{characterStats.gangRatio}% {gang}**");
+
+
+                var embed = builder.Build();
+
+                await message.ModifyAsync(msg => { msg.Content = ""; msg.Embed = embed; });
+
+                await Client_Log(new LogMessage(LogSeverity.Info, "Char", $"Sending {context.Message.Author} Character Info Request to {context.Message.Channel}" +
+                    $" {context.Guild.Name}"));
             }
+
             await Task.CompletedTask;
         }
         #endregion
