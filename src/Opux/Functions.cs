@@ -1364,24 +1364,43 @@ namespace Opux
 
         public static WebSocket ws = new WebSocket("wss://zkillboard.com:2096");
 
-        public static void ZKillMain()
+        public static async void ZKillMain()
         {
-            if (!ZkillInit)
+            try
             {
-                ws.OnMessage += Ws_OnMessageAsync;
-                ws.OnOpen += Ws_OnOpen;
-                ws.OnError += Ws_OnError;
-                ws.OnClose += Ws_OnClose;
-                ws.WaitTime = new TimeSpan(0, 60, 0);
+                if (!ZkillInit)
+                {
+                    ws.OnMessage += Ws_OnMessageAsync;
+                    ws.OnOpen += Ws_OnOpen;
+                    ws.OnError += Ws_OnError;
+                    ws.OnClose += Ws_OnClose;
+                    ws.WaitTime = TimeSpan.FromSeconds(60);
 
-                ws.Connect();
-                ws.Send("{\"action\":\"sub\",\"channel\":\"killstream\"}");
+                    ws.Connect();
+                    ws.Send("{\"action\":\"sub\",\"channel\":\"killstream\"}");
+                    ZkillInit = true;
+                    await Task.Yield();
+                }
+                if (!ws.IsAlive && ZkillInit)
+                {
+                    ws.OnMessage -= Ws_OnMessageAsync;
+                    ws.OnOpen -= Ws_OnOpen;
+                    ws.OnError -= Ws_OnError;
+                    ws.OnClose -= Ws_OnClose;
+                    new WebSocket("wss://zkillboard.com:2096");
+                    //throw new NotImplementedException();
+                    ZkillInit = false;
 
-                ZkillInit = true;
+                    await Client_Log(new LogMessage(LogSeverity.Error, $"Ws_Socket", $"Web Socket Died Restarting"));
+                }
+            }
+            catch (Exception ex)
+            {
+                await Client_Log(new LogMessage(LogSeverity.Error, $"Ws_Socket", $"Web Socket Error {ex.Message}"));
             }
         }
 
-        private static void Ws_OnClose(object sender, CloseEventArgs e)
+        private static async void Ws_OnClose(object sender, CloseEventArgs e)
         {
             ws.OnMessage -= Ws_OnMessageAsync;
             ws.OnOpen -= Ws_OnOpen;
@@ -1389,16 +1408,29 @@ namespace Opux
             ws.OnClose -= Ws_OnClose;
             ZkillInit = false;
             //throw new NotImplementedException();
+            await Client_Log(new LogMessage(LogSeverity.Info, $"Ws_Socket", $"Web Socket close {e.Reason}"));
         }
 
-        private static void Ws_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
+        private static async void Ws_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
         {
+            ws.OnMessage -= Ws_OnMessageAsync;
+            ws.OnOpen -= Ws_OnOpen;
+            ws.OnError -= Ws_OnError;
+            ws.OnClose -= Ws_OnClose;
+            ZkillInit = false;
             //throw new NotImplementedException();
+            await Client_Log(new LogMessage(LogSeverity.Error, $"Ws_Socket", $"Web Socket Error: {e.Message}"));
         }
 
-        private static void Ws_OnOpen(object sender, EventArgs e)
+        private static async void Ws_OnOpen(object sender, EventArgs e)
         {
             //throw new NotImplementedException();
+            ws.OnMessage -= Ws_OnMessageAsync;
+            ws.OnOpen -= Ws_OnOpen;
+            ws.OnError -= Ws_OnError;
+            ws.OnClose -= Ws_OnClose;
+            ZkillInit = false;
+            await Client_Log(new LogMessage(LogSeverity.Info, $"Ws_Socket", $"Opened Web Socket to zKill"));
         }
 
         private static async void Ws_OnMessageAsync(object sender, WebSocketSharp.MessageEventArgs e)
