@@ -42,7 +42,7 @@ namespace EveLibCore
             }
             catch (Exception ex)
             {
-                await Functions.Client_Log(new LogMessage(LogSeverity.Info, "EveLib", $"GetChatChannels failed {ex.Message}", ex));
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "EveLib", $"GetChatChannels failed {ex.Message}", ex));
 
                 return false;
             }
@@ -60,7 +60,7 @@ namespace EveLibCore
             }
             catch (Exception ex)
             {
-                await Functions.Client_Log(new LogMessage(LogSeverity.Info, "EveLib", $"GetChatChannels failed {ex.Message}", ex));
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "EveLib", $"GetChatChannels failed {ex.Message}", ex));
 
                 return false;
             }
@@ -109,7 +109,7 @@ namespace EveLibCore
             }
             catch (Exception ex)
             {
-                await Functions.Client_Log(new LogMessage(LogSeverity.Info, "EveLib", $"GetChatChannels failed {ex.Message}", ex));
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "EveLib", $"GetChatChannels failed {ex.Message}", ex));
 
                 return null;
             }
@@ -170,7 +170,7 @@ namespace EveLibCore
             }
             catch (Exception ex)
             {
-                await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "EveLib", ex.Message, ex));
+                await Logger.DiscordClient_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "EveLib", ex.Message, ex));
 
                 return null;
             }
@@ -210,7 +210,7 @@ namespace EveLibCore
             }
             catch (Exception ex)
             {
-                await Functions.Client_Log(new LogMessage(LogSeverity.Info, "EveLib", $"GetChatChannels failed {ex.Message}", ex));
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "EveLib", $"GetChatChannels failed {ex.Message}", ex));
 
                 return null;
             }
@@ -250,7 +250,7 @@ namespace EveLibCore
             }
             catch (Exception ex)
             {
-                await Functions.Client_Log(new LogMessage(LogSeverity.Info, "EveLib", $"GetChatChannels failed {ex.Message}", ex));
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "EveLib", $"GetChatChannels failed {ex.Message}", ex));
 
                 return null;
             }
@@ -282,7 +282,7 @@ namespace EveLibCore
             }
             catch (Exception ex)
             {
-                await Functions.Client_Log(new LogMessage(LogSeverity.Info, "EveLib", $"GetChatChannels failed {ex.Message}", ex));
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "EveLib", $"GetChatChannels failed {ex.Message}", ex));
 
                 return null;
             }

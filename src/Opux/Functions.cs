@@ -8,6 +8,7 @@ using ESIClient.Dotcore.Model;
 using EveLibCore;
 using JsonClasszAPIKill;
 using JsonClasszKill;
+using log4net;
 using Matrix.Xmpp.Chatstates;
 using Matrix.Xmpp.Client;
 using Microsoft.Data.Sqlite;
@@ -67,7 +68,7 @@ namespace Opux
             }
             catch (Exception ex)
             {
-                await Client_Log(new LogMessage(LogSeverity.Error, "Aync_Tick", ex.Message, ex));
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "Aync_Tick", ex.Message, ex));
             }
         }
 
@@ -143,71 +144,141 @@ namespace Opux
             }
             catch (Exception ex)
             {
-                await Client_Log(new LogMessage(LogSeverity.Error, "Aync_Tick", ex.Message, ex));
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "Aync_Tick", ex.Message, ex));
                 _running = false;
             }
         }
         #endregion
 
         //Needs logging to a file added
-        #region Logger
-        internal async static Task Client_Log(LogMessage arg)
-        {
-            try
-            {
+        //#region Logger
 
-                var path = Path.Combine(AppContext.BaseDirectory, "logs");
-                var file = Path.Combine(path, $"{arg.Source}.log");
+        //private static ILog Log { get; set; }
+        //public static LogSeverity LogLevel { get; private set; }
 
-                if (!Directory.Exists(path))
-                {
-                    Directory.CreateDirectory(path);
-                }
-                if (!File.Exists(file))
-                {
-                    File.Create(file);
-                }
+        //internal async static Task Logger.DiscordClient_Log(LogMessage arg)
+        //{
+        //    //try
+        //    //{
 
-                var cc = Console.ForegroundColor;
+        //    //    var path = Path.Combine(AppContext.BaseDirectory, "logs");
+        //    //    var file = Path.Combine(path, $"{arg.Source}.log");
 
-                switch (arg.Severity)
-                {
-                    case LogSeverity.Critical:
-                    case LogSeverity.Error:
-                        Console.ForegroundColor = ConsoleColor.Red;
+        //    //    if (!Directory.Exists(path))
+        //    //    {
+        //    //        Directory.CreateDirectory(path);
+        //    //    }
+        //    //    if (!File.Exists(file))
+        //    //    {
+        //    //        File.Create(file);
+        //    //    }
 
-                        break;
-                    case LogSeverity.Warning:
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-                        break;
-                    case LogSeverity.Info:
-                        Console.ForegroundColor = ConsoleColor.White;
-                        break;
-                    case LogSeverity.Verbose:
-                    case LogSeverity.Debug:
-                        Console.ForegroundColor = ConsoleColor.DarkGray;
-                        break;
-                }
+        //    //    var cc = Console.ForegroundColor;
 
-                using (StreamWriter logFile = new StreamWriter(File.Open(file, FileMode.Append, FileAccess.Write, FileShare.Write), Encoding.UTF8))
-                {
-                    if (arg.Exception != null)
-                    {
-                        await logFile.WriteLineAsync($"{DateTime.Now,-19} [{arg.Severity,8}]: {arg.Message} {Environment.NewLine}{arg.Exception}");
-                    }
-                    else
-                    {
-                        await logFile.WriteLineAsync($"{DateTime.Now,-19} [{arg.Severity,8}]: {arg.Message}");
-                    }
-                }
+        //    //    switch (arg.Severity)
+        //    //    {
+        //    //        case LogSeverity.Critical:
+        //    //        case LogSeverity.Error:
+        //    //            Console.ForegroundColor = ConsoleColor.Red;
 
-                Console.WriteLine($"{DateTime.Now,-19} [{arg.Severity,8}] [{arg.Source}]: {arg.Message}");
-                Console.ForegroundColor = cc;
+        //    //            break;
+        //    //        case LogSeverity.Warning:
+        //    //            Console.ForegroundColor = ConsoleColor.Yellow;
+        //    //            break;
+        //    //        case LogSeverity.Info:
+        //    //            Console.ForegroundColor = ConsoleColor.White;
+        //    //            break;
+        //    //        case LogSeverity.Verbose:
+        //    //        case LogSeverity.Debug:
+        //    //            Console.ForegroundColor = ConsoleColor.DarkGray;
+        //    //            break;
+        //    //    }
 
-            }
-            catch { }
-        }
-        #endregion
+        //    //    using (StreamWriter logFile = new StreamWriter(File.Open(file, FileMode.Append, FileAccess.Write, FileShare.Write), Encoding.UTF8))
+        //    //    {
+        //    //        if (arg.Exception != null)
+        //    //        {
+        //    //            await logFile.WriteLineAsync($"{DateTime.Now,-19} [{arg.Severity,8}]: {arg.Message} {Environment.NewLine}{arg.Exception}");
+        //    //        }
+        //    //        else
+        //    //        {
+        //    //            await logFile.WriteLineAsync($"{DateTime.Now,-19} [{arg.Severity,8}]: {arg.Message}");
+        //    //        }
+        //    //    }
+
+        //    //    Console.WriteLine($"{DateTime.Now,-19} [{arg.Severity,8}] [{arg.Source}]: {arg.Message}");
+        //    //    Console.ForegroundColor = cc;
+
+        //    //}
+        //    //catch { }
+
+        //    Log = LogManager.GetLogger(typeof(Logger));
+
+        //    var cc = Console.ForegroundColor;
+
+        //    switch (arg.Severity)
+        //    {
+        //        case LogSeverity.Critical:
+        //        case LogSeverity.Error:
+        //            if (arg.Exception != null)
+        //            {
+        //                Console.ForegroundColor = ConsoleColor.Red;
+        //                Log.Error(arg.Exception);
+        //            }
+        //            else
+        //            {
+        //                Console.ForegroundColor = ConsoleColor.Red;
+        //                Log.Error(arg.Message);
+        //            }
+        //            break;
+        //        case LogSeverity.Warning:
+        //            if (arg.Exception != null)
+        //            {
+        //                Log.Warn(arg.Exception);
+        //                Console.ForegroundColor = ConsoleColor.Yellow;
+        //            }
+        //            else
+        //            {
+        //                Console.ForegroundColor = ConsoleColor.Yellow;
+        //                Log.Warn(arg.Message);
+        //            }
+        //            break;
+        //        case LogSeverity.Info:
+        //            if (arg.Exception != null)
+        //            {
+        //                Log.Info(arg.Exception);
+        //                Console.ForegroundColor = ConsoleColor.White;
+        //            }
+        //            else
+        //            {
+        //                Log.Info(arg.Message);
+        //                Console.ForegroundColor = ConsoleColor.White;
+        //            }
+        //            break;
+        //        case LogSeverity.Verbose:
+        //        case LogSeverity.Debug:
+        //            if (arg.Exception != null)
+        //            {
+        //                Log.Debug(arg.Exception);
+        //                Console.ForegroundColor = ConsoleColor.DarkGray;
+        //            }
+        //            else
+        //            {
+        //                Log.Info(arg.Message);
+        //                Console.ForegroundColor = ConsoleColor.DarkGray;
+        //            }
+        //            break;
+        //    }
+
+        //    if (LogLevel <= arg.Severity)
+        //    {
+        //        Console.WriteLine($"{DateTime.Now,-19} [{arg.Severity,8}] [{arg.Source}]: {arg.Message}");
+        //        Console.ForegroundColor = cc;
+        //    }
+
+        //    await Task.CompletedTask;
+        //}
+        //#endregion
 
         //Events are attached here
         #region EVENTS
@@ -270,7 +341,7 @@ namespace Opux
             if (listener == null || !listener.IsListening)
             {
 
-                await Client_Log(new LogMessage(LogSeverity.Info, "AuthWeb", "Starting AuthWeb Server"));
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "AuthWeb", "Starting AuthWeb Server"));
                 listener = new System.Net.Http.HttpListener(IPAddress.Any, port);
 
                 listener.Request += async (sender, context) =>
@@ -459,7 +530,7 @@ namespace Opux
                                     if (!_characterDetails.IsSuccessStatusCode)
                                     {
                                         charData = await _characterDetails.Content.ReadAsStringAsync();
-                                        await Client_Log(new LogMessage(LogSeverity.Error, "AuthWeb", $"Character Failure ID:{CharacterID} Error: {_characterDetails.StatusCode} : {charData}"));
+                                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "AuthWeb", $"Character Failure ID:{CharacterID} Error: {_characterDetails.StatusCode} : {charData}"));
 
                                         ESIFailure = true;
                                     }
@@ -471,7 +542,7 @@ namespace Opux
                                     var _corporationDetails = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corporationid}");
                                     if (!_corporationDetails.IsSuccessStatusCode)
                                     {
-                                        await Client_Log(new LogMessage(LogSeverity.Error, "AuthWeb", $"Corp Failure ID:{CharacterID} Error: {_characterDetails.StatusCode} : {charData}"));
+                                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "AuthWeb", $"Corp Failure ID:{CharacterID} Error: {_characterDetails.StatusCode} : {charData}"));
 
                                         ESIFailure = true;
                                     }
@@ -489,10 +560,10 @@ namespace Opux
                                         var _allianceDetails = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{allianceid}");
                                         if (!_allianceDetails.IsSuccessStatusCode)
                                         {
-                                            await Client_Log(new LogMessage(LogSeverity.Error, "AuthWeb", $"ESI Failure: cID:{CharacterID}"));
+                                            await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "AuthWeb", $"ESI Failure: cID:{CharacterID}"));
                                             foreach (var h in Program._httpClient.DefaultRequestHeaders)
                                             {
-                                                await Client_Log(new LogMessage(LogSeverity.Error, "AuthWeb", $"key:{h.Key} value:{h.Value}"));
+                                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "AuthWeb", $"key:{h.Key} value:{h.Value}"));
                                             }
                                             ESIFailure = true;
                                         }
@@ -834,7 +905,7 @@ namespace Opux
                             }
                             catch (Exception ex)
                             {
-                                await Client_Log(new LogMessage(LogSeverity.Error, "AuthWeb", $"Error: {ex.Message}", ex));
+                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "AuthWeb", $"Error: {ex.Message}", ex));
                             }
                         }
                     }
@@ -1066,19 +1137,19 @@ namespace Opux
 
                         catch (Exception ex)
                         {
-                            await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Failed adding Roles to User {characterData.name}, Reason: {ex.Message}", ex));
+                            await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Failed adding Roles to User {characterData.name}, Reason: {ex.Message}", ex));
                         }
                     }
                     else
                     {
                         await context.Channel.SendMessageAsync($"ESI Failure please try again later");
-                        await Client_Log(new LogMessage(LogSeverity.Error, "authUser", "ESI Failure"));
+                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "authUser", "ESI Failure"));
                     }
                 }
             }
             catch (Exception ex)
             {
-                await Client_Log(new LogMessage(LogSeverity.Error, "AuthUser", $"Error: {ex.Message}", ex));
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "AuthUser", $"Error: {ex.Message}", ex));
             }
         }
         #endregion
@@ -1092,7 +1163,7 @@ namespace Opux
             {
                 _lastAuthCheck = DateTime.Now;
 
-                await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Running Auth Check"));
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Running Auth Check"));
 
                 var authgroups = Program.Settings.GetSection("auth").GetSection("authgroups").GetChildren().ToList();
                 var exemptRoles = Program.Settings.GetSection("auth").GetSection("exempt").GetChildren().ToArray();
@@ -1126,7 +1197,7 @@ namespace Opux
                 {
                     try
                     {
-                        await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Running Auth Check on {u.Username}"));
+                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Running Auth Check on {u.Username}"));
                         if (u.Id == Program.Client.CurrentUser.Id)
                             continue;
 
@@ -1141,7 +1212,7 @@ namespace Opux
                             var characterData = JsonConvert.DeserializeObject<CharacterData>(await responceMessage.Content.ReadAsStringAsync());
                             if (!responceMessage.IsSuccessStatusCode || characterData == null)
                             {
-                                await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential characterData {responceMessage.StatusCode} ESI Failure for {u.Nickname}"));
+                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential characterData {responceMessage.StatusCode} ESI Failure for {u.Nickname}"));
                                 continue;
                             }
 
@@ -1149,7 +1220,7 @@ namespace Opux
                             var corporationData = JsonConvert.DeserializeObject<CorporationData>(await responceMessage.Content.ReadAsStringAsync());
                             if (!responceMessage.IsSuccessStatusCode || corporationData == null)
                             {
-                                await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential corpData {responceMessage.StatusCode} ESI Failure for {u.Nickname}"));
+                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential corpData {responceMessage.StatusCode} ESI Failure for {u.Nickname}"));
                                 continue;
                             }
 
@@ -1213,7 +1284,7 @@ namespace Opux
                                 roles.Remove(u.Roles.FirstOrDefault(x => x.Name == "@everyone"));
                                 var channel = discordGuild.GetTextChannel(logchan);
                                 await channel.SendMessageAsync($"Adjusting roles for {u.Username}");
-                                await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Adjusting roles for {u.Username}"));
+                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Adjusting roles for {u.Username}"));
                                 await u.AddRolesAsync(roles);
                                 await u.RemoveRolesAsync(remroles);
                             }
@@ -1241,7 +1312,7 @@ namespace Opux
                                 if (Nickname != u.Nickname && !String.IsNullOrWhiteSpace(u.Nickname) || String.IsNullOrWhiteSpace(u.Nickname) && u.Username != Nickname)
                                 {
                                     await u.ModifyAsync(x => x.Nickname = Nickname);
-                                    await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Changed name of {u.Nickname} to {Nickname}"));
+                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Changed name of {u.Nickname} to {Nickname}"));
                                 }
                             }
                         }
@@ -1279,19 +1350,19 @@ namespace Opux
                                 {
                                     var channel = discordGuild.GetTextChannel(logchan);
                                     await channel.SendMessageAsync($"Resetting roles for {u.Username}");
-                                    await Client_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Resetting roles for {u.Username}"));
+                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Resetting roles for {u.Username}"));
                                     await u.RemoveRolesAsync(rroles);
                                 }
                                 catch (Exception ex)
                                 {
-                                    await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Error removing roles: {ex.Message}", ex));
+                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Error removing roles: {ex.Message}", ex));
                                 }
                             }
                         }
                     }
                     catch (Exception ex)
                     {
-                        await Client_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Fatal Error: {ex.Message}", ex));
+                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Fatal Error: {ex.Message}", ex));
                     }
                 }
 
@@ -1388,15 +1459,14 @@ namespace Opux
                     ws.OnError -= Ws_OnError;
                     ws.OnClose -= Ws_OnClose;
                     new WebSocket("wss://zkillboard.com:2096");
-                    //throw new NotImplementedException();
                     ZkillInit = false;
 
-                    await Client_Log(new LogMessage(LogSeverity.Error, $"Ws_Socket", $"Web Socket Died Restarting"));
+                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, $"Ws_Socket", $"Web Socket Died Restarting"));
                 }
             }
             catch (Exception ex)
             {
-                await Client_Log(new LogMessage(LogSeverity.Error, $"Ws_Socket", $"Web Socket Error {ex.Message}"));
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, $"Ws_Socket", $"Web Socket Error {ex.Message}"));
             }
         }
 
@@ -1407,8 +1477,8 @@ namespace Opux
             ws.OnError -= Ws_OnError;
             ws.OnClose -= Ws_OnClose;
             ZkillInit = false;
-            //throw new NotImplementedException();
-            await Client_Log(new LogMessage(LogSeverity.Info, $"Ws_Socket", $"Web Socket close {e.Reason}"));
+
+            await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"Ws_Socket", $"Web Socket close {e.Reason}"));
         }
 
         private static async void Ws_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
@@ -1418,19 +1488,13 @@ namespace Opux
             ws.OnError -= Ws_OnError;
             ws.OnClose -= Ws_OnClose;
             ZkillInit = false;
-            //throw new NotImplementedException();
-            await Client_Log(new LogMessage(LogSeverity.Error, $"Ws_Socket", $"Web Socket Error: {e.Message}"));
+
+            await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, $"Ws_Socket", $"Web Socket Error: {e.Message}"));
         }
 
         private static async void Ws_OnOpen(object sender, EventArgs e)
         {
-            //throw new NotImplementedException();
-            ws.OnMessage -= Ws_OnMessageAsync;
-            ws.OnOpen -= Ws_OnOpen;
-            ws.OnError -= Ws_OnError;
-            ws.OnClose -= Ws_OnClose;
-            ZkillInit = false;
-            await Client_Log(new LogMessage(LogSeverity.Info, $"Ws_Socket", $"Opened Web Socket to zKill"));
+            await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"Ws_Socket", $"Opened Web Socket to zKill"));
         }
 
         private static async void Ws_OnMessageAsync(object sender, WebSocketSharp.MessageEventArgs e)
@@ -1488,11 +1552,11 @@ namespace Opux
                     {
                         if (loop == 5)
                         {
-                            await Client_Log(new LogMessage(LogSeverity.Error, $"killFeed", $"ESI Error Tryed {loop} times and giving up"));
+                            await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, $"killFeed", $"ESI Error Tryed {loop} times and giving up"));
                             return;
                         }
 
-                        await Client_Log(new LogMessage(LogSeverity.Error, $"killFeed", $"ESI Issue Trying Again KillId {kill.killmail_id} " +
+                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, $"killFeed", $"ESI Issue Trying Again KillId {kill.killmail_id} " +
                             $"(Loop {loop})"));
                         loop++;
                         goto GetInfo;
@@ -1583,18 +1647,18 @@ namespace Opux
 
                                     var stringVal = string.Format("{0:n0} ISK", value);
 
-                                    await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting  Radius Kill: {kill.killmail_id}  Value: {stringVal}"));
+                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting  Radius Kill: {kill.killmail_id}  Value: {stringVal}"));
                                 }
                             }
                             catch (ApiException ex)
                             {
                                 if (ex.Message == "Error calling GetRouteOriginDestination: {\"error\":\"No route found\"}")
                                 {
-                                    await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Radius Kill: {kill.killmail_id} Inside a WH"));
+                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Radius Kill: {kill.killmail_id} Inside a WH"));
                                 }
                                 else
                                 {
-                                    await Client_Log(new LogMessage(LogSeverity.Error, $"killFeed", $"{ex.Message}"));
+                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, $"killFeed", $"{ex.Message}"));
 
                                 }
                             }
@@ -1626,7 +1690,7 @@ namespace Opux
 
                             var stringVal = string.Format("{0:n0} ISK", value);
 
-                            await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting Global Big Kill: {kill.killmail_id}  Value: {stringVal}"));
+                            await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting Global Big Kill: {kill.killmail_id}  Value: {stringVal}"));
 
                         }
                         if (allianceID == 0 && corpID == 0)
@@ -1656,7 +1720,7 @@ namespace Opux
 
                                 var stringVal = string.Format("{0:n0} ISK", value);
 
-                                await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting Global Kills: {kill.killmail_id}  Value: {stringVal}"));
+                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting Global Kills: {kill.killmail_id}  Value: {stringVal}"));
                             }
                         }
                         else
@@ -1689,7 +1753,7 @@ namespace Opux
 
                                     var stringVal = string.Format("{0:n0} ISK", value);
 
-                                    await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting     Big Loss: {kill.killmail_id}  Value: {stringVal}"));
+                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting     Big Loss: {kill.killmail_id}  Value: {stringVal}"));
 
                                     lastChannel = c;
 
@@ -1725,7 +1789,7 @@ namespace Opux
 
                                         var stringVal = string.Format("{0:n0} ISK", value);
 
-                                        await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting         Loss: {kill.killmail_id}  Value: {stringVal}"));
+                                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting         Loss: {kill.killmail_id}  Value: {stringVal}"));
 
                                         lastChannel = c;
 
@@ -1764,7 +1828,7 @@ namespace Opux
 
                                         var stringVal = string.Format("{0:n0} ISK", value);
 
-                                        await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting     Big Kill: {kill.killmail_id}  Value: {stringVal}"));
+                                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting     Big Kill: {kill.killmail_id}  Value: {stringVal}"));
 
                                         lastChannel = c;
 
@@ -1797,7 +1861,7 @@ namespace Opux
 
                                     var stringVal = string.Format("{0:n0} ISK", value);
 
-                                    await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting         Kill: {kill.killmail_id}  Value: {stringVal}"));
+                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting         Kill: {kill.killmail_id}  Value: {stringVal}"));
 
                                     lastChannel = c;
                                     lastPosted = iD;
@@ -1806,7 +1870,7 @@ namespace Opux
                                 }
                                 else if (kill != null && kill != null && lastPosted != 0 && lastPosted == kill.killmail_id && lastChannel == c)
                                 {
-                                    await Client_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Skipping kill: {kill.killmail_id} as its been posted recently"));
+                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Skipping kill: {kill.killmail_id} as its been posted recently"));
                                 }
                             }
                         }
@@ -1816,7 +1880,7 @@ namespace Opux
             }
             catch (Exception ex)
             {
-                await Client_Log(new LogMessage(LogSeverity.Error, $"killFeed", ex.Message, ex));
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, $"killFeed", ex.Message, ex));
             }
         }
 
@@ -1881,7 +1945,7 @@ namespace Opux
                     await TS_client.ServerNotifyRegister(Event.textprivate);
                     await TS_client.ServerNotifyRegister(Event.textserver);
                     await TS_client.ClientUpdate(Program.Settings.GetSection("config")["name"]);
-                    await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Connected to {server.VirtualServerName} as {whoAmI.ClientLoginName}"));
+                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Connected to {server.VirtualServerName} as {whoAmI.ClientLoginName}"));
                     //await TS_client.SendTextMessage(TextMessageTargetMode.TextMessageTarget_SERVER, server.VirtualServerId, $"{botName} Connected");
                     TS_client.ConnectionClosed += Teamspeak_Closed;
                     TS_client.NotifyTextMessage += Teamspeak_TextMessage;
@@ -1923,7 +1987,7 @@ namespace Opux
                                         if (tmp.Name != "Guest")
                                         {
                                             var result = await TS_client.SendCommandAsync($"servergroupdelclient sgid={tmp.Sgid} cldbid={client.ClientDatabaseId}");
-                                            await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Revoking group {tmp.Name} from {client.ClientNickname}"));
+                                            await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Revoking group {tmp.Name} from {client.ClientNickname}"));
                                         }
                                     }
                                 }
@@ -1943,7 +2007,7 @@ namespace Opux
                                         if (tmp.Name != "Server Admin")
                                         {
                                             var result = await TS_client.SendCommandAsync($"servergroupdelclient sgid={tmp.Sgid} cldbid={client.ClientDatabaseId}");
-                                            await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Revoking group {tmp.Name} from {client.ClientNickname}"));
+                                            await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Revoking group {tmp.Name} from {client.ClientNickname}"));
                                         }
                                     }
                                     if (discordUser != null)
@@ -1962,7 +2026,7 @@ namespace Opux
                                     if (tmp.Name != "Server Admin")
                                     {
                                         var result = await TS_client.SendCommandAsync($"servergroupdelclient sgid={tmp.Sgid} cldbid={client.ClientDatabaseId}");
-                                        await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Revoking group {tmp.Name} from {client.ClientNickname}"));
+                                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Revoking group {tmp.Name} from {client.ClientNickname}"));
                                     }
                                     if (discordUser != null)
                                     {
@@ -1981,7 +2045,7 @@ namespace Opux
 
         private static async void Teamspeak_TextMessage(object sender, NotifyTextMessageResult e)
         {
-            await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Message From: {e.Invokername}, {e.Msg}"));
+            await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Message From: {e.Invokername}, {e.Msg}"));
         }
 
         private static async void Teamspeak_Closed(object sender, EventArgs e)
@@ -1989,7 +2053,7 @@ namespace Opux
             var username = Program.Settings.GetSection("teamspeak")["username"];
             var password = Program.Settings.GetSection("teamspeak")["password"];
 
-            await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Connection Lost"));
+            await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Connection Lost"));
             TS_client = null;
             _teamspeakRunning = false;
         }
@@ -2084,7 +2148,7 @@ namespace Opux
                                             var reponceAddTeamspeak = MysqlQuery(Program.Settings.GetSection("config")["connstring"], teamspeakAddUIDS).Result;
 
                                             await context.Channel.SendMessageAsync($"{context.User.Mention}, Roles were given for Corp {corp.Value}");
-                                            await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Giving group {group.Name} to {c.ClientNickname}"));
+                                            await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Giving group {group.Name} to {c.ClientNickname}"));
                                         }
                                         else if (result.ErrorId == 2561)
                                         {
@@ -2122,7 +2186,7 @@ namespace Opux
                                                     if (resultCorp.Success)
                                                     {
                                                         await context.Channel.SendMessageAsync($"{context.User.Mention}, Roles were given for Corp {corporationData.ticker}");
-                                                        await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Giving group {group.Name} to {c.ClientNickname}"));
+                                                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Giving group {group.Name} to {c.ClientNickname}"));
                                                     }
                                                     else if (result.ErrorId == 2561)
                                                     {
@@ -2140,7 +2204,7 @@ namespace Opux
                                                 var teamspeakAddUIDS = $"INSERT INTO teamspeakUsers (id, uid) values(\"{context.User.Id}\", \"{c.ClientUniqueIdentifier}\")";
                                                 var reponceAddTeamspeak = MysqlQuery(Program.Settings.GetSection("config")["connstring"], teamspeakAddUIDS).Result;
                                                 await context.Channel.SendMessageAsync($"{context.User.Mention}, Roles were given for Alliance {ally.Value}");
-                                                await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Giving group {group.Name} to {c.ClientNickname}"));
+                                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Giving group {group.Name} to {c.ClientNickname}"));
                                             }
                                             else if (result.ErrorId == 2561)
                                             {
@@ -2180,7 +2244,7 @@ namespace Opux
             }
             catch (Exception ex)
             {
-                await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"ERROR {ex.Message}", ex));
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"ERROR {ex.Message}", ex));
             }
         }
 
@@ -2214,7 +2278,7 @@ namespace Opux
                     if (tmp.Name != "Server Admin")
                     {
                         var result = await TS_client.SendCommandAsync($"servergroupdelclient sgid={tmp.Sgid} cldbid={client.ClientDatabaseId}");
-                        await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Revoking group {tmp.Name} from {client.ClientNickname}"));
+                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Revoking group {tmp.Name} from {client.ClientNickname}"));
                     }
                 }
             }
@@ -2250,7 +2314,7 @@ namespace Opux
                 if (tmp.Name != "Server Admin")
                 {
                     var result = await TS_client.SendCommandAsync($"servergroupdelclient sgid={tmp.Sgid} cldbid={client.ClientDatabaseId}");
-                    await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Revoking group {tmp.Name} from {client.ClientNickname}"));
+                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Revoking group {tmp.Name} from {client.ClientNickname}"));
                 }
             }
             var queryDel = $"DELETE FROM teamspeakUsers WHERE id=\"{DiscordID}\"";
@@ -2286,7 +2350,7 @@ namespace Opux
                 if (tmp.Name != "Server Admin")
                 {
                     var result = await TS_client.SendCommandAsync($"servergroupdelclient sgid={tmp.Sgid} cldbid={client.ClientDatabaseId}");
-                    await Client_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Revoking group {tmp.Name} from {client.ClientNickname}"));
+                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Revoking group {tmp.Name} from {client.ClientNickname}"));
                 }
             }
             var queryDel = $"DELETE FROM teamspeakUsers WHERE id=\"{discordUser.Id}\"";
@@ -2482,7 +2546,7 @@ namespace Opux
             {
                 if (DateTime.Now > _nextNotificationCheck)
                 {
-                    await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", "Running Notification Check"));
+                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", "Running Notification Check"));
                     _lastNotification = Convert.ToInt32(await SQLiteDataQuery("cacheData", "data", "lastNotificationID"));
                     var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
                     var channelId = Convert.ToUInt64(Program.Settings.GetSection("notifications")["channelId"]);
@@ -2508,7 +2572,7 @@ namespace Opux
                             keyID = key["keyID"];
                             vCode = key["vCode"];
 
-                            await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Checking characterID:{characterID} keyID:{keyID} vCode:{vCode}"));
+                            await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Checking characterID:{characterID} keyID:{keyID} vCode:{vCode}"));
 
                             await EveLib.SetApiKey(keyID, vCode, characterID);
                             var notifications = await EveLib.GetNotifications();
@@ -2546,21 +2610,21 @@ namespace Opux
                                             }
                                             catch (Exception ex)
                                             {
-                                                await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"ERROR Notification TypeID: {notificationType} " +
+                                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"ERROR Notification TypeID: {notificationType} " +
                                                     $"Type: {types[notificationType]}", ex));
 
                                                 if (notificationsText != null)
                                                 {
                                                     foreach (var noti in notificationsText)
                                                     {
-                                                        await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"NoticationText {noti}"));
+                                                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"NoticationText {noti}"));
                                                     }
                                                 }
                                             }
 
                                             if (notificationType == 5)
                                             {
-                                                await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
+                                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
                                                     $"Type: {types[notificationType]}"));
                                                 var againstID = Convert.ToInt64(notificationText["againstID"].AllNodes.ToList()[0].ToString());
                                                 var cost = notificationText["cost"].AllNodes.ToList()[0];
@@ -2588,7 +2652,7 @@ namespace Opux
                                             }
                                             else if (notificationType == 7)
                                             {
-                                                await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
+                                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
                                                     $"Type: {types[notificationType]}"));
                                                 var againstID = Convert.ToInt64(notificationText["againstID"].AllNodes.ToList()[0].ToString());
                                                 var declaredByID = Convert.ToInt64(notificationText["declaredByID"].AllNodes.ToList()[0].ToString());
@@ -2635,7 +2699,7 @@ namespace Opux
                                             }
                                             else if (notificationType == 27)
                                             {
-                                                await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
+                                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
                                                     $"Type: {types[notificationType]}"));
                                                 var againstID = Convert.ToInt64(notificationText["againstID"].AllNodes.ToList()[0].ToString());
                                                 var cost = notificationText["cost"].AllNodes.ToList()[0];
@@ -2663,7 +2727,7 @@ namespace Opux
                                             }
                                             else if (notificationType == 30)
                                             {
-                                                await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
+                                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
                                                     $"Type: {types[notificationType]}"));
                                                 var againstID = Convert.ToInt64(notificationText["againstID"].AllNodes.ToList()[0].ToString());
                                                 var cost = notificationText["cost"].AllNodes.ToList()[0];
@@ -2687,7 +2751,7 @@ namespace Opux
                                             }
                                             else if (notificationType == 75)
                                             {
-                                                await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
+                                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
                                                     $"Type: {types[notificationType]}"));
                                                 Int64.TryParse(notificationText["aggressorAllianceID"].AllNodes.ToList()[0].ToString(), out long allyResult);
                                                 var aggressorAllianceID = allyResult;
@@ -2733,7 +2797,7 @@ namespace Opux
                                             }
                                             else if (notificationType == 93)
                                             {
-                                                await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
+                                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
                                                     $"Type: {types[notificationType]}"));
                                                 Int64.TryParse(notificationText["aggressorAllianceID"].AllNodes.ToList()[0].ToString(), out long allyResult);
                                                 var aggressorAllianceID = allyResult;
@@ -2773,7 +2837,7 @@ namespace Opux
                                             }
                                             else if (notificationType == 100)
                                             {
-                                                await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
+                                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
                                                     $"Type: {types[notificationType]}"));
                                                 var allyID = Convert.ToInt64(notificationText["allyID"].AllNodes.ToList()[0].ToString());
                                                 var defenderID = Convert.ToInt64(notificationText["defenderID"].AllNodes.ToList()[0].ToString());
@@ -2798,7 +2862,7 @@ namespace Opux
                                             }
                                             else if (notificationType == 121)
                                             {
-                                                await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
+                                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
                                                     $"Type: {types[notificationType]}"));
                                                 var aggressorID = Convert.ToInt64(notificationText["entityID"].AllNodes.ToList()[0].ToString());
                                                 var defenderID = Convert.ToInt64(notificationText["defenderID"].AllNodes.ToList()[0].ToString());
@@ -2845,7 +2909,7 @@ namespace Opux
                                             }
                                             else if (notificationType == 147)
                                             {
-                                                await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
+                                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
                                                     $"Type: {types[notificationType]}"));
                                                 var solarSystemID = Convert.ToInt64(notificationText["solarSystemID"].AllNodes.ToList()[0].ToString());
                                                 var structureTypeID = Convert.ToInt64(notificationText["structureTypeID"].AllNodes.ToList()[0].ToString());
@@ -2869,7 +2933,7 @@ namespace Opux
                                             }
                                             else if (notificationType == 160)
                                             {
-                                                await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
+                                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
                                                     $"Type: {types[notificationType]}"));
                                                 var campaignEventType = notificationText["campaignEventType"].AllNodes.ToList()[0];
                                                 var solarSystemID = Convert.ToInt64((notificationText["solarSystemID"].AllNodes.ToList()[0].ToString()));
@@ -2894,7 +2958,7 @@ namespace Opux
                                             }
                                             else if (notificationType == 161)
                                             {
-                                                await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
+                                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
                                                     $"Type: {types[notificationType]}"));
                                                 var campaignEventType = notificationText["campaignEventType"].AllNodes.ToList()[0];
                                                 var constellationID = notificationText["constellationID"].AllNodes.ToList()[0];
@@ -2918,7 +2982,7 @@ namespace Opux
                                             }
                                             else if (notificationType == 184)
                                             {
-                                                await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
+                                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
                                                     $"Type: {types[notificationType]}"));
                                                 Int64.TryParse(notificationText["allianceID"].AllNodes.ToList()[0].ToString(), out long allyResult);
                                                 var aggressorAllianceID = allyResult;
@@ -2963,12 +3027,12 @@ namespace Opux
                                             {
                                                 try
                                                 {
-                                                    await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Skipping Notification TypeID: {notificationType} " +
+                                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Skipping Notification TypeID: {notificationType} " +
                                                         $"Type: {types[notificationType]} {Environment.NewLine} Text: {notificationText}"));
                                                 }
                                                 catch (KeyNotFoundException)
                                                 {
-                                                    await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Skipping **NEW** Notification TypeID: {notificationType} " +
+                                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Skipping **NEW** Notification TypeID: {notificationType} " +
                                                         $"{Environment.NewLine} Text: {notificationText}"));
                                                 }
                                             }
@@ -2990,25 +3054,25 @@ namespace Opux
                                             }
                                             catch (Exception ex)
                                             {
-                                                await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"ERROR Notification TypeID: {notificationType} " +
+                                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"ERROR Notification TypeID: {notificationType} " +
                                                     $"Type: {types[notificationType]}", ex));
                                                 if (notificationsText != null)
                                                 {
                                                     foreach (var noti in notificationsText)
                                                     {
-                                                        await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"NoticationText {noti}"));
+                                                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"NoticationText {noti}"));
                                                     }
                                                 }
                                             }
 
                                             try
                                             {
-                                                await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Skipping Notification TypeID: {notificationType} " +
+                                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Skipping Notification TypeID: {notificationType} " +
                                                     $"Type: {types[notificationType]} {Environment.NewLine} Text: {notificationText}"));
                                             }
                                             catch (KeyNotFoundException)
                                             {
-                                                await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Skipping **NEW** Notification TypeID: {notificationType} " +
+                                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Skipping **NEW** Notification TypeID: {notificationType} " +
                                                     $"{Environment.NewLine} Text: {notificationText}"));
                                             }
                                             _lastNotification = (int)notification.Value["notificationID"];
@@ -3017,7 +3081,7 @@ namespace Opux
                                     }
                                     catch (Exception ex)
                                     {
-                                        await Client_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Error Notification", ex));
+                                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Error Notification", ex));
                                     }
                                 }
                                 runComplete = true;
@@ -3043,7 +3107,7 @@ namespace Opux
             }
             catch (Exception ex)
             {
-                await Client_Log(new LogMessage(LogSeverity.Error, "NotificationFeed", ex.Message, ex));
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "NotificationFeed", ex.Message, ex));
             }
         }
         #endregion
@@ -3104,7 +3168,7 @@ namespace Opux
 
                     var ItemNameResults = JsonConvert.DeserializeObject<List<SearchName>>(ItemNameResult);
 
-                    await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
+                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
                     var builder = new EmbedBuilder()
                         .WithColor(new Color(0x00D000))
                         .WithAuthor(author =>
@@ -3162,7 +3226,7 @@ namespace Opux
                             var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={ItemIDResults.inventory_type[0]}");
                             var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
 
-                            await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
+                            await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
                             var builder = new EmbedBuilder()
                                 .WithColor(new Color(0x00D000))
                                 .WithThumbnailUrl($"https://image.eveonline.com/Type/{ItemNameResults.id}_64.png")
@@ -3194,7 +3258,7 @@ namespace Opux
                             var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={ItemIDResults.inventory_type[0]}&usesystem=30000142");
                             var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
 
-                            await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
+                            await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
 
                             var builder = new EmbedBuilder()
                                 .WithColor(new Color(0x00D000))
@@ -3227,7 +3291,7 @@ namespace Opux
                             var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={ItemIDResults.inventory_type[0]}&usesystem=30002187");
                             var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
 
-                            await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
+                            await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
 
                             var builder = new EmbedBuilder()
                                 .WithColor(new Color(0x00D000))
@@ -3260,7 +3324,7 @@ namespace Opux
                             var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={ItemIDResults.inventory_type[0]}&usesystem=30002510");
                             var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
 
-                            await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
+                            await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
 
                             var builder = new EmbedBuilder()
                                 .WithColor(new Color(0x00D000))
@@ -3293,7 +3357,7 @@ namespace Opux
                             var eveCentralReply = await Program._httpClient.GetStringAsync($"{url}/marketstat/json?typeid={ItemIDResults.inventory_type[0]}&usesystem=30002659");
                             var centralreply = JsonConvert.DeserializeObject<List<Items>>(eveCentralReply)[0];
 
-                            await Client_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
+                            await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "PCheck", $"Sending {context.Message.Author}'s Price check to {channel.Name}"));
 
                             var builder = new EmbedBuilder()
                                 .WithColor(new Color(0x00D000))
@@ -3324,14 +3388,14 @@ namespace Opux
                     }
                     catch (Exception ex)
                     {
-                        await Client_Log(new LogMessage(LogSeverity.Error, "PC", ex.Message, ex));
+                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "PC", ex.Message, ex));
                     }
                 }
             }
             catch (Exception ex)
             {
                 await channel.SendMessageAsync($"{context.Message.Author.Mention}, ERROR Please inform Discord/Bot Owner");
-                await Client_Log(new LogMessage(LogSeverity.Error, "PC", ex.Message, ex));
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "PC", ex.Message, ex));
             }
         }
         #endregion
@@ -3348,7 +3412,7 @@ namespace Opux
             }
             catch (Exception ex)
             {
-                await Client_Log(new LogMessage(LogSeverity.Error, "EveTime", ex.Message, ex));
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "EveTime", ex.Message, ex));
             }
         }
         #endregion
@@ -3400,7 +3464,7 @@ namespace Opux
             }
             catch (Exception ex)
             {
-                await Client_Log(new LogMessage(LogSeverity.Error, "MOTD", ex.Message, ex));
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "MOTD", ex.Message, ex));
             }
         }
         #endregion
@@ -3413,7 +3477,7 @@ namespace Opux
             {
                 if (DateTime.Now > _lastTopicCheck.AddMilliseconds(Convert.ToInt32(Program.Settings.GetSection("motd")["topicInterval"]) * 1000 * 60))
                 {
-                    await Client_Log(new LogMessage(LogSeverity.Info, "CheckTopic", "Running Topic Check"));
+                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "CheckTopic", "Running Topic Check"));
                     _motdtopic = Convert.ToString(await SQLiteDataQuery("cacheData", "data", "motd"));
                     {
                         var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
@@ -3462,7 +3526,7 @@ namespace Opux
             }
             catch (Exception ex)
             {
-                await Client_Log(new LogMessage(LogSeverity.Error, "MOTDTopic", ex.Message, ex));
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "MOTDTopic", ex.Message, ex));
             }
         }
         #endregion
@@ -3489,7 +3553,7 @@ namespace Opux
 
                     if (String.IsNullOrWhiteSpace(UserId) || String.IsNullOrWhiteSpace(APICode) || String.IsNullOrWhiteSpace(GroupID))
                     {
-                        await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Setup Incomplete please check the Settings file"));
+                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Setup Incomplete please check the Settings file"));
                         await SQLiteDataUpdate("cacheData", "data", "fleetUpLastChecked", DateTime.Now.ToString());
                         return;
                     }
@@ -3528,7 +3592,7 @@ namespace Opux
 
                                 var sendres = await channel.SendMessageAsync($"@everyone FleetUp Op <http://fleet-up.com/Operation#{operation.OperationId}>", false, embed);
 
-                                await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup OP {name} ({operation.OperationId})"));
+                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup OP {name} ({operation.OperationId})"));
 
                                 await sendres.AddReactionAsync(new Emoji("✅"));
                                 await sendres.AddReactionAsync(new Emoji("❔"));
@@ -3574,7 +3638,7 @@ namespace Opux
 
                                     var sendres = await channel.SendMessageAsync($"@everyone FORMUP In {i} Minutes for FleetUp Op <http://fleet-up.com/Operation#{operation.OperationId}>", false, embed).ConfigureAwait(false);
 
-                                    await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup Reminder {name} ({operation.OperationId})"));
+                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup Reminder {name} ({operation.OperationId})"));
                                 }
                             }
 
@@ -3607,20 +3671,20 @@ namespace Opux
 
                                 var sendres = await channel.SendMessageAsync($"@everyone FORMUP Now FleetUp Op <http://fleet-up.com/Operation#{operation.OperationId}>", false, embed).ConfigureAwait(false);
 
-                                await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup FORMUP Now {name} ({operation.OperationId})"));
+                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"Posting Fleetup FORMUP Now {name} ({operation.OperationId})"));
                             }
                         }
                         await SQLiteDataUpdate("cacheData", "data", "fleetUpLastChecked", DateTime.Now.ToString());
                     }
                     else
                     {
-                        await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"ERROR In Fleetup API {JsonContent.StatusCode}"));
+                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"ERROR In Fleetup API {JsonContent.StatusCode}"));
                     }
                 }
             }
             catch (Exception ex)
             {
-                await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"ERROR {ex.Message}", ex));
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"ERROR {ex.Message}", ex));
             }
         }
 
@@ -3712,11 +3776,11 @@ namespace Opux
                     }
                 }
 
-                await Client_Log(new LogMessage(LogSeverity.Info, "FleetOps", $"Sending Ops to {Context.Message.Channel} for {Context.Message.Author}"));
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "FleetOps", $"Sending Ops to {Context.Message.Channel} for {Context.Message.Author}"));
             }
             catch (Exception ex)
             {
-                await Client_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"ERROR In Fleetup OPS {ex.Message}", ex));
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "FleetUp", $"ERROR In Fleetup OPS {ex.Message}", ex));
             }
         }
         #endregion
@@ -3739,7 +3803,7 @@ namespace Opux
                 }
                 catch (Exception ex)
                 {
-                    await Client_Log(new LogMessage(LogSeverity.Error, "Jabber", ex.Message, ex));
+                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "Jabber", ex.Message, ex));
                 }
             }
 
@@ -3989,7 +4053,7 @@ namespace Opux
 
                 await message.ModifyAsync(msg => { msg.Content = ""; msg.Embed = embed; });
 
-                await Client_Log(new LogMessage(LogSeverity.Info, "Char", $"Sending {context.Message.Author} Character Info Request to {context.Message.Channel}" +
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "Char", $"Sending {context.Message.Author} Character Info Request to {context.Message.Channel}" +
                     $" {context.Guild.Name}"));
             }
 
@@ -4041,7 +4105,7 @@ namespace Opux
                     }
                     catch (HttpRequestException ex)
                     {
-                        await Client_Log(new LogMessage(LogSeverity.Error, "corp", ex.Message, ex));
+                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "corp", ex.Message, ex));
                     }
 
                     responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{corporationData.ceo_id}/?datasource=tranquility");
@@ -4069,7 +4133,7 @@ namespace Opux
 
 
                     await channel.SendMessageAsync($"", false, embed);
-                    await Client_Log(new LogMessage(LogSeverity.Info, "Corp", $"Sending {context.Message.Author} Corporation Info Request to {context.Message.Channel}" +
+                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "Corp", $"Sending {context.Message.Author} Corporation Info Request to {context.Message.Channel}" +
                         $"{context.Guild.Name}"));
                 }
                 else
@@ -4143,7 +4207,7 @@ namespace Opux
                 }
                 catch (MySqlException ex)
                 {
-                    await Client_Log(new LogMessage(LogSeverity.Error, "mySQL", query + " " + ex.Message, ex));
+                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "mySQL", query + " " + ex.Message, ex));
                 }
                 await Task.Yield();
                 return list;
@@ -4170,7 +4234,7 @@ namespace Opux
                 }
                 catch (Exception ex)
                 {
-                    await Client_Log(new LogMessage(LogSeverity.Error, "SQLite", ex.Message, ex));
+                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "SQLite", ex.Message, ex));
                     return null;
                 }
             }
@@ -4196,7 +4260,7 @@ namespace Opux
                 }
                 catch (Exception ex)
                 {
-                    await Client_Log(new LogMessage(LogSeverity.Error, "SQLite", ex.Message, ex));
+                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "SQLite", ex.Message, ex));
                     return null;
                 }
             }
@@ -4220,7 +4284,7 @@ namespace Opux
                 }
                 catch (Exception ex)
                 {
-                    await Client_Log(new LogMessage(LogSeverity.Error, "SQLite", ex.Message, ex));
+                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "SQLite", ex.Message, ex));
                 }
             }
         }
@@ -4242,7 +4306,7 @@ namespace Opux
                 }
                 catch (Exception ex)
                 {
-                    await Client_Log(new LogMessage(LogSeverity.Error, "SQLite", ex.Message, ex));
+                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "SQLite", ex.Message, ex));
                 }
             }
         }

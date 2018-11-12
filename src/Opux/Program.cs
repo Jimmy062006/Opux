@@ -57,15 +57,15 @@ namespace Opux
                 var dockerMode = Environment.GetEnvironmentVariable("DOCKER_MODE");
 
                 if ( dockerMode != null ) {
-                    Functions.Client_Log(new LogMessage(LogSeverity.Info, "Docker", "Docker mode enabled")).Wait();
+                    Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "Docker", "Docker mode enabled")).Wait();
                     if ( dockerMode == "debug" ) {
-    					Functions.Client_Log(new LogMessage(LogSeverity.Info, "Docker", "Debug mode enabled")).Wait();
+    					Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "Docker", "Debug mode enabled")).Wait();
                         debug = true;
                     }
 
                     System.Runtime.Loader.AssemblyLoadContext.Default.Unloading += ctx =>
                     {
-    					Functions.Client_Log(new LogMessage(LogSeverity.Info, "Docker", "Received termination signal")).Wait();
+    					Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "Docker", "Received termination signal")).Wait();
                         lock(ExitLock)
                         {
                             Monitor.Pulse(ExitLock);
@@ -75,9 +75,9 @@ namespace Opux
 
                     lock(ExitLock)
                     {
-    					Functions.Client_Log(new LogMessage(LogSeverity.Info, "Docker", "Waiting for termination")).Wait();
+    					Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "Docker", "Waiting for termination")).Wait();
                         Monitor.Wait(ExitLock);
-    					Functions.Client_Log(new LogMessage(LogSeverity.Info, "Docker", "Exiting")).Wait();
+    					Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "Docker", "Exiting")).Wait();
                         quit = true;
                     }
                 }
@@ -114,11 +114,11 @@ namespace Opux
             }
             else
             {
-                Functions.Client_Log(new LogMessage(LogSeverity.Info, "Headless", "Headless mode enabled")).Wait();
+                Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "Headless", "Headless mode enabled")).Wait();
 
                 System.Runtime.Loader.AssemblyLoadContext.Default.Unloading += ctx =>
                 {
-                    Functions.Client_Log(new LogMessage(LogSeverity.Info, "Headless", "Received termination signal")).Wait();
+                    Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "Headless", "Received termination signal")).Wait();
                     lock (ExitLock)
                     {
                         Monitor.Pulse(ExitLock);
@@ -128,9 +128,9 @@ namespace Opux
 
                 lock (ExitLock)
                 {
-                    Functions.Client_Log(new LogMessage(LogSeverity.Info, "Headless", "Waiting for termination")).Wait();
+                    Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "Headless", "Waiting for termination")).Wait();
                     Monitor.Wait(ExitLock);
-                    Functions.Client_Log(new LogMessage(LogSeverity.Info, "Headless", "Exiting")).Wait();
+                    Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "Headless", "Exiting")).Wait();
                     quit = true;
                 }
             }
@@ -140,12 +140,12 @@ namespace Opux
 
         internal static async Task LoggerAsync(Exception args)
         {
-            await Functions.Client_Log(new LogMessage(LogSeverity.Error, "Main", args.Message, args));
+            await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "Main", args.Message, args));
         }
 
         internal static async Task MainAsync(string[] args)
         {
-            Client.Log += Functions.Client_Log;
+            Client.Log += Logger.DiscordClient_Log;
             Client.UserJoined += Functions.Event_UserJoined;
             Client.Ready += Functions.Ready;
 
@@ -159,12 +159,12 @@ namespace Opux
             {
                 if (ex.Reason.Contains("401"))
                 {
-                    await Functions.Client_Log(new LogMessage(LogSeverity.Error, "Discord", $"Check your Token: {ex.Reason}"));
+                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "Discord", $"Check your Token: {ex.Reason}"));
                 }
             }
             catch (Exception ex)
             {
-                await Functions.Client_Log(new LogMessage(LogSeverity.Error, "Main", ex.Message, ex));
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "Main", ex.Message, ex));
             }
         }
 

@@ -138,7 +138,7 @@ namespace Opux
             }
             catch (Exception ex)
             {
-                await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
+                await Logger.DiscordClient_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
 
             }
         }
@@ -157,7 +157,7 @@ namespace Opux
             }
             catch (Exception ex)
             {
-                await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
+                await Logger.DiscordClient_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
                 await Task.FromException(ex);
             }
         }
@@ -177,7 +177,7 @@ namespace Opux
                 }
                 catch (Exception ex)
                 {
-                    await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
+                    await Logger.DiscordClient_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
                     await Task.FromException(ex);
                 }
             }
@@ -209,7 +209,7 @@ namespace Opux
                 }
                 catch (Exception ex)
                 {
-                    await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
+                    await Logger.DiscordClient_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
                     await Task.FromException(ex);
                 }
             }
@@ -230,7 +230,7 @@ namespace Opux
                 }
                 catch (Exception ex)
                 {
-                    await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
+                    await Logger.DiscordClient_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
                     await Task.FromException(ex);
                 }
             }
@@ -250,7 +250,7 @@ namespace Opux
                 }
                 catch (Exception ex)
                 {
-                    await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
+                    await Logger.DiscordClient_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
                     await Task.FromException(ex);
                 }
             }
@@ -270,7 +270,7 @@ namespace Opux
                 }
                 catch (Exception ex)
                 {
-                    await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
+                    await Logger.DiscordClient_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
                     await Task.FromException(ex);
                 }
             }
@@ -290,7 +290,7 @@ namespace Opux
                 }
                 catch (Exception ex)
                 {
-                    await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
+                    await Logger.DiscordClient_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
                     await Task.FromException(ex);
                 }
             }
@@ -309,7 +309,7 @@ namespace Opux
             }
             catch (Exception ex)
             {
-                await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
+                await Logger.DiscordClient_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
                 await Task.FromException(ex);
             }
         }
@@ -328,7 +328,7 @@ namespace Opux
             }
             catch (Exception ex)
             {
-                await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
+                await Logger.DiscordClient_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
                 await Task.FromException(ex);
             }
         }
@@ -347,7 +347,7 @@ namespace Opux
             }
             catch (Exception ex)
             {
-                await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
+                await Logger.DiscordClient_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
                 await Task.FromException(ex);
             }
         }
@@ -367,7 +367,7 @@ namespace Opux
             }
             catch (Exception ex)
             {
-                await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
+                await Logger.DiscordClient_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
                 await Task.FromException(ex);
             }
         }
@@ -385,7 +385,7 @@ namespace Opux
             }
             catch (Exception ex)
             {
-                await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Teamspeak", ex.Message, ex));
+                await Logger.DiscordClient_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Teamspeak", ex.Message, ex));
                 await Task.FromException(ex);
             }
         }
@@ -403,7 +403,7 @@ namespace Opux
             }
             catch (Exception ex)
             {
-                await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Teamspeak", ex.Message, ex));
+                await Logger.DiscordClient_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Teamspeak", ex.Message, ex));
                 await Task.FromException(ex);
             }
         }
@@ -423,7 +423,7 @@ namespace Opux
             catch (Exception ex)
             {
                 await Context.Message.Channel.SendMessageAsync("ERROR");
-                await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Teamspeak", ex.Message, ex));
+                await Logger.DiscordClient_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Teamspeak", ex.Message, ex));
                 await Task.FromException(ex);
             }
         }
@@ -442,7 +442,7 @@ namespace Opux
             }
             catch (Exception ex)
             {
-                await Functions.Client_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "AuthMaint", ex.Message, ex));
+                await Logger.DiscordClient_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "AuthMaint", ex.Message, ex));
                 await Task.FromException(ex);
             }
         }
