@@ -525,7 +525,7 @@ namespace Opux
                                     JObject corporationDetails;
                                     JObject allianceDetails;
 
-                                    var _characterDetails = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{CharacterID}");
+                                    var _characterDetails = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/characters/{CharacterID}");
                                     string charData = null;
                                     if (!_characterDetails.IsSuccessStatusCode)
                                     {
@@ -539,7 +539,7 @@ namespace Opux
 
                                     characterDetails = JObject.Parse(await _characterDetailsContent.ReadAsStringAsync());
                                     characterDetails.TryGetValue("corporation_id", out JToken corporationid);
-                                    var _corporationDetails = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corporationid}");
+                                    var _corporationDetails = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/corporations/{corporationid}");
                                     if (!_corporationDetails.IsSuccessStatusCode)
                                     {
                                         await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "AuthWeb", $"Corp Failure ID:{CharacterID} Error: {_characterDetails.StatusCode} : {charData}"));
@@ -557,7 +557,7 @@ namespace Opux
                                     corpID = c;
                                     if (allianceID != "0")
                                     {
-                                        var _allianceDetails = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{allianceid}");
+                                        var _allianceDetails = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/alliances/{allianceid}");
                                         if (!_allianceDetails.IsSuccessStatusCode)
                                         {
                                             await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "AuthWeb", $"ESI Failure: cID:{CharacterID}"));
@@ -1030,14 +1030,14 @@ namespace Opux
 
                     var characterID = responce[0]["characterID"].ToString();
 
-                    var responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{characterID}/?datasource=tranquility");
+                    var responceMessage = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/characters/{characterID}/?datasource=tranquility");
                     var characterData = JsonConvert.DeserializeObject<CharacterData>(await responceMessage.Content.ReadAsStringAsync());
                     if (!responceMessage.IsSuccessStatusCode)
                     {
                         ESIFailed = true;
                     }
 
-                    responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.corporation_id}/?datasource=tranquility");
+                    responceMessage = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/corporations/{characterData.corporation_id}/?datasource=tranquility");
                     var corporationData = JsonConvert.DeserializeObject<CorporationData>(await responceMessage.Content.ReadAsStringAsync());
                     if (!responceMessage.IsSuccessStatusCode)
                     {
@@ -1208,7 +1208,7 @@ namespace Opux
                         {
                             var characterID = responce.OrderByDescending(x => x["id"]).FirstOrDefault()["characterID"];
 
-                            var responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{characterID}/?datasource=tranquility");
+                            var responceMessage = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/characters/{characterID}/?datasource=tranquility");
                             var characterData = JsonConvert.DeserializeObject<CharacterData>(await responceMessage.Content.ReadAsStringAsync());
                             if (!responceMessage.IsSuccessStatusCode || characterData == null)
                             {
@@ -1216,7 +1216,7 @@ namespace Opux
                                 continue;
                             }
 
-                            responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.corporation_id}/?datasource=tranquility");
+                            responceMessage = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/corporations/{characterData.corporation_id}/?datasource=tranquility");
                             var corporationData = JsonConvert.DeserializeObject<CorporationData>(await responceMessage.Content.ReadAsStringAsync());
                             if (!responceMessage.IsSuccessStatusCode || corporationData == null)
                             {
@@ -1501,7 +1501,7 @@ namespace Opux
         {
             try
             {
-                var kill = JsonConvert.DeserializeObject<JsonClasszKill.ZKill>(e.Data);
+                var kill = JsonConvert.DeserializeObject<ZKill>(e.Data);
 
                 if (Lastkill.Contains(kill.killmail_id))
                 {
@@ -1604,8 +1604,8 @@ namespace Opux
                         var c = Convert.ToUInt64(i["channel"]);
                         var SystemID = 0;
 
-                        if ((!(system.Name[0] == 'J' && Int32.TryParse(system.Name.Substring(1), out int disposable)) ||
-                            system.Name[0] == 'J' && Int32.TryParse(system.Name.Substring(1), out disposable) && radius == 0) &&
+                        if ((!(system.Name[0] == 'J' && int.TryParse(system.Name.Substring(1), out int disposable)) ||
+                            system.Name[0] == 'J' && int.TryParse(system.Name.Substring(1), out disposable) && radius == 0) &&
                             !string.IsNullOrWhiteSpace(radiusSystem) && radiusChannel > 0)
                         {
                             var SystemName = await searchApi.GetSearchAsync(new List<string> { $"solar_system" }, radiusSystem, strict: true);
@@ -2128,10 +2128,10 @@ namespace Opux
                         {
                             try
                             {
-                                var responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{characterID}/?datasource=tranquility");
+                                var responceMessage = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/characters/{characterID}/?datasource=tranquility");
                                 characterData = JsonConvert.DeserializeObject<CharacterData>(await responceMessage.Content.ReadAsStringAsync());
 
-                                responceMessage = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{characterData.corporation_id}/?datasource=tranquility");
+                                responceMessage = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/corporations/{characterData.corporation_id}/?datasource=tranquility");
                                 corporationData = JsonConvert.DeserializeObject<CorporationData>(await responceMessage.Content.ReadAsStringAsync());
 
                                 //Check for Corp roles
@@ -2676,7 +2676,7 @@ namespace Opux
                                             }
                                             else if (notificationType == 16)
                                             {
-                                                var responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{notificationText["charID"]}/?datasource=tranquility");
+                                                var responce = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/characters/{notificationText["charID"]}/?datasource=tranquility");
                                                 CharacterData characterData = new CharacterData();
                                                 if (responce.IsSuccessStatusCode)
                                                 {
@@ -2886,7 +2886,7 @@ namespace Opux
                                             }
                                             else if (notificationType == 130)
                                             {
-                                                var responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{notificationText["charID"]}/?datasource=tranquility");
+                                                var responce = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/characters/{notificationText["charID"]}/?datasource=tranquility");
                                                 CharacterData characterData = new CharacterData();
                                                 if (responce.IsSuccessStatusCode)
                                                 {
@@ -3123,12 +3123,12 @@ namespace Opux
                 HttpResponseMessage ItemID = new HttpResponseMessage();
                 if (String.ToLower().StartsWith("search"))
                 {
-                    ItemID = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/search/?categories=inventory_type&datasource=tranquility&language=en-us&search=" +
+                    ItemID = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/search/?categories=inventory_type&datasource=tranquility&language=en-us&search=" +
                         $"{String.TrimStart(new char[] { 's', 'e', 'a', 'r', 'c', 'h' })}&strict=false");
                 }
                 else
                 {
-                    ItemID = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/search/?categories=inventory_type&datasource=tranquility&language=en-us&search=" +
+                    ItemID = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/search/?categories=inventory_type&datasource=tranquility&language=en-us&search=" +
                         $"{String.ToLower()}&strict=true");
                 }
 
@@ -3156,7 +3156,7 @@ namespace Opux
                     var tmp = JsonConvert.SerializeObject(ItemIDResults.inventory_type);
                     var httpContent = new StringContent(tmp);
 
-                    var ItemName = await Program._httpClient.PostAsync($"https://esi.tech.ccp.is/latest/universe/names/?datasource=tranquility", httpContent);
+                    var ItemName = await Program._httpClient.PostAsync($"https://esi.evetech.net/latest/universe/names/?datasource=tranquility", httpContent);
 
                     if (!ItemName.IsSuccessStatusCode)
                     {
@@ -3207,7 +3207,7 @@ namespace Opux
                     {
                         var httpContent = new StringContent($"[ { ItemIDResults.inventory_type[0] } ]");
 
-                        var ItemName = await Program._httpClient.PostAsync($"https://esi.tech.ccp.is/latest/universe/names/?datasource=tranquility", httpContent);
+                        var ItemName = await Program._httpClient.PostAsync($"https://esi.evetech.net/latest/universe/names/?datasource=tranquility", httpContent);
 
                         if (!ItemName.IsSuccessStatusCode)
                         {
@@ -4067,7 +4067,7 @@ namespace Opux
         {
             var channel = context.Channel;
             var responce = await Program._httpClient.GetAsync(
-                $"https://esi.tech.ccp.is/latest/search/?categories=corporation&datasource=tranquility&language=en-us&search={x}&strict=true");
+                $"https://esi.evetech.net/latest/search/?categories=corporation&datasource=tranquility&language=en-us&search={x}&strict=true");
             CorpIDLookup corpContent = new CorpIDLookup();
             if (!responce.IsSuccessStatusCode)
             {
@@ -4078,7 +4078,7 @@ namespace Opux
                 var corpIDLookup = JsonConvert.DeserializeObject<CorpIDLookup>(await responce.Content.ReadAsStringAsync());
                 if (corpIDLookup.corporation != null)
                 {
-                    responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/corporations/{corpIDLookup.corporation[0]}/?datasource=tranquility");
+                    responce = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/corporations/{corpIDLookup.corporation[0]}/?datasource=tranquility");
 
                     CorporationData corporationData = new CorporationData();
                     if (responce.IsSuccessStatusCode)
@@ -4096,7 +4096,7 @@ namespace Opux
                     {
                         if (corporationData.alliance_id != null)
                         {
-                            responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/alliances/{corporationData.alliance_id}/?datasource=tranquility");
+                            responce = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/alliances/{corporationData.alliance_id}/?datasource=tranquility");
                             if (responce.IsSuccessStatusCode)
                             {
                                 allianceData = JsonConvert.DeserializeObject<AllianceData>(await responce.Content.ReadAsStringAsync());
@@ -4108,7 +4108,7 @@ namespace Opux
                         await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "corp", ex.Message, ex));
                     }
 
-                    responce = await Program._httpClient.GetAsync($"https://esi.tech.ccp.is/latest/characters/{corporationData.ceo_id}/?datasource=tranquility");
+                    responce = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/characters/{corporationData.ceo_id}/?datasource=tranquility");
 
                     var CEONameContent = JsonConvert.DeserializeObject<CharacterData>(await responce.Content.ReadAsStringAsync());
 

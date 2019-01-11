@@ -20,11 +20,11 @@ namespace Opux
         public static DiscordSocketClient Client { get; private set; }
         public static CommandService Commands { get; private set; }
         public static EveLib EveLib { get; private set; }
-        public static String ApplicationBase { get; private set; }
+        public static string ApplicationBase { get; private set; }
         public static IServiceProvider ServiceCollection { get; private set; }
         public static IConfigurationRoot Settings { get; private set; }
         internal static readonly HttpClient _httpClient = new HttpClient();
-        internal static readonly HttpClient _zKillhttpClient = new HttpClient();
+        //internal static readonly HttpClient _zKillhttpClient = new HttpClient();
         internal static bool quit = false;
         internal static bool debug = false;
         static object ExitLock = new object();
@@ -40,8 +40,8 @@ namespace Opux
             if (!File.Exists(Path.Combine(ApplicationBase, "Opux.db")))
                 File.Copy(ApplicationBase + "/Opux.def.db", Path.Combine(ApplicationBase, "Opux.db"));
 
-            _zKillhttpClient.Timeout = new TimeSpan(0, 0, 10);
-            _zKillhttpClient.DefaultRequestHeaders.Add("User-Agent", "OpuxBot");
+            //_zKillhttpClient.Timeout = new TimeSpan(0, 0, 10);
+            //_zKillhttpClient.DefaultRequestHeaders.Add("User-Agent", "OpuxBot");
 
             UpdateSettings();
 
