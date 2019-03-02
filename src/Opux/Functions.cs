@@ -150,136 +150,6 @@ namespace Opux
         }
         #endregion
 
-        //Needs logging to a file added
-        //#region Logger
-
-        //private static ILog Log { get; set; }
-        //public static LogSeverity LogLevel { get; private set; }
-
-        //internal async static Task Logger.DiscordClient_Log(LogMessage arg)
-        //{
-        //    //try
-        //    //{
-
-        //    //    var path = Path.Combine(AppContext.BaseDirectory, "logs");
-        //    //    var file = Path.Combine(path, $"{arg.Source}.log");
-
-        //    //    if (!Directory.Exists(path))
-        //    //    {
-        //    //        Directory.CreateDirectory(path);
-        //    //    }
-        //    //    if (!File.Exists(file))
-        //    //    {
-        //    //        File.Create(file);
-        //    //    }
-
-        //    //    var cc = Console.ForegroundColor;
-
-        //    //    switch (arg.Severity)
-        //    //    {
-        //    //        case LogSeverity.Critical:
-        //    //        case LogSeverity.Error:
-        //    //            Console.ForegroundColor = ConsoleColor.Red;
-
-        //    //            break;
-        //    //        case LogSeverity.Warning:
-        //    //            Console.ForegroundColor = ConsoleColor.Yellow;
-        //    //            break;
-        //    //        case LogSeverity.Info:
-        //    //            Console.ForegroundColor = ConsoleColor.White;
-        //    //            break;
-        //    //        case LogSeverity.Verbose:
-        //    //        case LogSeverity.Debug:
-        //    //            Console.ForegroundColor = ConsoleColor.DarkGray;
-        //    //            break;
-        //    //    }
-
-        //    //    using (StreamWriter logFile = new StreamWriter(File.Open(file, FileMode.Append, FileAccess.Write, FileShare.Write), Encoding.UTF8))
-        //    //    {
-        //    //        if (arg.Exception != null)
-        //    //        {
-        //    //            await logFile.WriteLineAsync($"{DateTime.Now,-19} [{arg.Severity,8}]: {arg.Message} {Environment.NewLine}{arg.Exception}");
-        //    //        }
-        //    //        else
-        //    //        {
-        //    //            await logFile.WriteLineAsync($"{DateTime.Now,-19} [{arg.Severity,8}]: {arg.Message}");
-        //    //        }
-        //    //    }
-
-        //    //    Console.WriteLine($"{DateTime.Now,-19} [{arg.Severity,8}] [{arg.Source}]: {arg.Message}");
-        //    //    Console.ForegroundColor = cc;
-
-        //    //}
-        //    //catch { }
-
-        //    Log = LogManager.GetLogger(typeof(Logger));
-
-        //    var cc = Console.ForegroundColor;
-
-        //    switch (arg.Severity)
-        //    {
-        //        case LogSeverity.Critical:
-        //        case LogSeverity.Error:
-        //            if (arg.Exception != null)
-        //            {
-        //                Console.ForegroundColor = ConsoleColor.Red;
-        //                Log.Error(arg.Exception);
-        //            }
-        //            else
-        //            {
-        //                Console.ForegroundColor = ConsoleColor.Red;
-        //                Log.Error(arg.Message);
-        //            }
-        //            break;
-        //        case LogSeverity.Warning:
-        //            if (arg.Exception != null)
-        //            {
-        //                Log.Warn(arg.Exception);
-        //                Console.ForegroundColor = ConsoleColor.Yellow;
-        //            }
-        //            else
-        //            {
-        //                Console.ForegroundColor = ConsoleColor.Yellow;
-        //                Log.Warn(arg.Message);
-        //            }
-        //            break;
-        //        case LogSeverity.Info:
-        //            if (arg.Exception != null)
-        //            {
-        //                Log.Info(arg.Exception);
-        //                Console.ForegroundColor = ConsoleColor.White;
-        //            }
-        //            else
-        //            {
-        //                Log.Info(arg.Message);
-        //                Console.ForegroundColor = ConsoleColor.White;
-        //            }
-        //            break;
-        //        case LogSeverity.Verbose:
-        //        case LogSeverity.Debug:
-        //            if (arg.Exception != null)
-        //            {
-        //                Log.Debug(arg.Exception);
-        //                Console.ForegroundColor = ConsoleColor.DarkGray;
-        //            }
-        //            else
-        //            {
-        //                Log.Info(arg.Message);
-        //                Console.ForegroundColor = ConsoleColor.DarkGray;
-        //            }
-        //            break;
-        //    }
-
-        //    if (LogLevel <= arg.Severity)
-        //    {
-        //        Console.WriteLine($"{DateTime.Now,-19} [{arg.Severity,8}] [{arg.Source}]: {arg.Message}");
-        //        Console.ForegroundColor = cc;
-        //    }
-
-        //    await Task.CompletedTask;
-        //}
-        //#endregion
-
         //Events are attached here
         #region EVENTS
         internal async static Task Event_UserJoined(SocketGuildUser arg)
@@ -1578,8 +1448,8 @@ namespace Opux
 
                     Dictionary<string, IEnumerable<IConfigurationSection>> feedGroups = new Dictionary<string, IEnumerable<IConfigurationSection>>();
 
-                    UInt64 guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
-                    UInt64 logchan = Convert.ToUInt64(Program.Settings.GetSection("auth")["alertChannel"]);
+                    ulong guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
+                    ulong logchan = Convert.ToUInt64(Program.Settings.GetSection("auth")["alertChannel"]);
                     var discordGuild = Program.Client.Guilds.FirstOrDefault(X => X.Id == guildID);
                     var bigKillGlobal = Convert.ToInt64(Program.Settings.GetSection("killFeed")["bigKill"]);
                     var bigKillGlobalChan = Convert.ToUInt64(Program.Settings.GetSection("killFeed")["bigKillChannel"]);
@@ -1587,11 +1457,12 @@ namespace Opux
                     var radius = Convert.ToInt16(Program.Settings.GetSection("killFeed")["radius"]);
                     var radiusSystem = Program.Settings.GetSection("killFeed")["radiusSystem"];
                     var radiusChannel = Convert.ToUInt64(Program.Settings.GetSection("killFeed")["radiusChannel"]);
+                    var radiusWHMode = Convert.ToBoolean(Program.Settings.GetSection("killFeed")["radiusWHMode"]);
 
                     var postedRadius = false;
                     var postedGlobalBigKill = false;
 
-                    UInt64 lastChannel = 0;
+                    ulong lastChannel = 0;
 
                     foreach (var i in Program.Settings.GetSection("killFeed").GetSection("groupsConfig").GetChildren().ToList())
                     {
@@ -1604,22 +1475,27 @@ namespace Opux
                         var c = Convert.ToUInt64(i["channel"]);
                         var SystemID = 0;
 
-                        if ((!(system.Name[0] == 'J' && int.TryParse(system.Name.Substring(1), out int disposable)) ||
-                            system.Name[0] == 'J' && int.TryParse(system.Name.Substring(1), out disposable) && radius == 0) &&
-                            !string.IsNullOrWhiteSpace(radiusSystem) && radiusChannel > 0)
-                        {
+                        var StartinWH = (system.Name[0] == 'J' && int.TryParse(system.Name.Substring(1), out int StartinWHInt) || system.Name == "Thera");
+                        var EndinWH = (radiusSystem[0] == 'J' && int.TryParse(radiusSystem.Substring(1), out int EndinWHInt) || radiusSystem == "Thera");
+                        var test3 = !string.IsNullOrWhiteSpace(radiusSystem) && radiusChannel > 0;
+
+                        if (system.Name == "Thera")
+                        { var tmp = true; }
+
                             var SystemName = await searchApi.GetSearchAsync(new List<string> { $"solar_system" }, radiusSystem, strict: true);
 
                             SystemID = SystemName.SolarSystem.FirstOrDefault().Value;
                             var systemID = kill.solar_system_id;
 
-                            try
+                        try
+                        {
+                            if (!StartinWH && !EndinWH && test3)
                             {
                                 var data = await routeApi.GetRouteOriginDestinationAsync(systemId, SystemID);
 
 
                                 var gg = data.Count() - 1;
-                                if (gg < radius && !postedRadius)
+                                if (gg <= radius && !postedRadius)
                                 {
                                     postedRadius = true;
                                     var jumpsText = data.Count() > 1 ? $"{gg} from {radiusSystem}" : $"in {system.Name} ({secstatus})";
@@ -1650,17 +1526,49 @@ namespace Opux
                                     await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting  Radius Kill: {kill.killmail_id}  Value: {stringVal}"));
                                 }
                             }
-                            catch (ApiException ex)
+                            if (StartinWH && EndinWH && test3 && radius == 0)
                             {
-                                if (ex.Message == "Error calling GetRouteOriginDestination: {\"error\":\"No route found\"}")
+                                if (system.Name == radiusSystem && !postedRadius)
                                 {
-                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Radius Kill: {kill.killmail_id} Inside a WH"));
-                                }
-                                else
-                                {
-                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, $"killFeed", $"{ex.Message}"));
+                                    postedRadius = true;
+                                    var builder = new EmbedBuilder()
+                                        .WithColor(new Color(0x989898))
+                                        .WithThumbnailUrl($"https://image.eveonline.com/Type/{shipID}_64.png")
+                                        .WithAuthor(author =>
+                                        {
+                                            author
+                                                .WithName($"Radius Kill Reported: {ship.Name} destroyed in {system.Name}")
+                                                .WithUrl($"https://zkillboard.com/kill/{iD}/")
+                                                .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                        })
+                                        .WithDescription($"Died {killTime}")
+                                        .AddInlineField("Victim", victimName)
+                                        .AddInlineField("System", $"{system.Name} ({secstatus})")
+                                        .AddInlineField("Corporation", victimCorp.Name)
+                                        .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name)
+                                        .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
+                                        .AddInlineField("Involved Count", attackers.Count());
+                                    var embed = builder.Build();
 
+                                    var _radiusChannel = discordGuild.GetTextChannel(radiusChannel);
+                                    await _radiusChannel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
+
+                                    var stringVal = string.Format("{0:n0} ISK", value);
+
+                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting  Radius Kill: {kill.killmail_id}  Value: {stringVal}"));
                                 }
+                            }
+                        }
+                        catch (ApiException ex)
+                        {
+                            if (ex.Message == "Error calling GetRouteOriginDestination: {\"error\":\"No route found\"}")
+                            {
+                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Radius Kill: {kill.killmail_id} Inside a WH"));
+                            }
+                            else
+                            {
+                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, $"killFeed", $"{ex.Message}"));
+
                             }
                         }
 
