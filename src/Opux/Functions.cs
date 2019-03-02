@@ -1479,13 +1479,10 @@ namespace Opux
                         var EndinWH = (radiusSystem[0] == 'J' && int.TryParse(radiusSystem.Substring(1), out int EndinWHInt) || radiusSystem == "Thera");
                         var test3 = !string.IsNullOrWhiteSpace(radiusSystem) && radiusChannel > 0;
 
-                        if (system.Name == "Thera")
-                        { var tmp = true; }
+                        var SystemName = await searchApi.GetSearchAsync(new List<string> { $"solar_system" }, radiusSystem, strict: true);
 
-                            var SystemName = await searchApi.GetSearchAsync(new List<string> { $"solar_system" }, radiusSystem, strict: true);
-
-                            SystemID = SystemName.SolarSystem.FirstOrDefault().Value;
-                            var systemID = kill.solar_system_id;
+                        SystemID = SystemName.SolarSystem.FirstOrDefault().Value;
+                        var systemID = kill.solar_system_id;
 
                         try
                         {
