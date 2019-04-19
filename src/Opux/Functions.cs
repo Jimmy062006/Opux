@@ -1457,7 +1457,6 @@ namespace Opux
                     var radius = Convert.ToInt16(Program.Settings.GetSection("killFeed")["radius"]);
                     var radiusSystem = Program.Settings.GetSection("killFeed")["radiusSystem"];
                     var radiusChannel = Convert.ToUInt64(Program.Settings.GetSection("killFeed")["radiusChannel"]);
-                    var radiusWHMode = Convert.ToBoolean(Program.Settings.GetSection("killFeed")["radiusWHMode"]);
 
                     var postedRadius = false;
                     var postedGlobalBigKill = false;
@@ -1475,97 +1474,100 @@ namespace Opux
                         var c = Convert.ToUInt64(i["channel"]);
                         var SystemID = 0;
 
-                        var StartinWH = (system.Name[0] == 'J' && int.TryParse(system.Name.Substring(1), out int StartinWHInt) || system.Name == "Thera");
-                        var EndinWH = (radiusSystem[0] == 'J' && int.TryParse(radiusSystem.Substring(1), out int EndinWHInt) || radiusSystem == "Thera");
-                        var test3 = !string.IsNullOrWhiteSpace(radiusSystem) && radiusChannel > 0;
-
-                        var SystemName = await searchApi.GetSearchAsync(new List<string> { $"solar_system" }, radiusSystem, strict: true);
-
-                        SystemID = SystemName.SolarSystem.FirstOrDefault().Value;
-                        var systemID = kill.solar_system_id;
-
-                        try
+                        if (!string.IsNullOrWhiteSpace(radiusSystem))
                         {
-                            if (!StartinWH && !EndinWH && test3)
+                            var StartinWH = (system.Name[0] == 'J' && int.TryParse(system.Name.Substring(1), out int StartinWHInt) || system.Name == "Thera");
+                            var EndinWH = (radiusSystem[0] == 'J' && int.TryParse(radiusSystem.Substring(1), out int EndinWHInt) || radiusSystem == "Thera");
+                            var test3 = !string.IsNullOrWhiteSpace(radiusSystem) && radiusChannel > 0;
+
+                            var SystemName = !string.IsNullOrWhiteSpace(radiusSystem) ? await searchApi.GetSearchAsync(new List<string> { $"solar_system" }, radiusSystem, strict: true) : null;
+
+                            SystemID = SystemName.SolarSystem.FirstOrDefault().Value;
+                            var systemID = kill.solar_system_id;
+
+                            try
                             {
-                                var data = await routeApi.GetRouteOriginDestinationAsync(systemId, SystemID);
-
-
-                                var gg = data.Count() - 1;
-                                if (gg <= radius && !postedRadius)
+                                if (!StartinWH && !EndinWH && test3)
                                 {
-                                    postedRadius = true;
-                                    var jumpsText = data.Count() > 1 ? $"{gg} from {radiusSystem}" : $"in {system.Name} ({secstatus})";
-                                    var builder = new EmbedBuilder()
-                                        .WithColor(new Color(0x989898))
-                                        .WithThumbnailUrl($"https://image.eveonline.com/Type/{shipID}_64.png")
-                                        .WithAuthor(author =>
-                                        {
-                                            author
-                                                .WithName($"Radius Kill Reported: {ship.Name} destroyed {jumpsText}")
-                                                .WithUrl($"https://zkillboard.com/kill/{iD}/")
-                                                .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
-                                        })
-                                        .WithDescription($"Died {killTime}")
-                                        .AddInlineField("Victim", victimName)
-                                        .AddInlineField("System", $"{system.Name} ({secstatus})")
-                                        .AddInlineField("Corporation", victimCorp.Name)
-                                        .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name)
-                                        .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
-                                        .AddInlineField("Involved Count", attackers.Count());
-                                    var embed = builder.Build();
+                                    var data = await routeApi.GetRouteOriginDestinationAsync(systemId, SystemID);
 
-                                    var _radiusChannel = discordGuild.GetTextChannel(radiusChannel);
-                                    await _radiusChannel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
 
-                                    var stringVal = string.Format("{0:n0} ISK", value);
+                                    var gg = data.Count() - 1;
+                                    if (gg <= radius && !postedRadius)
+                                    {
+                                        postedRadius = true;
+                                        var jumpsText = data.Count() > 1 ? $"{gg} from {radiusSystem}" : $"in {system.Name} ({secstatus})";
+                                        var builder = new EmbedBuilder()
+                                            .WithColor(new Color(0x989898))
+                                            .WithThumbnailUrl($"https://image.eveonline.com/Type/{shipID}_64.png")
+                                            .WithAuthor(author =>
+                                            {
+                                                author
+                                                    .WithName($"Radius Kill Reported: {ship.Name} destroyed {jumpsText}")
+                                                    .WithUrl($"https://zkillboard.com/kill/{iD}/")
+                                                    .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                            })
+                                            .WithDescription($"Died {killTime}")
+                                            .AddInlineField("Victim", victimName)
+                                            .AddInlineField("System", $"{system.Name} ({secstatus})")
+                                            .AddInlineField("Corporation", victimCorp.Name)
+                                            .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name)
+                                            .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
+                                            .AddInlineField("Involved Count", attackers.Count());
+                                        var embed = builder.Build();
 
-                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting  Radius Kill: {kill.killmail_id}  Value: {stringVal}"));
+                                        var _radiusChannel = discordGuild.GetTextChannel(radiusChannel);
+                                        await _radiusChannel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
+
+                                        var stringVal = string.Format("{0:n0} ISK", value);
+
+                                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting  Radius Kill: {kill.killmail_id}  Value: {stringVal}"));
+                                    }
+                                }
+                                if (StartinWH && EndinWH && test3 && radius == 0)
+                                {
+                                    if (system.Name == radiusSystem && !postedRadius)
+                                    {
+                                        postedRadius = true;
+                                        var builder = new EmbedBuilder()
+                                            .WithColor(new Color(0x989898))
+                                            .WithThumbnailUrl($"https://image.eveonline.com/Type/{shipID}_64.png")
+                                            .WithAuthor(author =>
+                                            {
+                                                author
+                                                    .WithName($"Radius Kill Reported: {ship.Name} destroyed in {system.Name}")
+                                                    .WithUrl($"https://zkillboard.com/kill/{iD}/")
+                                                    .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                            })
+                                            .WithDescription($"Died {killTime}")
+                                            .AddInlineField("Victim", victimName)
+                                            .AddInlineField("System", $"{system.Name} ({secstatus})")
+                                            .AddInlineField("Corporation", victimCorp.Name)
+                                            .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name)
+                                            .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
+                                            .AddInlineField("Involved Count", attackers.Count());
+                                        var embed = builder.Build();
+
+                                        var _radiusChannel = discordGuild.GetTextChannel(radiusChannel);
+                                        await _radiusChannel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
+
+                                        var stringVal = string.Format("{0:n0} ISK", value);
+
+                                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting  Radius Kill: {kill.killmail_id}  Value: {stringVal}"));
+                                    }
                                 }
                             }
-                            if (StartinWH && EndinWH && test3 && radius == 0)
+                            catch (ApiException ex)
                             {
-                                if (system.Name == radiusSystem && !postedRadius)
+                                if (ex.Message == "Error calling GetRouteOriginDestination: {\"error\":\"No route found\"}")
                                 {
-                                    postedRadius = true;
-                                    var builder = new EmbedBuilder()
-                                        .WithColor(new Color(0x989898))
-                                        .WithThumbnailUrl($"https://image.eveonline.com/Type/{shipID}_64.png")
-                                        .WithAuthor(author =>
-                                        {
-                                            author
-                                                .WithName($"Radius Kill Reported: {ship.Name} destroyed in {system.Name}")
-                                                .WithUrl($"https://zkillboard.com/kill/{iD}/")
-                                                .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
-                                        })
-                                        .WithDescription($"Died {killTime}")
-                                        .AddInlineField("Victim", victimName)
-                                        .AddInlineField("System", $"{system.Name} ({secstatus})")
-                                        .AddInlineField("Corporation", victimCorp.Name)
-                                        .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name)
-                                        .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
-                                        .AddInlineField("Involved Count", attackers.Count());
-                                    var embed = builder.Build();
-
-                                    var _radiusChannel = discordGuild.GetTextChannel(radiusChannel);
-                                    await _radiusChannel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
-
-                                    var stringVal = string.Format("{0:n0} ISK", value);
-
-                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting  Radius Kill: {kill.killmail_id}  Value: {stringVal}"));
+                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Radius Kill: {kill.killmail_id} Inside a WH"));
                                 }
-                            }
-                        }
-                        catch (ApiException ex)
-                        {
-                            if (ex.Message == "Error calling GetRouteOriginDestination: {\"error\":\"No route found\"}")
-                            {
-                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Radius Kill: {kill.killmail_id} Inside a WH"));
-                            }
-                            else
-                            {
-                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, $"killFeed", $"{ex.Message}"));
+                                else
+                                {
+                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, $"killFeed", $"{ex.Message}"));
 
+                                }
                             }
                         }
 
