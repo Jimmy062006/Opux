@@ -3928,8 +3928,9 @@ namespace Opux
                 }
                 catch { }
 
-                var lastSeenSystem = (await universeApi.GetUniverseSystemsSystemIdAsync(Kills.FirstOrDefault().SolarSystemId)).Name;
-                var lastSeenTime = Kills.FirstOrDefault().KillmailTime.ToString();
+                
+                var lastSeenSystem = Kills != null ? (await universeApi.GetUniverseSystemsSystemIdAsync(Kills.FirstOrDefault().SolarSystemId)).Name : "Unknown";
+                var lastSeenTime = Kills != null ? Kills.FirstOrDefault().KillmailTime.ToString() : "Unknown";
 
                 var dangerous = characterStats.dangerRatio > 75 ? "Dangerous" : "Snuggly";
                 var gang = characterStats.gangRatio > 70 ? "chance they are Fleeted" : "chance they are Solo";
