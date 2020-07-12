@@ -3929,8 +3929,8 @@ namespace Opux
                 catch { }
 
                 
-                var lastSeenSystem = Kills != null ? (await universeApi.GetUniverseSystemsSystemIdAsync(Kills.FirstOrDefault().SolarSystemId)).Name : "Unknown";
-                var lastSeenTime = Kills != null ? Kills.FirstOrDefault().KillmailTime.ToString() : "Unknown";
+                var lastSeenSystem = Kills.Count > 0 ? (await universeApi.GetUniverseSystemsSystemIdAsync(Kills.FirstOrDefault().SolarSystemId)).Name : "Unknown";
+                var lastSeenTime = Kills.Count > 0 ? Kills.FirstOrDefault().KillmailTime.ToString() : "Unknown";
 
                 var dangerous = characterStats.dangerRatio > 75 ? "Dangerous" : "Snuggly";
                 var gang = characterStats.gangRatio > 70 ? "chance they are Fleeted" : "chance they are Solo";
