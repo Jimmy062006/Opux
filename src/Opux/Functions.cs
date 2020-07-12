@@ -3900,7 +3900,12 @@ namespace Opux
                 var lastKill = Kills.Count() > 0 ? Kills.FirstOrDefault() : null;
                 var lastLoss = Losses.Count() > 0 ? Losses.FirstOrDefault() : null;
 
-                var last = lastKill.KillmailTime > lastLoss.KillmailTime ? lastKill : lastLoss;
+                GetKillmailsKillmailIdKillmailHashOk last = null;
+
+                if (Lastkill != null && lastLoss != null)
+                {
+                    last = lastKill.KillmailTime > lastLoss.KillmailTime ? lastKill : lastLoss;
+                }
 
                 var lastShipType = "Unknown";
 
