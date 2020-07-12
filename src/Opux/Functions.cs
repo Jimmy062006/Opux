@@ -3897,8 +3897,10 @@ namespace Opux
                     }
                 }
 
-                var lastKill = Kills.Count() > 0 ? Kills.FirstOrDefault() : new GetKillmailsKillmailIdKillmailHashOk();
-                var lastLoss = Losses.Count() > 0 ? Losses.FirstOrDefault() : new GetKillmailsKillmailIdKillmailHashOk();
+                var lastKill = Kills.Count() > 0 ? Kills.FirstOrDefault() : new GetKillmailsKillmailIdKillmailHashOk(new List<GetKillmailsKillmailIdKillmailHashAttacker>(),
+                    null,null,null,null,new GetKillmailsKillmailIdKillmailHashVictim(),null);
+                var lastLoss = Losses.Count() > 0 ? Losses.FirstOrDefault() : new GetKillmailsKillmailIdKillmailHashOk(new List<GetKillmailsKillmailIdKillmailHashAttacker>(),
+                    null, null, null, null, new GetKillmailsKillmailIdKillmailHashVictim(), null);
 
                 var last = lastKill.KillmailTime > lastLoss.KillmailTime ? lastKill : lastLoss;
 
