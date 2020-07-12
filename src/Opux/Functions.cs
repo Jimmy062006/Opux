@@ -558,7 +558,7 @@ namespace Opux
                                             "        <p>If you're not already signed into the server use the link below to get invited. (or right click and copy-link for the Windows/OSX Client)</p>" +
                                             "        <p><a href=\"" + url + "\" target=\"_blank\"><img src=\"data:image/png;base64," + image + "\" width=\"350px\"/></a></p>" +
                                             "        <p>Once you're in chat copy and paste the entire line below to have the bot add you to the correct roles.</p>" +
-                                            "        <p><b>" + Program.Settings.GetSection("config")["commandprefix"] +" " + uid + " </b></p>" +
+                                            "        <p><b>" + Program.Settings.GetSection("config")["commandprefix"] +"auth " + uid + " </b></p>" +
                                             "    </div>" +
                                             "</div>" +
                                             "<!-- /container -->" +
