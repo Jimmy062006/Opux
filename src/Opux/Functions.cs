@@ -3898,7 +3898,7 @@ namespace Opux
                 }
 
                 var KillmailHashAttacker = new GetKillmailsKillmailIdKillmailHashVictim(null,null,null,null,null,
-                    new List<GetKillmailsKillmailIdKillmailHashItem>(),new GetKillmailsKillmailIdKillmailHashPosition(), null);
+                    new List<GetKillmailsKillmailIdKillmailHashItem>(),new GetKillmailsKillmailIdKillmailHashPosition(0.0,0.0,0.0), null);
 
                 var lastKill = Kills.Count() > 0 ? Kills.FirstOrDefault() : new GetKillmailsKillmailIdKillmailHashOk(new List<GetKillmailsKillmailIdKillmailHashAttacker>(),
                     null,null,null,null,new GetKillmailsKillmailIdKillmailHashVictim(),null);
