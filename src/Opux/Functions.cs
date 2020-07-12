@@ -3897,13 +3897,8 @@ namespace Opux
                     }
                 }
 
-                var KillmailHashAttacker = new GetKillmailsKillmailIdKillmailHashVictim(null,null,null,0,null,
-                    new List<GetKillmailsKillmailIdKillmailHashItem>(),new GetKillmailsKillmailIdKillmailHashPosition(0.0,0.0,0.0), null);
-
-                var lastKill = Kills.Count() > 0 ? Kills.FirstOrDefault() : new GetKillmailsKillmailIdKillmailHashOk(new List<GetKillmailsKillmailIdKillmailHashAttacker>(),
-                    null,null,null,null,new GetKillmailsKillmailIdKillmailHashVictim(),null);
-                var lastLoss = Losses.Count() > 0 ? Losses.FirstOrDefault() : new GetKillmailsKillmailIdKillmailHashOk(new List<GetKillmailsKillmailIdKillmailHashAttacker>(),
-                    null, null, null, null, KillmailHashAttacker, null);
+                var lastKill = Kills.Count() > 0 ? Kills.FirstOrDefault() : null;
+                var lastLoss = Losses.Count() > 0 ? Losses.FirstOrDefault() : null;
 
                 var last = lastKill.KillmailTime > lastLoss.KillmailTime ? lastKill : lastLoss;
 
@@ -3911,11 +3906,11 @@ namespace Opux
 
                 try
                 {
-                    if (last.Victim != null && last.Victim.CharacterId == Id)
+                    if (last != null && last.Victim != null && last.Victim.CharacterId == Id)
                     {
                         lastShipType = last.Victim.ShipTypeId.ToString();
                     }
-                    else if (last.Victim != null)
+                    else if (last != null && last.Victim != null)
                     {
                         foreach (var attacker in last.Attackers)
                         {
