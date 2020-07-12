@@ -235,7 +235,7 @@ namespace Opux
                                 "<head>" +
                                 "    <title>Discord Authenticator</title>" +
                                 "    <meta name=\"viewport\" content=\"width=device-width\">" +
-                                "    <link rel=\"stylesheet\" href=\"https://djyhxgczejc94.cloudfront.net/frameworks/bootstrap/3.0.0/themes/cirrus/bootstrap.min.css\">" +
+                                "    <link rel=\"stylesheet\" href=\"https://code.divshot.com/bootstrap-theme-cirrus/dist/css/bootstrap.css\">" +
                                 "    <script type=\"text/javascript\" src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js\"></script>" +
                                 "    <script type=\"text/javascript\" src=\"https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js\"></script>" +
                                 "    <style type=\"text/css\">" +
@@ -472,7 +472,7 @@ namespace Opux
                                             "<head>" +
                                             "    <title>Discord Authenticator</title>" +
                                             "    <meta name=\"viewport\" content=\"width=device-width\">" +
-                                            "    <link rel=\"stylesheet\" href=\"https://djyhxgczejc94.cloudfront.net/frameworks/bootstrap/3.0.0/themes/cirrus/bootstrap.min.css\">" +
+                                            "    <link rel=\"stylesheet\" href=\"https://code.divshot.com/bootstrap-theme-cirrus/dist/css/bootstrap.css\">" +
                                             "    <script type=\"text/javascript\" src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js\"></script>" +
                                             "    <script type=\"text/javascript\" src=\"https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js\"></script>" +
                                             "    <style type=\"text/css\">" +
@@ -558,7 +558,7 @@ namespace Opux
                                             "        <p>If you're not already signed into the server use the link below to get invited. (or right click and copy-link for the Windows/OSX Client)</p>" +
                                             "        <p><a href=\"" + url + "\" target=\"_blank\"><img src=\"data:image/png;base64," + image + "\" width=\"350px\"/></a></p>" +
                                             "        <p>Once you're in chat copy and paste the entire line below to have the bot add you to the correct roles.</p>" +
-                                            "        <p><b>!auth " + uid + "</b></p>" +
+                                            "        <p><b>" + Program.Settings.GetSection("config")["commandprefix"] +" " + uid + " </b></p>" +
                                             "    </div>" +
                                             "</div>" +
                                             "<!-- /container -->" +
@@ -580,7 +580,7 @@ namespace Opux
                                            "<head>" +
                                            "    <title>Discord Authenticator</title>" +
                                            "    <meta name=\"viewport\" content=\"width=device-width\">" +
-                                           "    <link rel=\"stylesheet\" href=\"https://djyhxgczejc94.cloudfront.net/frameworks/bootstrap/3.0.0/themes/cirrus/bootstrap.min.css\">" +
+                                           "    <link rel=\"stylesheet\" href=\"https://code.divshot.com/bootstrap-theme-cirrus/dist/css/bootstrap.css\">" +
                                            "    <script type=\"text/javascript\" src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js\"></script>" +
                                            "    <script type=\"text/javascript\" src=\"https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js\"></script>" +
                                            "    <style type=\"text/css\">" +
@@ -681,7 +681,7 @@ namespace Opux
                                            "<head>" +
                                            "    <title>Discord Authenticator</title>" +
                                            "    <meta name=\"viewport\" content=\"width=device-width\">" +
-                                           "    <link rel=\"stylesheet\" href=\"https://djyhxgczejc94.cloudfront.net/frameworks/bootstrap/3.0.0/themes/cirrus/bootstrap.min.css\">" +
+                                           "    <link rel=\"stylesheet\" href=\"https://code.divshot.com/bootstrap-theme-cirrus/dist/css/bootstrap.css\">" +
                                            "    <script type=\"text/javascript\" src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js\"></script>" +
                                            "    <script type=\"text/javascript\" src=\"https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js\"></script>" +
                                            "    <style type=\"text/css\">" +
