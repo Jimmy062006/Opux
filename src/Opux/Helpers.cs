@@ -22,7 +22,7 @@ namespace Opux
             char full_symbol = styles[styles.Length - 1], m;
             var n = styles.Length;
             var max_size = 20;
-            var min_size = 20;
+            var min_size = 19;
 
             var i = max_size;
 
@@ -33,7 +33,7 @@ namespace Opux
             }
             else
             {
-                percentage = percentage / 100;
+                percentage /= 100;
 
                 while (i > 0 && i >= min_size)
                 {

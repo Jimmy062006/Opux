@@ -3808,169 +3808,180 @@ namespace Opux
             int cynoCount = 0;
             int covertCount = 0;
 
-            if (CharacterIDList.Character.Count >= 1)
-            {
-                var message = await channel.SendMessageAsync("Checking for Character this may take some time...");
-
-                foreach (var id in CharacterIDList.Character)
+                if (CharacterIDList.Character.Count >= 1)
                 {
-                    var testchar = await characterapi.GetCharactersCharacterIdAsync(id.Value);
-                    if (testchar.Name.ToLower() == characterName)
-                    {
-                        Id = id.Value;
-                        character = testchar;
-                        break;
-                    }
-                }
-
-                if (Id == 0 )
-                {
-                    await message.ModifyAsync(msg => { msg.Content = "Character not found"; });
-                }
-
-                corporation = await corporationApi.GetCorporationsCorporationIdAsync(character.CorporationId);
-
-                if (character.AllianceId != null && character.AllianceId != 0)
-                {
-                    alliance = await allianceApi.GetAlliancesAllianceIdAsync(character.AllianceId);
-                }
-
-                //Get last 200 kill
-                List<GetKillmailsKillmailIdKillmailHashOk> Kills = new List<GetKillmailsKillmailIdKillmailHashOk>();
-
-                var responce = await Program._httpClient.GetAsync($"https://zkillboard.com/api/kills/characterID/{Id}/");
-
-                List<ZKillAPI> zkillContent = new List<ZKillAPI>();
-                if (responce.IsSuccessStatusCode)
-                {
-                    var result = await responce.Content.ReadAsStringAsync();
-                    var kills = JsonConvert.DeserializeObject<List<ZKillAPI>>(result);
-
-                    foreach (var kill in kills)
-                    {
-                        Kills.Add(await killmailsApi.GetKillmailsKillmailIdKillmailHashAsync($"{kill.zkb.hash}", kill.killmail_id));
-                    }
-                }
-
-                //Get last 200 losses
-                List<GetKillmailsKillmailIdKillmailHashOk> Losses = new List<GetKillmailsKillmailIdKillmailHashOk>();
-
-                responce = await Program._httpClient.GetAsync($"https://zkillboard.com/api/losses/characterID/{Id}/");
-
-                List<ZKillAPI> zkillLosses = new List<ZKillAPI>();
-                if (responce.IsSuccessStatusCode)
-                {
-                    var result = await responce.Content.ReadAsStringAsync();
-                    var losses = JsonConvert.DeserializeObject<List<ZKillAPI>>(result);
-                    foreach (var loss in losses)
-                    {
-                        Losses.Add(await killmailsApi.GetKillmailsKillmailIdKillmailHashAsync($"{loss.zkb.hash}", loss.killmail_id));
-                    }
-                }
-
-                responce = await Program._httpClient.GetAsync($"https://zkillboard.com/api/stats/characterID/{Id}/");
-
-                CharacterStats characterStats = new CharacterStats();
-
-                if (responce.IsSuccessStatusCode)
-                {
-                    var result = await responce.Content.ReadAsStringAsync();
-                    characterStats = JsonConvert.DeserializeObject<CharacterStats>(result);
-                }
-
-                if (Kills.Count != 0)
-                {
-
-                }
-
-                foreach (var loss in Losses)
-                {
-                    if (loss.Victim.CharacterId == Id)
-                    {
-                        foreach (var item in loss.Victim.Items)
-                        {
-                            if (item.ItemTypeId == 21096)
-                                cynoCount++;
-                            if (item.ItemTypeId == 28646)
-                                covertCount++;
-                        }
-                    }
-                }
-
-                var lastKill = Kills.Count() > 0 ? Kills.FirstOrDefault() : null;
-                var lastLoss = Losses.Count() > 0 ? Losses.FirstOrDefault() : null;
-
-                GetKillmailsKillmailIdKillmailHashOk last = null;
-
-                if (Lastkill != null && lastLoss != null)
-                {
-                    last = lastKill.KillmailTime > lastLoss.KillmailTime ? lastKill : lastLoss;
-                }
-
-                var lastShipType = "Unknown";
+                    var message = await channel.SendMessageAsync("Checking for Character this may take some time...");
 
                 try
                 {
-                    if (last != null && last.Victim != null && last.Victim.CharacterId == Id)
+
+                    foreach (var id in CharacterIDList.Character)
                     {
-                        lastShipType = last.Victim.ShipTypeId.ToString();
-                    }
-                    else if (last != null && last.Victim != null)
-                    {
-                        foreach (var attacker in last.Attackers)
+                        var testchar = await characterapi.GetCharactersCharacterIdAsync(id.Value);
+                        if (testchar.Name.ToLower() == characterName)
                         {
-                            if (attacker.CharacterId == Id)
+                            Id = id.Value;
+                            character = testchar;
+                            break;
+                        }
+                    }
+
+                    if (Id == 0)
+                    {
+                        await message.ModifyAsync(msg => { msg.Content = "Character not found"; });
+                    }
+
+                    corporation = await corporationApi.GetCorporationsCorporationIdAsync(character.CorporationId);
+
+                    if (character.AllianceId != null && character.AllianceId != 0)
+                    {
+                        alliance = await allianceApi.GetAlliancesAllianceIdAsync(character.AllianceId);
+                    }
+
+                    //Get last 200 kill
+                    List<GetKillmailsKillmailIdKillmailHashOk> Kills = new List<GetKillmailsKillmailIdKillmailHashOk>();
+
+                    var responce = await Program._httpClient.GetAsync($"https://zkillboard.com/api/kills/characterID/{Id}/");
+
+                    List<ZKillAPI> zkillContent = new List<ZKillAPI>();
+                    if (responce.IsSuccessStatusCode)
+                    {
+                        var result = await responce.Content.ReadAsStringAsync();
+                        var kills = JsonConvert.DeserializeObject<List<ZKillAPI>>(result);
+
+                        foreach (var kill in kills)
+                        {
+                            Kills.Add(await killmailsApi.GetKillmailsKillmailIdKillmailHashAsync($"{kill.zkb.hash}", kill.killmail_id));
+                            break;
+                        }
+                    }
+
+                    //Get last 200 losses
+                    List<GetKillmailsKillmailIdKillmailHashOk> Losses = new List<GetKillmailsKillmailIdKillmailHashOk>();
+
+                    responce = await Program._httpClient.GetAsync($"https://zkillboard.com/api/losses/characterID/{Id}/");
+
+                    List<ZKillAPI> zkillLosses = new List<ZKillAPI>();
+                    if (responce.IsSuccessStatusCode)
+                    {
+                        var result = await responce.Content.ReadAsStringAsync();
+                        var losses = JsonConvert.DeserializeObject<List<ZKillAPI>>(result);
+                        foreach (var loss in losses)
+                        {
+                            Losses.Add(await killmailsApi.GetKillmailsKillmailIdKillmailHashAsync($"{loss.zkb.hash}", loss.killmail_id));
+                            break;
+                        }
+                    }
+
+                    responce = await Program._httpClient.GetAsync($"https://zkillboard.com/api/stats/characterID/{Id}/");
+
+                    CharacterStats characterStats = new CharacterStats();
+
+                    if (responce.IsSuccessStatusCode)
+                    {
+                        var result = await responce.Content.ReadAsStringAsync();
+                        characterStats = JsonConvert.DeserializeObject<CharacterStats>(result);
+                    }
+
+                    if (Kills.Count != 0)
+                    {
+
+                    }
+
+                    foreach (var loss in Losses)
+                    {
+                        if (loss.Victim.CharacterId == Id)
+                        {
+                            foreach (var item in loss.Victim.Items)
                             {
-                                lastShipType = (await universeApi.GetUniverseTypesTypeIdAsync(attacker.ShipTypeId)).Name;
+                                if (item.ItemTypeId == 21096)
+                                    cynoCount++;
+                                if (item.ItemTypeId == 28646)
+                                    covertCount++;
                             }
                         }
                     }
-                }
-                catch { }
 
-                
-                var lastSeenSystem = Kills.Count > 0 ? (await universeApi.GetUniverseSystemsSystemIdAsync(Kills.FirstOrDefault().SolarSystemId)).Name : "Unknown";
-                var lastSeenTime = Kills.Count > 0 ? Kills.FirstOrDefault().KillmailTime.ToString() : "Unknown";
+                    var lastKill = Kills.Count() > 0 ? Kills.FirstOrDefault() : null;
+                    var lastLoss = Losses.Count() > 0 ? Losses.FirstOrDefault() : null;
 
-                var dangerous = characterStats.dangerRatio > 75 ? "Dangerous" : "Snuggly";
-                var gang = characterStats.gangRatio > 70 ? "chance they are Fleeted" : "chance they are Solo";
+                    GetKillmailsKillmailIdKillmailHashOk last = null;
 
-                var text1 = characterStats.dangerRatio == 0 ? "Unavailable" : Helpers.GenerateUnicodePercentage(characterStats.dangerRatio);
-                var text2 = characterStats.gangRatio == 0 ? "Unavailable" : Helpers.GenerateUnicodePercentage(characterStats.gangRatio);
-
-                var allianceName = alliance == null ? "None" : alliance.Name;
-
-                var builder = new EmbedBuilder()
-                    .WithDescription($"[zKillboard](https://zkillboard.com/character/{Id}/) / [EVEWho](https://evewho.com/pilot/{HttpUtility.UrlEncode(corporation.Name)})")
-                    .WithColor(new Color(0x4286F4))
-                    .WithThumbnailUrl($"https://image.eveonline.com/Character/{Id}_64.jpg")
-                    .WithAuthor(author =>
+                    if (Lastkill != null && lastLoss != null)
                     {
-                        author
-                            .WithName($"{character.Name}");
-                    })
-                    .AddField("Details", $"\u200b")
-                    .AddInlineField("Corporation:", $"{corporation.Name}")
-                    .AddInlineField("Alliance:", $"{allianceName}")
-                    .AddInlineField("Last Seen Location:", $"{lastSeenSystem}")
-                    .AddInlineField("Last Seen Ship:", $"{lastShipType}")
-                    .AddInlineField("Last Seen:", $"{lastSeenTime}")
-                    .AddField("\u200b", "\u200b")
-                    .AddInlineField("Regular Cynos(Last 200 losses)", $"{cynoCount}")
-                    .AddInlineField("Covert Cynos(Last 200 losses)", $"{covertCount}")
-                    .AddInlineField("Threat", $"{text1}{Environment.NewLine}{Environment.NewLine}**{dangerous} {characterStats.dangerRatio}%**")
-                    .AddInlineField("Chance in Fleet", $"{text2}{Environment.NewLine}{Environment.NewLine}**{characterStats.gangRatio}% {gang}**");
+                        last = lastKill.KillmailTime > lastLoss.KillmailTime ? lastKill : lastLoss;
+                    }
+
+                    var lastShipType = "Unknown";
+
+                    try
+                    {
+                        if (last != null && last.Victim != null && last.Victim.CharacterId == Id)
+                        {
+                            lastShipType = (await universeApi.GetUniverseTypesTypeIdAsync(last.Victim.ShipTypeId)).Name;
+                        }
+                        else if (last != null && last.Victim != null)
+                        {
+                            foreach (var attacker in last.Attackers)
+                            {
+                                if (attacker.CharacterId == Id)
+                                {
+                                    lastShipType = (await universeApi.GetUniverseTypesTypeIdAsync(attacker.ShipTypeId)).Name;
+                                }
+                            }
+                        }
+                    }
+                    catch { }
 
 
-                var embed = builder.Build();
+                    var lastSeenSystem = Kills.Count > 0 ? (await universeApi.GetUniverseSystemsSystemIdAsync(Kills.FirstOrDefault().SolarSystemId)).Name : "Unknown";
+                    var lastSeenTime = Kills.Count > 0 ? Kills.FirstOrDefault().KillmailTime.ToString() : "Unknown";
 
-                await message.ModifyAsync(msg => { msg.Content = ""; msg.Embed = embed; });
+                    var dangerous = characterStats.dangerRatio > 75 ? "Dangerous" : "Snuggly";
+                    var gang = characterStats.gangRatio > 70 ? "chance they are Fleeted" : "chance they are Solo";
 
-                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "Char", $"Sending {context.Message.Author} Character Info Request to {context.Message.Channel}" +
-                    $" {context.Guild.Name}"));
+                    var text1 = characterStats.dangerRatio == 0 ? "Unavailable" : Helpers.GenerateUnicodePercentage(characterStats.dangerRatio);
+                    var text2 = characterStats.gangRatio == 0 ? "Unavailable" : Helpers.GenerateUnicodePercentage(characterStats.gangRatio);
+
+                    var allianceName = alliance == null ? "None" : alliance.Name;
+
+                    var builder = new EmbedBuilder()
+                        .WithDescription($"[zKillboard](https://zkillboard.com/character/{Id}/) / [EVEWho](https://evewho.com/pilot/{HttpUtility.UrlEncode(corporation.Name)})")
+                        .WithColor(new Color(0x4286F4))
+                        .WithThumbnailUrl($"https://image.eveonline.com/Character/{Id}_64.jpg")
+                        .WithAuthor(author =>
+                        {
+                            author
+                                .WithName($"{character.Name}");
+                        })
+                        .AddField("Details", $"\u200b")
+                        .AddInlineField("Corporation:", $"{corporation.Name}")
+                        .AddInlineField("Alliance:", $"{allianceName}")
+                        .AddInlineField("Last Seen Location:", $"{lastSeenSystem}")
+                        .AddInlineField("Last Seen Ship:", $"{lastShipType}")
+                        .AddInlineField("Last Seen:", $"{lastSeenTime}")
+                        .AddField("\u200b", "\u200b")
+                        //.AddInlineField("Regular Cynos(Last 200 losses)", $"{cynoCount}")
+                        //.AddInlineField("Covert Cynos(Last 200 losses)", $"{covertCount}")
+                        .AddInlineField("Threat", $"{text1}{Environment.NewLine}{Environment.NewLine}**{characterStats.dangerRatio}% {dangerous}**")
+                        .AddInlineField("Chance in Fleet", $"{text2}{Environment.NewLine}{Environment.NewLine}**{characterStats.gangRatio}% {gang}**");
+
+
+                    var embed = builder.Build();
+
+                    await message.ModifyAsync(msg => { msg.Content = ""; msg.Embed = embed; });
+
+                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "Char", $"Sending {context.Message.Author} Character Info Request to {context.Message.Channel}" +
+                        $" {context.Guild.Name}"));
+                
+                }
+                catch
+                {
+                    await message.ModifyAsync(msg => { msg.Content = "Error during character lookup"; });
+                }
+
+                await Task.CompletedTask;
             }
-
-            await Task.CompletedTask;
         }
         #endregion
 
