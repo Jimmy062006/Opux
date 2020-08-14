@@ -1328,7 +1328,7 @@ namespace Opux
                     ws.OnOpen -= Ws_OnOpen;
                     ws.OnError -= Ws_OnError;
                     ws.OnClose -= Ws_OnClose;
-                    new WebSocket("wss://zkillboard.com:2096");
+                    new WebSocket("wss://zkillboard.com/websocket/");
                     ZkillInit = false;
 
                     await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, $"Ws_Socket", $"Web Socket Died Restarting"));
