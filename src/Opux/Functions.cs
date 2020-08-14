@@ -56,7 +56,7 @@ namespace Opux
 
         //Timer is setup here
         #region Timer stuff
-        public async static void RunTick(Object stateInfo)
+        public async static void RunTick(object stateInfo)
         {
             try
             {
@@ -1303,7 +1303,7 @@ namespace Opux
         //Complete Update to Embeds
         #region killFeed
 
-        public static WebSocket ws = new WebSocket("wss://zkillboard.com:2096");
+        public static WebSocket ws = new WebSocket("wss://zkillboard.com/websocket/");
 
         public static async void ZKillMain()
         {
