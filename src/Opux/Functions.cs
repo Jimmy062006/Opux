@@ -4073,7 +4073,7 @@ namespace Opux
         internal static async Task InstallCommands()
         {
             Program.Client.MessageReceived += HandleCommand;
-            //await Program.Commands.AddModulesAsync(Assembly.GetEntryAssembly());
+            await Program.Commands.AddModulesAsync(assembly: Assembly.GetEntryAssembly(), services: null);
         }
 
         internal static async Task HandleCommand(SocketMessage messageParam)
