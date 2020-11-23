@@ -129,7 +129,7 @@ namespace Opux
         /// </summary>
         /// <returns></returns>
         [Command("rehash", RunMode = RunMode.Async), Summary("Rehash settings file")]
-        [CheckForRole]
+        [RequireRole()]
         public async Task Reshash()
         {
             try
@@ -149,7 +149,7 @@ namespace Opux
         /// </summary>
         /// <returns></returns>
         [Command("reauth", RunMode = RunMode.Async), Summary("Reauth all users")]
-        [CheckForRole]
+        [RequireRole]
         public async Task Reauth()
         {
             try
@@ -358,7 +358,7 @@ namespace Opux
         /// </summary>
         /// <returns></returns>
         [Command("dupes", RunMode = RunMode.Async), Summary("Deletes Duplicate Discord ID's from the MYSQL database")]
-        [CheckForRole]
+        [RequireRole]
         public async Task Dupes()
         {
             try
@@ -414,7 +414,7 @@ namespace Opux
         /// </summary>
         /// <returns></returns>
         [Command("ts reset", RunMode = RunMode.Async), Summary("Activates Teamspeak check")]
-        [CheckForRole]
+        [RequireRole]
         public async Task TsReset([Remainder] string x)
         {
             try
@@ -434,7 +434,7 @@ namespace Opux
         /// </summary>
         /// <returns></returns>
         [Command("authmaint", RunMode = RunMode.Async), Summary("Activates Teamspeak check")]
-        [CheckForRole]
+        [RequireRole]
         public async Task AuthMaint()
         {
             try

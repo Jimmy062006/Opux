@@ -1506,12 +1506,12 @@ namespace Opux
                                                     .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                             })
                                             .WithDescription($"Died {killTime}")
-                                            .AddInlineField("Victim", victimName)
-                                            .AddInlineField("System", $"{system.Name} ({secstatus})")
-                                            .AddInlineField("Corporation", victimCorp.Name)
-                                            .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name)
-                                            .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
-                                            .AddInlineField("Involved Count", attackers.Count());
+                                            .AddField("Victim", victimName, true)
+                                            .AddField("System", $"{system.Name} ({secstatus})", true)
+                                            .AddField("Corporation", victimCorp.Name)
+                                            .AddField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name, true)
+                                            .AddField("Total Value", string.Format("{0:n0} ISK", value), true)
+                                            .AddField("Involved Count", attackers.Count(), true);
                                         var embed = builder.Build();
 
                                         var _radiusChannel = discordGuild.GetTextChannel(radiusChannel);
@@ -1538,12 +1538,12 @@ namespace Opux
                                                     .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                             })
                                             .WithDescription($"Died {killTime}")
-                                            .AddInlineField("Victim", victimName)
-                                            .AddInlineField("System", $"{system.Name} ({secstatus})")
-                                            .AddInlineField("Corporation", victimCorp.Name)
-                                            .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name)
-                                            .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
-                                            .AddInlineField("Involved Count", attackers.Count());
+                                            .AddField("Victim", victimName, true)
+                                            .AddField("System", $"{system.Name} ({secstatus})", true)
+                                            .AddField("Corporation", victimCorp.Name, true)
+                                            .AddField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name, true)
+                                            .AddField("Total Value", string.Format("{0:n0} ISK", value), true)
+                                            .AddField("Involved Count", attackers.Count(), true);
                                         var embed = builder.Build();
 
                                         var _radiusChannel = discordGuild.GetTextChannel(radiusChannel);
@@ -1584,10 +1584,10 @@ namespace Opux
                                 })
                                 .WithDescription($"Died {killTime}")
                                 .AddField("Victim", victimName)
-                                .AddInlineField("Corporation", victimCorp.Name)
-                                .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name)
-                                .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
-                                .AddInlineField("Involved Count", attackers.Count());
+                                .AddField("Corporation", victimCorp.Name, true)
+                                .AddField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name, true)
+                                .AddField("Total Value", string.Format("{0:n0} ISK", value), true)
+                                .AddField("Involved Count", attackers.Count(), true);
                             var embed = builder.Build();
 
                             var _Channel = discordGuild.GetTextChannel(bigKillGlobalChan);
@@ -1613,11 +1613,11 @@ namespace Opux
                                             .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                     })
                                     .WithDescription($"Died {killTime}")
-                                    .AddInlineField("Victim", victimName)
-                                    .AddInlineField("Corporation", victimCorp.Name)
-                                    .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name)
-                                    .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
-                                    .AddInlineField("Involved Count", attackers.Count());
+                                    .AddField("Victim", victimName, true)
+                                    .AddField("Corporation", victimCorp.Name, true)
+                                    .AddField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name, true)
+                                    .AddField("Total Value", string.Format("{0:n0} ISK", value), true)
+                                    .AddField("Involved Count", attackers.Count(), true);
                                 var embed = builder.Build();
 
                                 var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["channel"]));
@@ -1646,11 +1646,11 @@ namespace Opux
                                                 .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                         })
                                         .WithDescription($"Died {killTime}")
-                                        .AddInlineField("Victim", victimName)
-                                        .AddInlineField("Corporation", victimCorp.Name)
-                                        .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name)
-                                        .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
-                                        .AddInlineField("Involved Count", attackers.Count());
+                                        .AddField("Victim", victimName, true)
+                                        .AddField("Corporation", victimCorp.Name, true)
+                                        .AddField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name, true)
+                                        .AddField("Total Value", string.Format("{0:n0} ISK", value), true)
+                                        .AddField("Involved Count", attackers.Count(), true);
                                     var embed = builder.Build();
 
                                     var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["bigKillChannel"]));
@@ -1682,11 +1682,11 @@ namespace Opux
                                                     .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                             })
                                             .WithDescription($"Died {killTime}")
-                                            .AddInlineField("Victim", victimName)
-                                            .AddInlineField("Corporation", victimCorp.Name)
-                                            .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name)
-                                            .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
-                                            .AddInlineField("Involved Count", attackers.Count());
+                                            .AddField("Victim", victimName, true)
+                                            .AddField("Corporation", victimCorp.Name, true)
+                                            .AddField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name, true)
+                                            .AddField("Total Value", string.Format("{0:n0} ISK", value), true)
+                                            .AddField("Involved Count", attackers.Count(), true);
                                         var embed = builder.Build();
 
                                         var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["channel"]));
@@ -1721,11 +1721,11 @@ namespace Opux
                                                     .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                             })
                                             .WithDescription($"Died {killTime}")
-                                            .AddInlineField("Victim", victimName)
-                                            .AddInlineField("Corporation", victimCorp.Name)
-                                            .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name)
-                                            .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
-                                            .AddInlineField("Involved Count", attackers.Count());
+                                            .AddField("Victim", victimName, true)
+                                            .AddField("Corporation", victimCorp.Name, true)
+                                            .AddField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name, true)
+                                            .AddField("Total Value", string.Format("{0:n0} ISK", value), true)
+                                            .AddField("Involved Count", attackers.Count(), true);
                                         var embed = builder.Build();
 
                                         var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["bigKillChannel"]));
@@ -1754,11 +1754,11 @@ namespace Opux
                                                 .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                         })
                                             .WithDescription($"Died {killTime}")
-                                            .AddInlineField("Victim", victim == null ? victimName : victimName)
-                                            .AddInlineField("Corporation", victimCorp.Name)
-                                            .AddInlineField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name)
-                                            .AddInlineField("Total Value", string.Format("{0:n0} ISK", value))
-                                            .AddInlineField("Involved Count", attackers.Count());
+                                            .AddField("Victim", victim == null ? victimName : victimName, true)
+                                            .AddField("Corporation", victimCorp.Name, true)
+                                            .AddField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name, true)
+                                            .AddField("Total Value", string.Format("{0:n0} ISK", value), true)
+                                            .AddField("Involved Count", attackers.Count(), true);
                                     var embed = builder.Build();
 
                                     var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["channel"]));
@@ -2547,9 +2547,9 @@ namespace Opux
                                                         author
                                                             .WithName($"New Notification: {types[notificationType]}");
                                                     })
-                                                    .AddInlineField("Declared BY", declaredByName.Value)
-                                                    .AddInlineField("Against", againstName.Value)
-                                                    .AddInlineField("Fighting beins in", $"{delayHours} Hours")
+                                                    .AddField("Declared BY", declaredByName.Value, true)
+                                                    .AddField("Against", againstName.Value, true)
+                                                    .AddField("Fighting beins in", $"{delayHours} Hours", true)
                                                     .WithTimestamp((DateTime)notification.Value["sentDate"]);
                                                 var embed = builder.Build();
 
@@ -2622,9 +2622,9 @@ namespace Opux
                                                         author
                                                             .WithName($"New Notification: {types[notificationType]}");
                                                     })
-                                                    .AddInlineField("Declared BY", declaredByName.Value)
-                                                    .AddInlineField("Against", againstName.Value)
-                                                    .AddInlineField("Fighting beins in", $"{delayHours} Hours")
+                                                    .AddField("Declared BY", declaredByName.Value, true)
+                                                    .AddField("Against", againstName.Value, true)
+                                                    .AddField("Fighting beins in", $"{delayHours} Hours", true)
                                                     .WithTimestamp((DateTime)notification.Value["sentDate"]);
                                                 var embed = builder.Build();
 
@@ -2684,16 +2684,16 @@ namespace Opux
                                                         author
                                                             .WithName($"New Notification: {types[notificationType]}");
                                                     })
-                                                    .AddInlineField("Details", $"System: {moonName}")
-                                                    .AddInlineField("Type", $"{TypeName.First(x => x.Key == typeID).Value}")
-                                                    .AddInlineField("Current Shield Level", $"{shieldValue}")
-                                                    .AddInlineField("Current Armor Level", $"{armorValue}")
-                                                    .AddInlineField("Current Hull Level", $"{hullValue}")
-                                                    .AddInlineField("Aggressing Pilot", $"{aggressorName}")
-                                                    .AddInlineField("\u200b", "\u200b")
-                                                    .AddInlineField("\u200b", "\u200b")
-                                                    .AddInlineField("Aggressing Corporation", $"{aggressorCorpName}")
-                                                    .AddInlineField("Aggressing Alliance", $"{aggressorAllianceName}")
+                                                    .AddField("Details", $"System: {moonName}", true)
+                                                    .AddField("Type", $"{TypeName.First(x => x.Key == typeID).Value}", true)
+                                                    .AddField("Current Shield Level", $"{shieldValue}", true)
+                                                    .AddField("Current Armor Level", $"{armorValue}", true)
+                                                    .AddField("Current Hull Level", $"{hullValue}", true)
+                                                    .AddField("Aggressing Pilot", $"{aggressorName}", true)
+                                                    .AddField("\u200b", "\u200b", true)
+                                                    .AddField("\u200b", "\u200b", true)
+                                                    .AddField("Aggressing Corporation", $"{aggressorCorpName}", true)
+                                                    .AddField("Aggressing Alliance", $"{aggressorAllianceName}", true)
                                                     .WithTimestamp((DateTime)notification.Value["sentDate"]);
 
                                                 var embed = builder.Build();
@@ -2729,11 +2729,11 @@ namespace Opux
                                                     author
                                                         .WithName($"New Notification: {types[notificationType]}");
                                                 })
-                                                .AddInlineField("Details", $"System: {solarSystemName} Planet: {planetName}")
-                                                .AddInlineField("Type", $"{TypeName.First(x => x.Key == typeID).Value}")
-                                                .AddInlineField("Current Shield Level", $"{shieldValue}")
-                                                .AddInlineField("Aggressing Pilot", $"{aggressorName}")
-                                                .AddInlineField("Aggressing Corporation", $"{aggressorCorpName}{allyLine}")
+                                                .AddField("Details", $"System: {solarSystemName} Planet: {planetName}", true)
+                                                .AddField("Type", $"{TypeName.First(x => x.Key == typeID).Value}", true)
+                                                .AddField("Current Shield Level", $"{shieldValue}", true)
+                                                .AddField("Aggressing Pilot", $"{aggressorName}", true)
+                                                .AddField("Aggressing Corporation", $"{aggressorCorpName}{allyLine}", true)
                                                 .WithTimestamp((DateTime)notification.Value["sentDate"]);
                                                 var embed = builder.Build();
 
@@ -2854,8 +2854,8 @@ namespace Opux
                                                     author
                                                         .WithName($"New Notification: {types[notificationType]}");
                                                 })
-                                                .AddInlineField("System", $"{solarSystemName.Value}")
-                                                .AddInlineField("Decloak Time", $"{decloaktime}")
+                                                .AddField("System", $"{solarSystemName.Value}", true)
+                                                .AddField("Decloak Time", $"{decloaktime}", true)
                                                 .WithTimestamp((DateTime)notification.Value["sentDate"]);
                                                 var embed = builder.Build();
 
@@ -2915,14 +2915,14 @@ namespace Opux
                                                     author
                                                         .WithName($"New Notification: {types[notificationType]}");
                                                 })
-                                                .AddInlineField("System", solarSystemName.Value)
-                                                .AddInlineField("Structure", structureName)
-                                                .AddInlineField("Current Shield Level", shieldValue)
-                                                .AddInlineField("Current Armor Level", armorValue)
-                                                .AddInlineField("Current Hull Level", hullValue)
-                                                .AddInlineField("Aggressing Pilot", aggressorName)
-                                                .AddInlineField("Aggressing Corporation", corpName)
-                                                .AddInlineField("Aggressing Alliance", allyLine)
+                                                .AddField("System", solarSystemName.Value, true)
+                                                .AddField("Structure", structureName, true)
+                                                .AddField("Current Shield Level", shieldValue, true)
+                                                .AddField("Current Armor Level", armorValue, true)
+                                                .AddField("Current Hull Level", hullValue, true)
+                                                .AddField("Aggressing Pilot", aggressorName, true)
+                                                .AddField("Aggressing Corporation", corpName, true)
+                                                .AddField("Aggressing Alliance", allyLine, true)
                                                 .WithTimestamp((DateTime)notification.Value["sentDate"]);
                                                 var embed = builder.Build();
 
@@ -3143,17 +3143,17 @@ namespace Opux
                                         .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                 })
                                 .WithDescription($"Global Prices")
-                                .AddInlineField("Buy", $"Low: {centralreply.buy.min.ToString("N2")}{Environment.NewLine}" +
+                                .AddField("Buy", $"Low: {centralreply.buy.min.ToString("N2")}{Environment.NewLine}" +
                                 $"Avg: {centralreply.buy.avg.ToString("N2")}{Environment.NewLine}" +
-                                $"High: {centralreply.buy.max.ToString("N2")}")
-                                .AddInlineField("Sell", $"Low: {centralreply.sell.min.ToString("N2")}{Environment.NewLine}" +
+                                $"High: {centralreply.buy.max.ToString("N2")}", true)
+                                .AddField("Sell", $"Low: {centralreply.sell.min.ToString("N2")}{Environment.NewLine}" +
                                 $"Avg: {centralreply.sell.avg.ToString("N2")}{Environment.NewLine}" +
-                                $"High: {centralreply.sell.max.ToString("N2")}")
+                                $"High: {centralreply.sell.max.ToString("N2")}", true)
                                 .AddField($"Extra Data", $"\u200b")
-                                .AddInlineField("Buy", $"5%: {centralreply.buy.fivePercent.ToString("N2")}{Environment.NewLine}" +
-                                $"Volume: {centralreply.buy.volume}")
-                                .AddInlineField("Sell", $"5%: {centralreply.sell.fivePercent.ToString("N2")}{Environment.NewLine}" +
-                                $"Volume: {centralreply.sell.volume.ToString("N0")}");
+                                .AddField("Buy", $"5%: {centralreply.buy.fivePercent.ToString("N2")}{Environment.NewLine}" +
+                                $"Volume: {centralreply.buy.volume}", true)
+                                .AddField("Sell", $"5%: {centralreply.sell.fivePercent.ToString("N2")}{Environment.NewLine}" +
+                                $"Volume: {centralreply.sell.volume.ToString("N0")}", true);
                             var embed = builder.Build();
 
                             await channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
@@ -3176,17 +3176,17 @@ namespace Opux
                                         .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                 })
                                 .WithDescription($"Prices from Jita")
-                                .AddInlineField("Buy", $"Low: {centralreply.buy.min.ToString("N2")}{Environment.NewLine}" +
+                                .AddField("Buy", $"Low: {centralreply.buy.min.ToString("N2")}{Environment.NewLine}" +
                                 $"Avg: {centralreply.buy.avg.ToString("N2")}{Environment.NewLine}" +
-                                $"High: {centralreply.buy.max.ToString("N2")}")
-                                .AddInlineField("Sell", $"Low: {centralreply.sell.min.ToString("N2")}{Environment.NewLine}" +
+                                $"High: {centralreply.buy.max.ToString("N2")}", true)
+                                .AddField("Sell", $"Low: {centralreply.sell.min.ToString("N2")}{Environment.NewLine}" +
                                 $"Avg: {centralreply.sell.avg.ToString("N2")}{Environment.NewLine}" +
-                                $"High: {centralreply.sell.max.ToString("N2")}")
+                                $"High: {centralreply.sell.max.ToString("N2")}", true)
                                 .AddField($"Extra Data", $"\u200b")
-                                .AddInlineField("Buy", $"5%: {centralreply.buy.fivePercent.ToString("N2")}{Environment.NewLine}" +
-                                $"Volume: {centralreply.buy.volume}")
-                                .AddInlineField("Sell", $"5%: {centralreply.sell.fivePercent.ToString("N2")}{Environment.NewLine}" +
-                                $"Volume: {centralreply.sell.volume.ToString("N0")}");
+                                .AddField("Buy", $"5%: {centralreply.buy.fivePercent.ToString("N2")}{Environment.NewLine}" +
+                                $"Volume: {centralreply.buy.volume}", true)
+                                .AddField("Sell", $"5%: {centralreply.sell.fivePercent.ToString("N2")}{Environment.NewLine}" +
+                                $"Volume: {centralreply.sell.volume.ToString("N0")}", true);
                             var embed = builder.Build();
 
                             await channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
@@ -3209,17 +3209,17 @@ namespace Opux
                                         .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                 })
                                 .WithDescription($"Prices from Amarr")
-                                .AddInlineField("Buy", $"Low: {centralreply.buy.min.ToString("N2")}{Environment.NewLine}" +
+                                .AddField("Buy", $"Low: {centralreply.buy.min.ToString("N2")}{Environment.NewLine}" +
                                 $"Avg: {centralreply.buy.avg.ToString("N2")}{Environment.NewLine}" +
-                                $"High: {centralreply.buy.max.ToString("N2")}")
-                                .AddInlineField("Sell", $"Low: {centralreply.sell.min.ToString("N2")}{Environment.NewLine}" +
+                                $"High: {centralreply.buy.max.ToString("N2")}", true)
+                                .AddField("Sell", $"Low: {centralreply.sell.min.ToString("N2")}{Environment.NewLine}" +
                                 $"Avg: {centralreply.sell.avg.ToString("N2")}{Environment.NewLine}" +
-                                $"High: {centralreply.sell.max.ToString("N2")}")
+                                $"High: {centralreply.sell.max.ToString("N2")}", true)
                                 .AddField($"Extra Data", $"\u200b")
-                                .AddInlineField("Buy", $"5%: {centralreply.buy.fivePercent.ToString("N2")}{Environment.NewLine}" +
-                                $"Volume: {centralreply.buy.volume}")
-                                .AddInlineField("Sell", $"5%: {centralreply.sell.fivePercent.ToString("N2")}{Environment.NewLine}" +
-                                $"Volume: {centralreply.sell.volume.ToString("N0")}");
+                                .AddField("Buy", $"5%: {centralreply.buy.fivePercent.ToString("N2")}{Environment.NewLine}" +
+                                $"Volume: {centralreply.buy.volume}", true)
+                                .AddField("Sell", $"5%: {centralreply.sell.fivePercent.ToString("N2")}{Environment.NewLine}" +
+                                $"Volume: {centralreply.sell.volume.ToString("N0")}", true);
                             var embed = builder.Build();
 
                             await channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
@@ -3242,17 +3242,17 @@ namespace Opux
                                         .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                 })
                                 .WithDescription($"Prices from Rens")
-                                .AddInlineField("Buy", $"Low: {centralreply.buy.min.ToString("N2")}{Environment.NewLine}" +
+                                .AddField("Buy", $"Low: {centralreply.buy.min.ToString("N2")}{Environment.NewLine}" +
                                 $"Avg: {centralreply.buy.avg.ToString("N2")}{Environment.NewLine}" +
-                                $"High: {centralreply.buy.max.ToString("N2")}")
-                                .AddInlineField("Sell", $"Low: {centralreply.sell.min.ToString("N2")}{Environment.NewLine}" +
+                                $"High: {centralreply.buy.max.ToString("N2")}", true)
+                                .AddField("Sell", $"Low: {centralreply.sell.min.ToString("N2")}{Environment.NewLine}" +
                                 $"Avg: {centralreply.sell.avg.ToString("N2")}{Environment.NewLine}" +
-                                $"High: {centralreply.sell.max.ToString("N2")}")
+                                $"High: {centralreply.sell.max.ToString("N2")}", true)
                                 .AddField($"Extra Data", $"\u200b")
-                                .AddInlineField("Buy", $"5%: {centralreply.buy.fivePercent.ToString("N2")}{Environment.NewLine}" +
-                                $"Volume: {centralreply.buy.volume}")
-                                .AddInlineField("Sell", $"5%: {centralreply.sell.fivePercent.ToString("N2")}{Environment.NewLine}" +
-                                $"Volume: {centralreply.sell.volume.ToString("N0")}");
+                                .AddField("Buy", $"5%: {centralreply.buy.fivePercent.ToString("N2")}{Environment.NewLine}" +
+                                $"Volume: {centralreply.buy.volume}", true)
+                                .AddField("Sell", $"5%: {centralreply.sell.fivePercent.ToString("N2")}{Environment.NewLine}" +
+                                $"Volume: {centralreply.sell.volume.ToString("N0")}", true);
                             var embed = builder.Build();
 
                             await channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
@@ -3275,17 +3275,17 @@ namespace Opux
                                         .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                 })
                                 .WithDescription($"Prices from Dodixie")
-                                .AddInlineField("Buy", $"Low: {centralreply.buy.min.ToString("N2")}{Environment.NewLine}" +
+                                .AddField("Buy", $"Low: {centralreply.buy.min.ToString("N2")}{Environment.NewLine}" +
                                 $"Avg: {centralreply.buy.avg.ToString("N2")}{Environment.NewLine}" +
-                                $"High: {centralreply.buy.max.ToString("N2")}")
-                                .AddInlineField("Sell", $"Low: {centralreply.sell.min.ToString("N2")}{Environment.NewLine}" +
+                                $"High: {centralreply.buy.max.ToString("N2")}", true)
+                                .AddField("Sell", $"Low: {centralreply.sell.min.ToString("N2")}{Environment.NewLine}" +
                                 $"Avg: {centralreply.sell.avg.ToString("N2")}{Environment.NewLine}" +
-                                $"High: {centralreply.sell.max.ToString("N2")}")
+                                $"High: {centralreply.sell.max.ToString("N2")}", true)
                                 .AddField($"Extra Data", $"\u200b")
-                                .AddInlineField("Buy", $"5%: {centralreply.buy.fivePercent.ToString("N2")}{Environment.NewLine}" +
-                                $"Volume: {centralreply.buy.volume}")
-                                .AddInlineField("Sell", $"5%: {centralreply.sell.fivePercent.ToString("N2")}{Environment.NewLine}" +
-                                $"Volume: {centralreply.sell.volume.ToString("N0")}");
+                                .AddField("Buy", $"5%: {centralreply.buy.fivePercent.ToString("N2")}{Environment.NewLine}" +
+                                $"Volume: {centralreply.buy.volume}", true)
+                                .AddField("Sell", $"5%: {centralreply.sell.fivePercent.ToString("N2")}{Environment.NewLine}" +
+                                $"Volume: {centralreply.sell.volume.ToString("N0")}", true);
                             var embed = builder.Build();
 
                             await channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
@@ -3488,8 +3488,8 @@ namespace Opux
                                         author
                                             .WithName("FleetUp Notification");
                                     })
-                                    .AddInlineField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]))
-                                    .AddInlineField($"Form Up System", string.IsNullOrWhiteSpace(location) ? "None" : locationText)
+                                    .AddField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]), true)
+                                    .AddField($"Form Up System", string.IsNullOrWhiteSpace(location) ? "None" : locationText, true)
                                     .AddField("Details", string.IsNullOrWhiteSpace(details) ? "None" : details)
                                     .WithTimestamp(startTime);
 
@@ -3534,8 +3534,8 @@ namespace Opux
                                             author
                                                 .WithName("FleetUp Notification");
                                         })
-                                        .AddInlineField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]))
-                                    .AddInlineField($"Form Up System", string.IsNullOrWhiteSpace(location) ? "None" : locationText)
+                                        .AddField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]), true)
+                                        .AddField($"Form Up System", string.IsNullOrWhiteSpace(location) ? "None" : locationText, true)
                                         .AddField("Details", string.IsNullOrWhiteSpace(details) ? "None" : details)
                                         .WithTimestamp(startTime);
 
@@ -3567,8 +3567,8 @@ namespace Opux
                                         author
                                             .WithName("FleetUp Notification");
                                     })
-                                    .AddInlineField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]))
-                                    .AddInlineField($"Form Up System", string.IsNullOrWhiteSpace(location) ? "None" : locationText)
+                                    .AddField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]), true)
+                                    .AddField($"Form Up System", string.IsNullOrWhiteSpace(location) ? "None" : locationText, true)
                                     .AddField("Details", string.IsNullOrWhiteSpace(details) ? "None" : details)
                                     .WithTimestamp(startTime);
 
@@ -3633,8 +3633,8 @@ namespace Opux
                             author
                                 .WithName("FleetUp Notification");
                         })
-                        .AddInlineField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]))
-                        .AddInlineField($"Form Up System", string.IsNullOrWhiteSpace(location) ? "None" : locationText)
+                        .AddField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]), true)
+                        .AddField($"Form Up System", string.IsNullOrWhiteSpace(location) ? "None" : locationText, true)
                         .AddField("Details", string.IsNullOrWhiteSpace(details) ? "None" : details)
                         .AddField($"Total OPs {result.Data.Count()}", $"Use !ops # to list more")
                         .WithTimestamp(startTime);
@@ -3668,8 +3668,8 @@ namespace Opux
                                     author
                                         .WithName("FleetUp Notification");
                                 })
-                                .AddInlineField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]))
-                                .AddInlineField($"Form Up System", string.IsNullOrWhiteSpace(location) ? "None" : locationText)
+                                .AddField("Form Up Time", startTime.ToString(Program.Settings.GetSection("config")["timeformat"]), true)
+                                .AddField($"Form Up System", string.IsNullOrWhiteSpace(location) ? "None" : locationText, true)
                                 .AddField("Details", string.IsNullOrWhiteSpace(details) ? "None" : details)
                                 .WithTimestamp(startTime);
 
@@ -3953,16 +3953,16 @@ namespace Opux
                                 .WithName($"{character.Name}");
                         })
                         .AddField("Details", $"\u200b")
-                        .AddInlineField("Corporation:", $"{corporation.Name}")
-                        .AddInlineField("Alliance:", $"{allianceName}")
-                        .AddInlineField("Last Seen Location:", $"{lastSeenSystem}")
-                        .AddInlineField("Last Seen Ship:", $"{lastShipType}")
-                        .AddInlineField("Last Seen:", $"{lastSeenTime}")
+                        .AddField("Corporation:", $"{corporation.Name}", true)
+                        .AddField("Alliance:", $"{allianceName}", true)
+                        .AddField("Last Seen Location:", $"{lastSeenSystem}", true)
+                        .AddField("Last Seen Ship:", $"{lastShipType}", true)
+                        .AddField("Last Seen:", $"{lastSeenTime}", true)
                         .AddField("\u200b", "\u200b")
                         //.AddInlineField("Regular Cynos(Last 200 losses)", $"{cynoCount}")
                         //.AddInlineField("Covert Cynos(Last 200 losses)", $"{covertCount}")
-                        .AddInlineField("Threat", $"{text1}{Environment.NewLine}{Environment.NewLine}**{characterStats.dangerRatio}% {dangerous}**")
-                        .AddInlineField("Chance in Fleet", $"{text2}{Environment.NewLine}{Environment.NewLine}**{characterStats.gangRatio}% {gang}**");
+                        .AddField("Threat", $"{text1}{Environment.NewLine}{Environment.NewLine}**{characterStats.dangerRatio}% {dangerous}**", true)
+                        .AddField("Chance in Fleet", $"{text2}{Environment.NewLine}{Environment.NewLine}**{characterStats.gangRatio}% {gang}**", true);
 
 
                     var embed = builder.Build();
@@ -4046,10 +4046,10 @@ namespace Opux
                                 .WithName($"{corporationData.name}");
                         })
                         .AddField("Details", $"\u200b")
-                        .AddInlineField("Corporation:", $"{corporationData.name}")
-                        .AddInlineField("Alliance:", $"{alliance}")
-                        .AddInlineField("CEO", $"{CEONameContent.name}")
-                        .AddInlineField("Members", $"{corporationData.member_count}");
+                        .AddField("Corporation:", $"{corporationData.name}", true)
+                        .AddField("Alliance:", $"{alliance}", true)
+                        .AddField("CEO", $"{CEONameContent.name}", true)
+                        .AddField("Members", $"{corporationData.member_count}", true);
 
                     var embed = builder.Build();
 
@@ -4071,7 +4071,7 @@ namespace Opux
         internal static async Task InstallCommands()
         {
             Program.Client.MessageReceived += HandleCommand;
-            await Program.Commands.AddModulesAsync(Assembly.GetEntryAssembly());
+            await Program.Commands.AddModulesAsync(assembly: Assembly.GetEntryAssembly(), services: null);
         }
 
         internal static async Task HandleCommand(SocketMessage messageParam)

@@ -20,7 +20,7 @@
 
   <ItemGroup>
     <PackageReference Include="ByteSize" Version="1.3.0" />
-    <PackageReference Include="Discord.Net" Version="1.0.2" />
+    <PackageReference Include="Discord.Net" Version="2.1.1" />
     <PackageReference Include="ESIClient.Dotcore" Version="1.0.10-nightly" />
     <PackageReference Include="log4net" Version="2.0.8" />
     <PackageReference Include="MatriX.NetCore" Version="2.0.0.22-beta4" />
