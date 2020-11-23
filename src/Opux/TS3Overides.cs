@@ -32,7 +32,7 @@ namespace Opux
         public string N_modifyp { get; set; }
 
         [PropertyMapping("n_member_addp", Required = true)]
-        public string n_member_addp { get; set; }
+        public string N_member_addp { get; set; }
 
         [PropertyMapping("n_member_removep", Required = true)]
         public string N_member_removep { get; set; }

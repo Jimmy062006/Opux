@@ -28,7 +28,7 @@ namespace Opux
         {
             if (Convert.ToBoolean(Program.Settings.GetSection("config")["pricecheck"]))
             {
-                var userInfo = Context.Message.Author;
+                //var userInfo = Context.Message.Author;
                 if (x == null)
                 {
                     await ReplyAsync($"{Context.Message.Author.Mention} please provide an item name");
@@ -49,7 +49,7 @@ namespace Opux
         {
             if (Convert.ToBoolean(Program.Settings.GetSection("config")["pricecheck"]))
             { 
-                var userInfo = Context.Message.Author;
+                //var userInfo = Context.Message.Author;
                 if (x == null)
                 {
                     await ReplyAsync($"{Context.Message.Author.Mention} please provide an item name");
@@ -70,7 +70,7 @@ namespace Opux
         {
             if (Convert.ToBoolean(Program.Settings.GetSection("config")["pricecheck"]))
             {
-                var userInfo = Context.Message.Author;
+                //var userInfo = Context.Message.Author;
                 if (x == null)
                 {
                     await ReplyAsync($"{Context.Message.Author.Mention} please provide an item name");
@@ -91,7 +91,7 @@ namespace Opux
         {
             if (Convert.ToBoolean(Program.Settings.GetSection("config")["pricecheck"]))
             {
-                var userInfo = Context.Message.Author;
+                //var userInfo = Context.Message.Author;
                 if (x == null)
                 {
                     await ReplyAsync($"{Context.Message.Author.Mention} please provide an item name");
@@ -112,7 +112,7 @@ namespace Opux
         {
             if (Convert.ToBoolean(Program.Settings.GetSection("config")["pricecheck"]))
             {
-                var userInfo = Context.Message.Author;
+                //var userInfo = Context.Message.Author;
                 if (x == null)
                 {
                     await ReplyAsync($"{Context.Message.Author.Mention} please provide an item name");
@@ -248,46 +248,6 @@ namespace Opux
                 try
                 {
                     await Functions.MOTD(Context);
-                }
-                catch (Exception ex)
-                {
-                    await Logger.DiscordClient_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
-                    await Task.FromException(ex);
-                }
-            }
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        [Command("ops", RunMode = RunMode.Async), Summary("Shows current Fleetup Operations")]
-        public async Task Ops()
-        {
-            if (Convert.ToBoolean(Program.Settings.GetSection("config")["fleetup"]))
-            {
-                try
-                {
-                    await Functions.Ops(Context, null);
-                }
-                catch (Exception ex)
-                {
-                    await Logger.DiscordClient_Log(new Discord.LogMessage(Discord.LogSeverity.Error, "Modules", ex.Message, ex));
-                    await Task.FromException(ex);
-                }
-            }
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        [Command("ops", RunMode = RunMode.Async), Summary("Shows current Fleetup Operations")]
-        public async Task Ops([Remainder] string x)
-        {
-            if (Convert.ToBoolean(Program.Settings.GetSection("config")["fleetup"]))
-            {
-                try
-                {
-                        await Functions.Ops(Context, x);
                 }
                 catch (Exception ex)
                 {

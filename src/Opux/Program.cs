@@ -48,7 +48,7 @@ namespace Opux
             Client = new DiscordSocketClient(new DiscordSocketConfig() { });
             Commands = new CommandService();
             EveLib = new EveLib();
-            MainAsync(args).GetAwaiter().GetResult();
+            MainAsync().GetAwaiter().GetResult();
 
             var headless = Convert.ToBoolean(Settings.GetSection("config")["Systemd_Support"]);
 
@@ -143,7 +143,7 @@ namespace Opux
             await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "Main", args.Message, args));
         }
 
-        internal static async Task MainAsync(string[] args)
+        internal static async Task MainAsync()
         {
             Client.Log += Logger.DiscordClient_Log;
             Client.UserJoined += Functions.Event_UserJoined;
@@ -179,9 +179,9 @@ namespace Opux
                 if (Convert.ToBoolean(Settings.GetSection("config")["notificationFeed"]))
                     Functions._nextNotificationCheck = DateTime.Parse(Functions.SQLiteDataQuery("cacheData", "data", "nextNotificationCheck").GetAwaiter().GetResult());
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                var debug = ex.Message;
+                //var debug = ex.Message;
             }
             return Task.CompletedTask;
         }
