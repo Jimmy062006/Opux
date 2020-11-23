@@ -85,8 +85,8 @@ namespace JSONStuff
                     XmlNodeList children = cnode.ChildNodes;
                     if (children.Count == 0)
                         nodeValue = null;
-                    else if (children.Count == 1 && (children[0] is XmlText))
-                        nodeValue = ((XmlText)children[0]).InnerText;
+                    else if (children.Count == 1 && (children[0] is XmlText text))
+                        nodeValue = text.InnerText;
                 }
             }
             // Add nodeValue to ArrayList associated with each nodeName
@@ -113,11 +113,11 @@ namespace JSONStuff
                     sbJSON.Append("\"" + SafeJSON(childname) + "\": ");
                 sbJSON.Append("null");
             }
-            else if (alChild is string)
+            else if (alChild is string @string)
             {
                 if (showNodeName)
                     sbJSON.Append("\"" + SafeJSON(childname) + "\": ");
-                string sChild = (string)alChild;
+                string sChild = @string;
                 sChild = sChild.Trim();
                 sbJSON.Append("\"" + SafeJSON(sChild) + "\"");
             }

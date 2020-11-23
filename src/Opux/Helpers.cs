@@ -19,7 +19,7 @@ namespace Opux
             string styles = "░▒▓█";
 
             double d, full, middle, rest, x, min_delta = double.PositiveInfinity;
-            char full_symbol = styles[styles.Length - 1], m;
+            char full_symbol = styles[^1], m;
             var n = styles.Length;
             var max_size = 20;
             var min_size = 19;
@@ -29,7 +29,7 @@ namespace Opux
             string String = "";
             if (percentage == 100)
             {
-                return repeat(full_symbol, 10);
+                return Repeat(full_symbol, 10);
             }
             else
             {
@@ -53,7 +53,7 @@ namespace Opux
 
                         m = styles[(int)middle];
                         if (full == i) m = ' ';
-                        String = repeat(full_symbol, full) + m + repeat(styles[0], i - full - 1);
+                        String = Repeat(full_symbol, full) + m + Repeat(styles[0], i - full - 1);
                     }
                     i--;
                 }
@@ -62,7 +62,7 @@ namespace Opux
             return String;
         }
 
-        static string repeat(char s, double i)
+        static string Repeat(char s, double i)
         {
             var r = "";
             for (var j = 0; j < i; j++) r += s;

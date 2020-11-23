@@ -48,7 +48,7 @@ namespace Opux
         static string _motdtopic;
         static int lastPosted = 0;
         static DateTime _lastTopicCheck = DateTime.Now;
-        public static DateTime _tsLastRan { get; private set; }
+        public static DateTime TsLastRan { get; private set; }
         public static bool ZkillInit { get; private set; }
         public static List<int> Lastkill = new List<int>();
 
@@ -792,7 +792,7 @@ namespace Opux
             var guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
             var logchan = Convert.ToUInt64(Program.Settings.GetSection("auth")["alertChannel"]);
             var discordUsers = Program.Client.GetGuild(guildID).Users;
-            var discordGuild = Program.Client.GetGuild(guildID);
+            //var discordGuild = Program.Client.GetGuild(guildID);
             var logChannel = Program.Client.GetGuild(guildID).GetTextChannel(logchan);
 
             if (user == null)
@@ -1474,8 +1474,8 @@ namespace Opux
 
                         if (!string.IsNullOrWhiteSpace(radiusSystem))
                         {
-                            var StartinWH = (system.Name[0] == 'J' && int.TryParse(system.Name.Substring(1), out int StartinWHInt) || system.Name == "Thera");
-                            var EndinWH = (radiusSystem[0] == 'J' && int.TryParse(radiusSystem.Substring(1), out int EndinWHInt) || radiusSystem == "Thera");
+                            var StartinWH = system.Name[0] == 'J' && int.TryParse(system.Name[1..], out int StartinWHInt) || system.Name == "Thera";
+                            var EndinWH = radiusSystem[0] == 'J' && int.TryParse(radiusSystem[1..], out int EndinWHInt) || radiusSystem == "Thera";
                             var test3 = !string.IsNullOrWhiteSpace(radiusSystem) && radiusChannel > 0;
 
                             var SystemName = !string.IsNullOrWhiteSpace(radiusSystem) ? await searchApi.GetSearchAsync(new List<string> { $"solar_system" }, radiusSystem, strict: true) : null;
@@ -1858,7 +1858,7 @@ namespace Opux
             }
             else if (_teamspeakRunning)
             {
-                if (DateTime.Now > _tsLastRan.AddMinutes(5))
+                if (DateTime.Now > TsLastRan.AddMinutes(5))
                 {
                     var clientList = await TS_client.ClientList();
                     var serverGroups = await TS_client.SendCommandAsync(new ServerQueryCommand<ServerGroupListResult>(Command.servergrouplist));
@@ -1943,7 +1943,7 @@ namespace Opux
                         }
                     }
 
-                    _tsLastRan = DateTime.Now;
+                    TsLastRan = DateTime.Now;
                 }
             }
         }
@@ -1955,9 +1955,6 @@ namespace Opux
 
         private static async void Teamspeak_Closed(object sender, EventArgs e)
         {
-            var username = Program.Settings.GetSection("teamspeak")["username"];
-            var password = Program.Settings.GetSection("teamspeak")["password"];
-
             await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "Teamspeak", $"Connection Lost"));
             TS_client = null;
             _teamspeakRunning = false;
@@ -2675,7 +2672,7 @@ namespace Opux
                                                 var moonName = names.First(x => x.Key == moonID).Value;
                                                 var solarSystemName = names.First(x => x.Key == solarSystemID).Value;
                                                 var TypeName = await EveLib.IDtoTypeName(new List<Int64> { typeID });
-                                                var aggressorAllianceName = aggressorAlliance == null ? "None" : aggressorAlliance;
+                                                var aggressorAllianceName = aggressorAlliance ?? "None";
 
                                                 var builder = new EmbedBuilder()
                                                     .WithColor(new Color(0xf2882b))
@@ -3143,17 +3140,17 @@ namespace Opux
                                         .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                 })
                                 .WithDescription($"Global Prices")
-                                .AddField("Buy", $"Low: {centralreply.buy.min.ToString("N2")}{Environment.NewLine}" +
-                                $"Avg: {centralreply.buy.avg.ToString("N2")}{Environment.NewLine}" +
-                                $"High: {centralreply.buy.max.ToString("N2")}", true)
-                                .AddField("Sell", $"Low: {centralreply.sell.min.ToString("N2")}{Environment.NewLine}" +
-                                $"Avg: {centralreply.sell.avg.ToString("N2")}{Environment.NewLine}" +
-                                $"High: {centralreply.sell.max.ToString("N2")}", true)
+                                .AddField("Buy", $"Low: {centralreply.buy.min:N2}{Environment.NewLine}" +
+                                $"Avg: {centralreply.buy.avg:N2}{Environment.NewLine}" +
+                                $"High: {centralreply.buy.max:N2}", true)
+                                .AddField("Sell", $"Low: {centralreply.sell.min:N2}{Environment.NewLine}" +
+                                $"Avg: {centralreply.sell.avg:N2}{Environment.NewLine}" +
+                                $"High: {centralreply.sell.max:N2}", true)
                                 .AddField($"Extra Data", $"\u200b")
-                                .AddField("Buy", $"5%: {centralreply.buy.fivePercent.ToString("N2")}{Environment.NewLine}" +
+                                .AddField("Buy", $"5%: {centralreply.buy.fivePercent:N2}{Environment.NewLine}" +
                                 $"Volume: {centralreply.buy.volume}", true)
-                                .AddField("Sell", $"5%: {centralreply.sell.fivePercent.ToString("N2")}{Environment.NewLine}" +
-                                $"Volume: {centralreply.sell.volume.ToString("N0")}", true);
+                                .AddField("Sell", $"5%: {centralreply.sell.fivePercent:N2}{Environment.NewLine}" +
+                                $"Volume: {centralreply.sell.volume:N0}", true);
                             var embed = builder.Build();
 
                             await channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
@@ -3176,17 +3173,17 @@ namespace Opux
                                         .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                 })
                                 .WithDescription($"Prices from Jita")
-                                .AddField("Buy", $"Low: {centralreply.buy.min.ToString("N2")}{Environment.NewLine}" +
-                                $"Avg: {centralreply.buy.avg.ToString("N2")}{Environment.NewLine}" +
-                                $"High: {centralreply.buy.max.ToString("N2")}", true)
-                                .AddField("Sell", $"Low: {centralreply.sell.min.ToString("N2")}{Environment.NewLine}" +
-                                $"Avg: {centralreply.sell.avg.ToString("N2")}{Environment.NewLine}" +
-                                $"High: {centralreply.sell.max.ToString("N2")}", true)
+                                .AddField("Buy", $"Low: {centralreply.buy.min:N2}{Environment.NewLine}" +
+                                $"Avg: {centralreply.buy.avg:N2}{Environment.NewLine}" +
+                                $"High: {centralreply.buy.max:N2}", true)
+                                .AddField("Sell", value: $"Low: {centralreply.sell.min:N2}{Environment.NewLine}" +
+                                $"Avg: {centralreply.sell.avg:N2}{Environment.NewLine}" +
+                                $"High: {centralreply.sell.max:N2}", true)
                                 .AddField($"Extra Data", $"\u200b")
-                                .AddField("Buy", $"5%: {centralreply.buy.fivePercent.ToString("N2")}{Environment.NewLine}" +
+                                .AddField("Buy", $"5%: {centralreply.buy.fivePercent:N2}{Environment.NewLine}" +
                                 $"Volume: {centralreply.buy.volume}", true)
-                                .AddField("Sell", $"5%: {centralreply.sell.fivePercent.ToString("N2")}{Environment.NewLine}" +
-                                $"Volume: {centralreply.sell.volume.ToString("N0")}", true);
+                                .AddField("Sell", value: $"5%: {centralreply.sell.fivePercent:N2}{Environment.NewLine}" +
+                                $"Volume: {centralreply.sell.volume:N0}", true);
                             var embed = builder.Build();
 
                             await channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
@@ -3209,17 +3206,17 @@ namespace Opux
                                         .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                 })
                                 .WithDescription($"Prices from Amarr")
-                                .AddField("Buy", $"Low: {centralreply.buy.min.ToString("N2")}{Environment.NewLine}" +
-                                $"Avg: {centralreply.buy.avg.ToString("N2")}{Environment.NewLine}" +
-                                $"High: {centralreply.buy.max.ToString("N2")}", true)
-                                .AddField("Sell", $"Low: {centralreply.sell.min.ToString("N2")}{Environment.NewLine}" +
-                                $"Avg: {centralreply.sell.avg.ToString("N2")}{Environment.NewLine}" +
-                                $"High: {centralreply.sell.max.ToString("N2")}", true)
+                                .AddField("Buy", $"Low: {centralreply.buy.min:N2}{Environment.NewLine}" +
+                                $"Avg: {centralreply.buy.avg:N2}{Environment.NewLine}" +
+                                $"High: {centralreply.buy.max:N2}", true)
+                                .AddField("Sell", $"Low: {centralreply.sell.min:N2}{Environment.NewLine}" +
+                                $"Avg: {centralreply.sell.avg:N2}{Environment.NewLine}" +
+                                $"High: {centralreply.sell.max:N2}", true)
                                 .AddField($"Extra Data", $"\u200b")
-                                .AddField("Buy", $"5%: {centralreply.buy.fivePercent.ToString("N2")}{Environment.NewLine}" +
+                                .AddField("Buy", $"5%: {centralreply.buy.fivePercent:N2}{Environment.NewLine}" +
                                 $"Volume: {centralreply.buy.volume}", true)
-                                .AddField("Sell", $"5%: {centralreply.sell.fivePercent.ToString("N2")}{Environment.NewLine}" +
-                                $"Volume: {centralreply.sell.volume.ToString("N0")}", true);
+                                .AddField("Sell", $"5%: {centralreply.sell.fivePercent:N2}{Environment.NewLine}" +
+                                $"Volume: {centralreply.sell.volume:N0}", true);
                             var embed = builder.Build();
 
                             await channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
@@ -3242,17 +3239,17 @@ namespace Opux
                                         .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                 })
                                 .WithDescription($"Prices from Rens")
-                                .AddField("Buy", $"Low: {centralreply.buy.min.ToString("N2")}{Environment.NewLine}" +
-                                $"Avg: {centralreply.buy.avg.ToString("N2")}{Environment.NewLine}" +
-                                $"High: {centralreply.buy.max.ToString("N2")}", true)
-                                .AddField("Sell", $"Low: {centralreply.sell.min.ToString("N2")}{Environment.NewLine}" +
-                                $"Avg: {centralreply.sell.avg.ToString("N2")}{Environment.NewLine}" +
-                                $"High: {centralreply.sell.max.ToString("N2")}", true)
+                                .AddField("Buy", $"Low: {centralreply.buy.min:N2}{Environment.NewLine}" +
+                                $"Avg: {centralreply.buy.avg:N2}{Environment.NewLine}" +
+                                $"High: {centralreply.buy.max:N2}", true)
+                                .AddField("Sell", $"Low: {centralreply.sell.min:N2}{Environment.NewLine}" +
+                                $"Avg: {centralreply.sell.avg:N2}{Environment.NewLine}" +
+                                $"High: {centralreply.sell.max:N2}", true)
                                 .AddField($"Extra Data", $"\u200b")
-                                .AddField("Buy", $"5%: {centralreply.buy.fivePercent.ToString("N2")}{Environment.NewLine}" +
+                                .AddField("Buy", $"5%: {centralreply.buy.fivePercent:N2}{Environment.NewLine}" +
                                 $"Volume: {centralreply.buy.volume}", true)
-                                .AddField("Sell", $"5%: {centralreply.sell.fivePercent.ToString("N2")}{Environment.NewLine}" +
-                                $"Volume: {centralreply.sell.volume.ToString("N0")}", true);
+                                .AddField("Sell", $"5%: {centralreply.sell.fivePercent:N2}{Environment.NewLine}" +
+                                $"Volume: {centralreply.sell.volume:N0}", true);
                             var embed = builder.Build();
 
                             await channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
@@ -3275,17 +3272,17 @@ namespace Opux
                                         .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
                                 })
                                 .WithDescription($"Prices from Dodixie")
-                                .AddField("Buy", $"Low: {centralreply.buy.min.ToString("N2")}{Environment.NewLine}" +
-                                $"Avg: {centralreply.buy.avg.ToString("N2")}{Environment.NewLine}" +
-                                $"High: {centralreply.buy.max.ToString("N2")}", true)
-                                .AddField("Sell", $"Low: {centralreply.sell.min.ToString("N2")}{Environment.NewLine}" +
-                                $"Avg: {centralreply.sell.avg.ToString("N2")}{Environment.NewLine}" +
-                                $"High: {centralreply.sell.max.ToString("N2")}", true)
+                                .AddField("Buy", $"Low: {centralreply.buy.min:N2}{Environment.NewLine}" +
+                                $"Avg: {centralreply.buy.avg:N2}{Environment.NewLine}" +
+                                $"High: {centralreply.buy.max:N2}", true)
+                                .AddField("Sell", $"Low: {centralreply.sell.min:N2}{Environment.NewLine}" +
+                                $"Avg: {centralreply.sell.avg:N2}{Environment.NewLine}" +
+                                $"High: {centralreply.sell.max:N2}", true)
                                 .AddField($"Extra Data", $"\u200b")
-                                .AddField("Buy", $"5%: {centralreply.buy.fivePercent.ToString("N2")}{Environment.NewLine}" +
+                                .AddField("Buy", $"5%: {centralreply.buy.fivePercent:N2}{Environment.NewLine}" +
                                 $"Volume: {centralreply.buy.volume}", true)
-                                .AddField("Sell", $"5%: {centralreply.sell.fivePercent.ToString("N2")}{Environment.NewLine}" +
-                                $"Volume: {centralreply.sell.volume.ToString("N0")}", true);
+                                .AddField("Sell", $"5%: {centralreply.sell.fivePercent:N2}{Environment.NewLine}" +
+                                $"Volume: {centralreply.sell.volume:N0}", true);
                             var embed = builder.Build();
 
                             await channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
@@ -3597,8 +3594,7 @@ namespace Opux
         {
             try
             {
-                var amount = 0;
-                int.TryParse(x, out amount);
+                int.TryParse(x, out int amount);
                 var UserId = Program.Settings.GetSection("fleetup")["UserId"];
                 var APICode = Program.Settings.GetSection("fleetup")["APICode"];
                 var GroupID = Program.Settings.GetSection("fleetup")["GroupID"];
@@ -3613,7 +3609,7 @@ namespace Opux
                 {
                     await Context.Message.Channel.SendMessageAsync($"{Context.Message.Author.Mention}, No Ops Scheduled");
                 }
-                else if (amount == 0)
+                else if (0 == 0)
                 {
                     var operation = result.Data[0];
                     var name = operation.Subject;
@@ -3645,11 +3641,11 @@ namespace Opux
                 }
                 else
                 {
-                    var count = 0;
+                    int count = 0;
 
                     foreach (var operation in result.Data)
                     {
-                        if (count < amount)
+                        if (count < 0)
                         {
                             var name = operation.Subject;
                             var startTime = operation.Start;
@@ -3748,15 +3744,15 @@ namespace Opux
         #region About
         internal async static Task About(ICommandContext context)
         {
-            if (AppContext.BaseDirectory.Contains("netcoreapp2.0"))
-            {
-                var directory = Path.Combine(Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(
-                Directory.GetParent(AppContext.BaseDirectory).FullName).FullName).FullName).FullName).FullName);
-            }
-            else
-            {
-                var directory = Path.Combine(AppContext.BaseDirectory);
-            }
+            //if (AppContext.BaseDirectory.Contains("netcoreapp2.0"))
+            //{
+            //    var directory = Path.Combine(Directory.GetParent(Directory.GetParent(Directory.GetParent(Directory.GetParent(
+            //    Directory.GetParent(AppContext.BaseDirectory).FullName).FullName).FullName).FullName).FullName);
+            //}
+            //else
+            //{
+            //    var directory = Path.Combine(AppContext.BaseDirectory);
+            //}
 
             var channel = context.Channel;
             var botid = Program.Client.CurrentUser.Id;
@@ -3766,7 +3762,7 @@ namespace Opux
             var TotalUsers = 0;
             foreach (var guild in Program.Client.Guilds)
             {
-                TotalUsers = TotalUsers + guild.Users.Count;
+                TotalUsers += guild.Users.Count;
             }
 
             await channel.SendMessageAsync($"{context.User.Mention},{Environment.NewLine}{Environment.NewLine}" +
@@ -4076,9 +4072,7 @@ namespace Opux
 
         internal static async Task HandleCommand(SocketMessage messageParam)
         {
-
-            var message = messageParam as SocketUserMessage;
-            if (message == null) return;
+            if (!(messageParam is SocketUserMessage message)) return;
 
             int argPos = 0;
 
@@ -4087,7 +4081,7 @@ namespace Opux
 
             var context = new CommandContext(Program.Client, message);
 
-            var result = await Program.Commands.ExecuteAsync(context, argPos, Program.ServiceCollection);
+            await Program.Commands.ExecuteAsync(context, argPos, Program.ServiceCollection);
         }
         #endregion
 
@@ -4095,45 +4089,40 @@ namespace Opux
         #region MysqlQuery
         internal static async Task<IList<IDictionary<string, object>>> MysqlQuery(string connstring, string query)
         {
-            using (MySqlConnection conn = new MySqlConnection(connstring))
-            using (MySqlCommand cmd = conn.CreateCommand())
+            using MySqlConnection conn = new MySqlConnection(connstring);
+            using MySqlCommand cmd = conn.CreateCommand();
+            List<IDictionary<string, object>> list = new List<IDictionary<string, object>>(); ;
+            cmd.CommandText = query;
+            try
             {
-                List<IDictionary<string, object>> list = new List<IDictionary<string, object>>(); ;
-                cmd.CommandText = query;
-                try
-                {
-                    var mysqlConfig = Program.Settings.GetSection("mysqlConfig");
+                var mysqlConfig = Program.Settings.GetSection("mysqlConfig");
 
-                    conn.ConnectionString = $"datasource={mysqlConfig["hostname"]};port={mysqlConfig["port"]};" +
-                        $"username={mysqlConfig["username"]};password={mysqlConfig["password"]};database={mysqlConfig["database"]};SslMode=none;";
-                    conn.Open();
-                    using (MySqlDataReader reader = cmd.ExecuteReader())
+                conn.ConnectionString = $"datasource={mysqlConfig["hostname"]};port={mysqlConfig["port"]};" +
+                    $"username={mysqlConfig["username"]};password={mysqlConfig["password"]};database={mysqlConfig["database"]};SslMode=none;";
+                conn.Open();
+                using MySqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    var record = new Dictionary<string, object>();
+
+                    for (var i = 0; i < reader.FieldCount; i++)
                     {
-
-                        while (reader.Read())
-                        {
-                            var record = new Dictionary<string, object>();
-
-                            for (var i = 0; i < reader.FieldCount; i++)
-                            {
-                                var key = reader.GetName(i);
-                                var value = reader[i];
-                                record.Add(key, value);
-                            }
-
-                            list.Add(record);
-                        }
-
-                        return list;
+                        var key = reader.GetName(i);
+                        var value = reader[i];
+                        record.Add(key, value);
                     }
+
+                    list.Add(record);
                 }
-                catch (MySqlException ex)
-                {
-                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "mySQL", query + " " + ex.Message, ex));
-                }
-                await Task.Yield();
+
                 return list;
             }
+            catch (MySqlException ex)
+            {
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "mySQL", query + " " + ex.Message, ex));
+            }
+            await Task.Yield();
+            return list;
         }
         #endregion
 
@@ -4141,50 +4130,42 @@ namespace Opux
         #region SQLiteQuery
         internal async static Task<string> SQLiteDataQuery(string table, string field, string name)
         {
-            using (SqliteConnection con = new SqliteConnection($"Data Source = {Path.Combine(Program.ApplicationBase, "Opux.db")};"))
-            using (SqliteCommand querySQL = new SqliteCommand($"SELECT {field} FROM {table} WHERE name = @name", con))
+            using SqliteConnection con = new SqliteConnection($"Data Source = {Path.Combine(Program.ApplicationBase, "Opux.db")};");
+            using SqliteCommand querySQL = new SqliteCommand($"SELECT {field} FROM {table} WHERE name = @name", con);
+            await con.OpenAsync();
+            querySQL.Parameters.Add(new SqliteParameter("@name", name));
+            try
             {
-                await con.OpenAsync();
-                querySQL.Parameters.Add(new SqliteParameter("@name", name));
-                try
-                {
-                    using (SqliteDataReader r = await querySQL.ExecuteReaderAsync())
-                    {
-                        var result = await r.ReadAsync();
-                        return r.GetString(0) ?? "";
-                    }
-                }
-                catch (Exception ex)
-                {
-                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "SQLite", ex.Message, ex));
-                    return null;
-                }
+                using SqliteDataReader r = await querySQL.ExecuteReaderAsync();
+                var result = await r.ReadAsync();
+                return r.GetString(0) ?? "";
+            }
+            catch (Exception ex)
+            {
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "SQLite", ex.Message, ex));
+                return null;
             }
         }
         internal async static Task<List<int>> SQLiteDataQuery(string table)
         {
-            using (SqliteConnection con = new SqliteConnection($"Data Source = {Path.Combine(Program.ApplicationBase, "Opux.db")};"))
-            using (SqliteCommand querySQL = new SqliteCommand($"SELECT * FROM {table}", con))
+            using SqliteConnection con = new SqliteConnection($"Data Source = {Path.Combine(Program.ApplicationBase, "Opux.db")};");
+            using SqliteCommand querySQL = new SqliteCommand($"SELECT * FROM {table}", con);
+            await con.OpenAsync();
+            try
             {
-                await con.OpenAsync();
-                try
+                using SqliteDataReader r = await querySQL.ExecuteReaderAsync();
+                var list = new List<int>();
+                while (await r.ReadAsync())
                 {
-                    using (SqliteDataReader r = await querySQL.ExecuteReaderAsync())
-                    {
-                        var list = new List<int>();
-                        while (await r.ReadAsync())
-                        {
-                            list.Add(Convert.ToInt32(r["Id"]));
-                        }
+                    list.Add(Convert.ToInt32(r["Id"]));
+                }
 
-                        return list;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "SQLite", ex.Message, ex));
-                    return null;
-                }
+                return list;
+            }
+            catch (Exception ex)
+            {
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "SQLite", ex.Message, ex));
+                return null;
             }
         }
         #endregion
@@ -4193,21 +4174,19 @@ namespace Opux
         #region SQLiteUpdate
         internal async static Task SQLiteDataUpdate(string table, string field, string name, string data)
         {
-            using (SqliteConnection con = new SqliteConnection($"Data Source = {Path.Combine(Program.ApplicationBase, "Opux.db")};"))
-            using (SqliteCommand insertSQL = new SqliteCommand($"UPDATE {table} SET {field} = @data WHERE name = @name", con))
+            using SqliteConnection con = new SqliteConnection($"Data Source = {Path.Combine(Program.ApplicationBase, "Opux.db")};");
+            using SqliteCommand insertSQL = new SqliteCommand($"UPDATE {table} SET {field} = @data WHERE name = @name", con);
+            await con.OpenAsync();
+            insertSQL.Parameters.Add(new SqliteParameter("@name", name));
+            insertSQL.Parameters.Add(new SqliteParameter("@data", data));
+            try
             {
-                await con.OpenAsync();
-                insertSQL.Parameters.Add(new SqliteParameter("@name", name));
-                insertSQL.Parameters.Add(new SqliteParameter("@data", data));
-                try
-                {
-                    insertSQL.ExecuteNonQuery();
+                insertSQL.ExecuteNonQuery();
 
-                }
-                catch (Exception ex)
-                {
-                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "SQLite", ex.Message, ex));
-                }
+            }
+            catch (Exception ex)
+            {
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "SQLite", ex.Message, ex));
             }
         }
         #endregion
@@ -4216,20 +4195,18 @@ namespace Opux
         #region SQLiteDelete
         internal async static Task SQLiteDataDelete(string table, string name)
         {
-            using (SqliteConnection con = new SqliteConnection($"Data Source = {Path.Combine(Program.ApplicationBase, "Opux.db")};"))
-            using (SqliteCommand insertSQL = new SqliteCommand($"REMOVE FROM {table} WHERE name = @name", con))
+            using SqliteConnection con = new SqliteConnection($"Data Source = {Path.Combine(Program.ApplicationBase, "Opux.db")};");
+            using SqliteCommand insertSQL = new SqliteCommand($"REMOVE FROM {table} WHERE name = @name", con);
+            await con.OpenAsync();
+            insertSQL.Parameters.Add(new SqliteParameter("@name", name));
+            try
             {
-                await con.OpenAsync();
-                insertSQL.Parameters.Add(new SqliteParameter("@name", name));
-                try
-                {
-                    insertSQL.ExecuteNonQuery();
+                insertSQL.ExecuteNonQuery();
 
-                }
-                catch (Exception ex)
-                {
-                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "SQLite", ex.Message, ex));
-                }
+            }
+            catch (Exception ex)
+            {
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "SQLite", ex.Message, ex));
             }
         }
         #endregion
