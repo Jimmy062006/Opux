@@ -3642,7 +3642,7 @@ namespace Opux
 
                     GetKillmailsKillmailIdKillmailHashOk last = null;
 
-                    if (Lastkill != null && lastLoss != null)
+                    if (lastKill != null && lastLoss != null)
                     {
                         last = lastKill.KillmailTime > lastLoss.KillmailTime ? lastKill : lastLoss;
                     }
