@@ -38,6 +38,12 @@
     "radius": 0,
     "radiusChannel": 0,
     "radiusSystem": "",
+    "groupenable":  false,
+    "groupalertChannel": 0,
+    "groups": [
+      12098,
+      12099
+    ],
     "groupsConfig": {
       "group1": {
         "name": "",

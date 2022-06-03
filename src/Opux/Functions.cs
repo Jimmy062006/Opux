@@ -1402,7 +1402,7 @@ namespace Opux
                     GetAlliancesAllianceIdOk victimAlliance;
 
                     var loop = 1;
-                    GetInfo:
+                GetInfo:
 
                     try
                     {
@@ -1449,6 +1449,10 @@ namespace Opux
                     var radius = Convert.ToInt16(Program.Settings.GetSection("killFeed")["radius"]);
                     var radiusSystem = Program.Settings.GetSection("killFeed")["radiusSystem"];
                     var radiusChannel = Convert.ToUInt64(Program.Settings.GetSection("killFeed")["radiusChannel"]);
+
+                    var groupenable = Convert.ToBoolean(Program.Settings.GetSection("killFeed")["groupenable"]);
+                    var groupalertChannel = Convert.ToUInt64(Program.Settings.GetSection("killFeed")["groupalertChannel"]);
+                    var groups = Program.Settings.GetSection("killFeed").GetSection("groups").Get<List<int>>();
 
                     var postedRadius = false;
                     var postedGlobalBigKill = false;
@@ -1514,6 +1518,53 @@ namespace Opux
                                         var stringVal = string.Format("{0:n0} ISK", value);
 
                                         await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting  Radius Kill: {kill.killmail_id}  Value: {stringVal}"));
+
+                                        if (groupenable)
+                                        {
+                                            foreach (var g in groups)
+                                            {
+                                                var posted = new List<int>();
+                                                var TypeName = universeApi.GetUniverseGroupsGroupId(g);
+                                                var validships = attackers;
+                                                foreach (var a in attackers)
+                                                {
+                                                    if (!posted.Contains(a.ship_type_id))
+                                                    {
+                                                        if (TypeName.Types.Contains(a.ship_type_id))
+                                                        {
+                                                            if (validships.Count() > 0)
+                                                            {
+                                                                var builder_group = new EmbedBuilder()
+                                                                    .WithColor(new Color(0x989898))
+                                                                    .WithThumbnailUrl($"https://image.eveonline.com/Type/{shipID}_64.png")
+                                                                    .WithAuthor(author =>
+                                                                    {
+                                                                        author
+                                                                            .WithName($"{TypeName.Name} Reported Killing a {ship.Name}, {jumpsText}")
+                                                                            .WithUrl($"https://zkillboard.com/kill/{iD}/")
+                                                                            .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                                                    })
+                                                                    .WithDescription($"Died {killTime}")
+                                                                    .AddField("Victim", victimName, true)
+                                                                    .AddField("System", $"{system.Name} ({secstatus})", true)
+                                                                    .AddField("Corporation", victimCorp.Name)
+                                                                    .AddField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name, true)
+                                                                    .AddField("Total Value", string.Format("{0:n0} ISK", value), true)
+                                                                    .AddField("Involved Count", attackers.Count(), true);
+                                                                var embed_group = builder_group.Build();
+
+                                                                var _groupalertChannel = discordGuild.GetTextChannel(groupalertChannel);
+                                                                await _groupalertChannel.SendMessageAsync($"", false, embed_group).ConfigureAwait(false);
+
+                                                                posted.Add(a.ship_type_id);
+
+                                                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting  Radius Kill: {kill.killmail_id}  Value: {stringVal}"));
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                                 if (StartinWH && EndinWH && test3 && radius == 0)
