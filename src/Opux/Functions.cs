@@ -1556,7 +1556,7 @@ namespace Opux
                                                                 var _groupalertChannel = discordGuild.GetTextChannel(groupalertChannel);
                                                                 await _groupalertChannel.SendMessageAsync($"", false, embed_group).ConfigureAwait(false);
 
-                                                                posted.Add(a.ship_type_id);
+                                                                posted.Add(g);
 
                                                                 await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting  Radius Kill: {kill.killmail_id}  Value: {stringVal}"));
                                                             }
