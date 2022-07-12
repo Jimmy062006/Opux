@@ -22,7 +22,7 @@
     <PackageReference Include="Bugsnag" Version="3.1.0" />
     <PackageReference Include="ByteSize" Version="2.1.1" />
     <PackageReference Include="Discord.Net" Version="2.1.1" />
-    <PackageReference Include="ESIClient.Dotcore" Version="1.0.12-nightly" />
+    <PackageReference Include="ESIClient.Dotcore" Version="1.0.13-nightly" />
     <PackageReference Include="log4net" Version="2.0.14" />
     <PackageReference Include="MatriX.NetCore" Version="2.0.0.22-beta4" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="2.1.0" />

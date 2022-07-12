@@ -36,7 +36,9 @@ namespace Opux
 
         public static void Main(string[] args)
         {
-            ApplicationBase = Path.GetDirectoryName(new Uri(Assembly.GetEntryAssembly().CodeBase).LocalPath);
+
+            ApplicationBase = (Path.GetDirectoryName(new Uri(Assembly.GetEntryAssembly().CodeBase).LocalPath)).Replace('\\', Path.DirectorySeparatorChar);
+
             if (!File.Exists(Path.Combine(ApplicationBase, "Opux.db")))
                 File.Copy(ApplicationBase + "/Opux.def.db", Path.Combine(ApplicationBase, "Opux.db"));
 

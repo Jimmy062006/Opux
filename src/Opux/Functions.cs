@@ -1468,7 +1468,7 @@ namespace Opux
                         var bigKillValue = Convert.ToInt64(i["bigKill"]);
                         var bigKillChannel = Convert.ToUInt64(i["bigKillChannel"]);
                         var c = Convert.ToUInt64(i["channel"]);
-                        var SystemID = 0;
+                        int? SystemID = 0;
 
                         if (!string.IsNullOrWhiteSpace(radiusSystem))
                         {
@@ -1478,9 +1478,9 @@ namespace Opux
                                 var EndinWH = radiusSystem[0] == 'J' && int.TryParse(radiusSystem[1..], out int EndinWHInt) || radiusSystem == "Thera";
                                 var test3 = !string.IsNullOrWhiteSpace(radiusSystem) && radiusChannel > 0;
 
-                                var SystemName = !string.IsNullOrWhiteSpace(radiusSystem) ? await searchApi.GetSearchAsync(new List<string> { $"solar_system" }, radiusSystem, strict: true) : null;
+                                var SystemName = !string.IsNullOrWhiteSpace(radiusSystem) ? await universeApi.PostUniverseIdsAsync(new List<string> { radiusSystem }) : null;
 
-                                SystemID = SystemName.SolarSystem.FirstOrDefault().Value;
+                                SystemID = SystemName.Systems.FirstOrDefault().Id;
                                 var systemID = kill.solar_system_id;
 
                                 if (!StartinWH && !EndinWH && test3)
@@ -3584,8 +3584,8 @@ namespace Opux
             KillmailsApi killmailsApi = new KillmailsApi();
             UniverseApi universeApi = new UniverseApi();
 
-            var CharacterIDList = await searchApi.GetSearchAsync(new List<string> { "character" }, characterName, strict: true);
-            var Id = 0;
+            var CharacterIDList = await universeApi.PostUniverseIdsAsync(new List<string> { characterName });
+            int? Id = 0;
 
             GetCharactersCharacterIdOk character = null;
             GetCorporationsCorporationIdOk corporation = null;
@@ -3594,19 +3594,19 @@ namespace Opux
             int cynoCount = 0;
             int covertCount = 0;
 
-            if (CharacterIDList.Character.Count >= 1)
+            if (CharacterIDList.Characters.Count >= 1)
             {
                 var message = await channel.SendMessageAsync("Checking for Character this may take some time...");
 
                 try
                 {
 
-                    foreach (var id in CharacterIDList.Character)
+                    foreach (var id in CharacterIDList.Characters)
                     {
-                        var testchar = await characterapi.GetCharactersCharacterIdAsync(id.Value);
+                        var testchar = await characterapi.GetCharactersCharacterIdAsync(id.Id);
                         if (testchar.Name.ToLower() == characterName)
                         {
-                            Id = id.Value;
+                            Id = id.Id;
                             character = testchar;
                             break;
                         }
