@@ -38,9 +38,7 @@ namespace Opux
         {
             ApplicationBase = Path.GetDirectoryName(new Uri(Assembly.GetEntryAssembly().CodeBase).LocalPath);
             if (!File.Exists(Path.Combine(ApplicationBase, "Opux.db")))
-            {
                 File.Copy(ApplicationBase + "/Opux.def.db", Path.Combine(ApplicationBase, "Opux.db"));
-            }
 
             //_zKillhttpClient.Timeout = new TimeSpan(0, 0, 10);
             //_zKillhttpClient.DefaultRequestHeaders.Add("User-Agent", "OpuxBot");
@@ -50,8 +48,6 @@ namespace Opux
             Client = new DiscordSocketClient(new DiscordSocketConfig() { });
             Commands = new CommandService();
             EveLib = new EveLib();
-
-
             MainAsync().GetAwaiter().GetResult();
 
             var headless = Convert.ToBoolean(Settings.GetSection("config")["Systemd_Support"]);
@@ -155,20 +151,6 @@ namespace Opux
 
             try
             {
-                var esicheck = await Functions.SQLiteDataQuery("esi");
-
-                if (esicheck == null)
-                {
-                    await Functions.SQLiteRawQuery("CREATE TABLE 'esi' ('name' TEXT NULL, 'data' TEXT NULL)");
-                    esicheck = await Functions.SQLiteDataQuery("esi");
-                }
-
-                if (esicheck.Count == 0 )
-                {
-                    await Functions.SQLiteRawQuery("INSERT INTO 'esi' ('name', 'data') VALUES ('refreshtoken', '')");
-                    await Functions.SQLiteRawQuery("INSERT INTO 'esi' ('name', 'data') VALUES ('authtoken', '')");
-                }
-
                 await Functions.InstallCommands();
                 await Client.LoginAsync(TokenType.Bot, Settings.GetSection("config")["token"]);
                 await Client.StartAsync();
