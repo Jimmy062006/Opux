@@ -1395,6 +1395,8 @@ namespace Opux
                     AllianceApi allianceApi = new AllianceApi();
                     UniverseApi universeApi = new UniverseApi();
                     SearchApi searchApi = new SearchApi();
+                    searchApi.Configuration.AccessToken = "saedfw4tg243rt23t213t";
+
                     RoutesApi routeApi = new RoutesApi();
 
                     GetCharactersCharacterIdOk victim;
@@ -1478,7 +1480,7 @@ namespace Opux
                                 var EndinWH = radiusSystem[0] == 'J' && int.TryParse(radiusSystem[1..], out int EndinWHInt) || radiusSystem == "Thera";
                                 var test3 = !string.IsNullOrWhiteSpace(radiusSystem) && radiusChannel > 0;
 
-                                var SystemName = !string.IsNullOrWhiteSpace(radiusSystem) ? await searchApi.GetSearchAsync(new List<string> { $"solar_system" }, radiusSystem, strict: true) : null;
+                                var SystemName = !string.IsNullOrWhiteSpace(radiusSystem) ? await searchApi.GetCharactersCharacterIdSearchAsync(new List<string> { $"solar_system" }, 804998826, radiusSystem, strict: true) : null;
 
                                 SystemID = SystemName.SolarSystem.FirstOrDefault().Value;
                                 var systemID = kill.solar_system_id;
@@ -3584,7 +3586,7 @@ namespace Opux
             KillmailsApi killmailsApi = new KillmailsApi();
             UniverseApi universeApi = new UniverseApi();
 
-            var CharacterIDList = await searchApi.GetSearchAsync(new List<string> { "character" }, characterName, strict: true);
+            var CharacterIDList = await searchApi.GetCharactersCharacterIdSearchAsync(new List<string> { "character" }, 804998826, characterName, strict: true);
             var Id = 0;
 
             GetCharactersCharacterIdOk character = null;
@@ -3981,6 +3983,25 @@ namespace Opux
                 await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "SQLite", ex.Message, ex));
             }
         }
+        #endregion
+
+        //SQLite Update
+        #region SQLiteRawQuery
+        internal async static Task SQLiteRawQuery(string query)
+        {
+            using SqliteConnection con = new SqliteConnection($"Data Source = {Path.Combine(Program.ApplicationBase, "Opux.db")};");
+            using SqliteCommand insertSQL = new SqliteCommand($"{query}", con);
+            await con.OpenAsync();
+            try
+            {
+                insertSQL.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "SQLite", ex.Message, ex));
+            }
+        }
+
         #endregion
 
         //SQLite Delete
