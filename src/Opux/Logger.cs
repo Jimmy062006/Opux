@@ -1,5 +1,9 @@
-﻿using Discord;
+﻿using Bugsnag;
+using Discord;
 using log4net;
+using log4net.Appender;
+using log4net.Config;
+using log4net.Repository.Hierarchy;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,6 +16,31 @@ namespace Opux
     {
         private static ILog Log { get; set; }
         public static LogSeverity LogLevel { get; private set; }
+
+        private Logger ()
+        {
+            XmlConfigurator.Configure();
+            if (Environment.OSVersion.Platform == PlatformID.Unix)
+            {
+                Hierarchy repository = LogManager.GetRepository() as Hierarchy;
+                if (repository != null)
+                {
+                    var appenders = repository.GetAppenders();
+                    if (appenders != null)
+                    {
+                        foreach (var appender in appenders)
+                        {
+                            if (appender is FileAppender)
+                            {
+                                var fileLogAppender = appender as FileAppender;
+                                fileLogAppender.File = fileLogAppender.File.Replace(@"\", Path.DirectorySeparatorChar.ToString());
+                                fileLogAppender.ActivateOptions();
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         public static Task DiscordClient_Log(LogMessage arg)
         {

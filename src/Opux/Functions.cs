@@ -550,7 +550,7 @@ namespace Opux
                                             "        <p>If you're not already signed into the server use the link below to get invited. (or right click and copy-link for the Windows/OSX Client)</p>" +
                                             "        <p><a href=\"" + url + "\" target=\"_blank\"><img src=\"data:image/png;base64," + image + "\" width=\"350px\"/></a></p>" +
                                             "        <p>Once you're in chat copy and paste the entire line below to have the bot add you to the correct roles.</p>" +
-                                            "        <p><b>" + Program.Settings.GetSection("config")["commandprefix"] +"auth " + uid + " </b></p>" +
+                                            "        <p><b>" + Program.Settings.GetSection("config")["commandprefix"] + "auth " + uid + " </b></p>" +
                                             "    </div>" +
                                             "</div>" +
                                             "<!-- /container -->" +
@@ -1472,17 +1472,17 @@ namespace Opux
 
                         if (!string.IsNullOrWhiteSpace(radiusSystem))
                         {
-                            var StartinWH = system.Name[0] == 'J' && int.TryParse(system.Name[1..], out int StartinWHInt) || system.Name == "Thera";
-                            var EndinWH = radiusSystem[0] == 'J' && int.TryParse(radiusSystem[1..], out int EndinWHInt) || radiusSystem == "Thera";
-                            var test3 = !string.IsNullOrWhiteSpace(radiusSystem) && radiusChannel > 0;
-
-                            var SystemName = !string.IsNullOrWhiteSpace(radiusSystem) ? await searchApi.GetSearchAsync(new List<string> { $"solar_system" }, radiusSystem, strict: true) : null;
-
-                            SystemID = SystemName.SolarSystem.FirstOrDefault().Value;
-                            var systemID = kill.solar_system_id;
-
                             try
                             {
+                                var StartinWH = system.Name[0] == 'J' && int.TryParse(system.Name[1..], out int StartinWHInt) || system.Name == "Thera";
+                                var EndinWH = radiusSystem[0] == 'J' && int.TryParse(radiusSystem[1..], out int EndinWHInt) || radiusSystem == "Thera";
+                                var test3 = !string.IsNullOrWhiteSpace(radiusSystem) && radiusChannel > 0;
+
+                                var SystemName = !string.IsNullOrWhiteSpace(radiusSystem) ? await searchApi.GetSearchAsync(new List<string> { $"solar_system" }, radiusSystem, strict: true) : null;
+
+                                SystemID = SystemName.SolarSystem.FirstOrDefault().Value;
+                                var systemID = kill.solar_system_id;
+
                                 if (!StartinWH && !EndinWH && test3)
                                 {
                                     var data = await routeApi.GetRouteOriginDestinationAsync(systemId, SystemID);
@@ -3152,7 +3152,7 @@ namespace Opux
                 {
                     try
                     {
-                        var httpContent = new StringContent($"[ { ItemIDResults.inventory_type[0] } ]");
+                        var httpContent = new StringContent($"[ {ItemIDResults.inventory_type[0]} ]");
 
                         var ItemName = await Program._httpClient.PostAsync($"https://esi.evetech.net/latest/universe/names/?datasource=tranquility", httpContent);
 
@@ -3562,7 +3562,7 @@ namespace Opux
                 $"Bot ID: {botid}{Environment.NewLine}{Environment.NewLine}" +
                 $"Run Time: {RunTime.Days} Days {RunTime.Hours} Hours {RunTime.Minutes} Minutes {RunTime.Seconds} Seconds{Environment.NewLine}{Environment.NewLine}" +
                 $"Statistics:{Environment.NewLine}" +
-                $"Memory Used: {Math.Round(MemoryUsed.LargestWholeNumberValue, 2)} {MemoryUsed.LargestWholeNumberSymbol}{Environment.NewLine}" +
+                $"Memory Used: {Math.Round(MemoryUsed.LargestWholeNumberBinaryValue, 2)} {MemoryUsed.LargestWholeNumberBinarySymbol}{Environment.NewLine}" +
                 $"Total Connected Guilds: {Guilds}{Environment.NewLine}" +
                 $"Total Users Seen: {TotalUsers}```");
 
@@ -3594,9 +3594,9 @@ namespace Opux
             int cynoCount = 0;
             int covertCount = 0;
 
-                if (CharacterIDList.Character.Count >= 1)
-                {
-                    var message = await channel.SendMessageAsync("Checking for Character this may take some time...");
+            if (CharacterIDList.Character.Count >= 1)
+            {
+                var message = await channel.SendMessageAsync("Checking for Character this may take some time...");
 
                 try
                 {
@@ -3759,7 +3759,7 @@ namespace Opux
 
                     await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "Char", $"Sending {context.Message.Author} Character Info Request to {context.Message.Channel}" +
                         $" {context.Guild.Name}"));
-                
+
                 }
                 catch
                 {
