@@ -3594,9 +3594,10 @@ namespace Opux
             int cynoCount = 0;
             int covertCount = 0;
 
-            if (CharacterIDList.Characters.Count >= 1)
+            var message = await channel.SendMessageAsync("Checking for Character this may take some time...");
+
+            if (CharacterIDList.Characters != null)
             {
-                var message = await channel.SendMessageAsync("Checking for Character this may take some time...");
 
                 try
                 {
@@ -3610,11 +3611,6 @@ namespace Opux
                             character = testchar;
                             break;
                         }
-                    }
-
-                    if (Id == 0)
-                    {
-                        await message.ModifyAsync(msg => { msg.Content = "Character not found"; });
                     }
 
                     corporation = await corporationApi.GetCorporationsCorporationIdAsync(character.CorporationId);
@@ -3719,7 +3715,6 @@ namespace Opux
                     }
                     catch { }
 
-
                     var lastSeenSystem = Kills.Count > 0 ? (await universeApi.GetUniverseSystemsSystemIdAsync(Kills.FirstOrDefault().SolarSystemId)).Name : "Unknown";
                     var lastSeenTime = Kills.Count > 0 ? Kills.FirstOrDefault().KillmailTime.ToString() : "Unknown";
 
@@ -3767,6 +3762,10 @@ namespace Opux
                 }
 
                 await Task.CompletedTask;
+            }
+            else
+            {
+                await message.ModifyAsync(msg => { msg.Content = "Character not found. Please use Exact Character Name"; });
             }
         }
         #endregion
