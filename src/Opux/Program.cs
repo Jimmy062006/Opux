@@ -27,12 +27,12 @@ namespace Opux
         //internal static readonly HttpClient _zKillhttpClient = new HttpClient();
         internal static bool quit = false;
         internal static bool debug = false;
-        static object ExitLock = new object();
-        static ManualResetEventSlim ended = new ManualResetEventSlim();
+        static object ExitLock = new();
+        static ManualResetEventSlim ended = new();
 
-        static AutoResetEvent autoEvent = new AutoResetEvent(true);
+        static AutoResetEvent autoEvent = new(true);
 
-        static Timer stateTimer = new Timer(Functions.RunTick, autoEvent, 100, 100);
+        static Timer stateTimer = new(Functions.RunTick, autoEvent, 100, 100);
 
         public static void Main(string[] args)
         {
@@ -47,7 +47,7 @@ namespace Opux
 
             UpdateSettings();
 
-            Client = new DiscordSocketClient(new DiscordSocketConfig() { });
+            Client = new DiscordSocketClient(new DiscordSocketConfig() { GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent | GatewayIntents.GuildPresences });
             Commands = new CommandService();
             EveLib = new EveLib();
             MainAsync().GetAwaiter().GetResult();

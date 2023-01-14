@@ -23,7 +23,6 @@ namespace EveLibCore
         public static string VCode { get; private set; }
         public static string KeyID { get; private set; }
         public static string CharacterID { get; private set; }
-
         public static string MotdVCode { get; private set; }
         public static string MotdKeyID { get; private set; }
         public static string MotdCharID { get; private set; }

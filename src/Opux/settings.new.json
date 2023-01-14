@@ -69,6 +69,7 @@
     "alertChannel": 0,
     "corpTickers": true,
     "nameEnforce": true,
+    "removeAllRoles": true,
     "authGroups": {
       "group1": {
         "corpID": 0,

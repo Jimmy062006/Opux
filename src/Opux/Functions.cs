@@ -9,6 +9,7 @@ using EveLibCore;
 using JsonClasszAPIKill;
 using JsonClasszKill;
 using Matrix.Xmpp.Chatstates;
+using Matrix.Xmpp.MessageArchiving;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 using MySql.Data.MySqlClient;
@@ -311,7 +312,7 @@ namespace Opux
                                 "    <div class=\"jumbotron\">" +
                                 "        <h1>Discord</h1>" +
                                 "        <p class=\"lead\">Click the button below to login with your EVE Online account.</p>" +
-                                "        <p><a href=\"https://login.eveonline.com/oauth/authorize?response_type=code&amp;redirect_uri=" + callbackurl + "&amp;client_id=" + client_id + "\"><img src=\"https://images.contentful.com/idjq7aai9ylm/4fSjj56uD6CYwYyus4KmES/4f6385c91e6de56274d99496e6adebab/EVE_SSO_Login_Buttons_Large_Black.png\"/></a></p>" +
+                                "        <p><a href=\"https://login.eveonline.com/oauth/authorize?response_type=code&amp;redirect_uri=" + callbackurl + "&amp;client_id=" + client_id + "\"><img src=\"https://web.ccpgamescdn.com/eveonlineassets/developers/eve-sso-login-black-large.png\"/></a></p>" +
                                 "    </div>" +
                                 "</div>" +
                                 "<!-- /container -->" +
@@ -1035,6 +1036,7 @@ namespace Opux
                 var discordGuild = Program.Client.GetGuild(guildID);
                 var corps = new Dictionary<string, string>();
                 var alliance = new Dictionary<string, string>();
+                var removeAllRoles = Convert.ToBoolean(Program.Settings.GetSection("auth")["removeAllRoles"]);
 
                 foreach (var config in authgroups)
                 {
@@ -1126,14 +1128,40 @@ namespace Opux
 
                             bool changed = false;
 
-                            foreach (var role in rolesOrig)
+                            if (removeAllRoles)
                             {
-                                if (roles.FirstOrDefault(x => x.Id == role.Id) == null)
+                                foreach (var role in rolesOrig)
                                 {
-                                    remroles.Add(role);
-                                    changed = true;
+                                    if (roles.FirstOrDefault(x => x.Id == role.Id) == null)
+                                    {
+                                        remroles.Add(role);
+                                        changed = true;
+                                    }
                                 }
                             }
+                            else if (!removeAllRoles)
+                            {
+                                foreach (var role in rolesOrig)
+                                {
+                                    if (corps.ContainsValue(role.Name))
+                                    {
+                                        if (roles.FirstOrDefault(x => x.Id == role.Id) == null)
+                                        {
+                                            remroles.Add(role);
+                                            changed = true;
+                                        }
+                                    }
+                                    if (alliance.ContainsValue(role.Name))
+                                    {
+                                        if (roles.FirstOrDefault(x => x.Id == role.Id) == null)
+                                        {
+                                            remroles.Add(role);
+                                            changed = true;
+                                        }
+                                    }
+                                }
+                            }
+
 
                             foreach (var role in roles)
                             {
@@ -1208,16 +1236,33 @@ namespace Opux
 
                             if (rchanged)
                             {
-                                try
+                                if (removeAllRoles)
                                 {
-                                    var channel = discordGuild.GetTextChannel(logchan);
-                                    await channel.SendMessageAsync($"Resetting roles for {u.Username}");
-                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Resetting roles for {u.Username}"));
-                                    await u.RemoveRolesAsync(rroles);
+                                    try
+                                    {
+                                        var channel = discordGuild.GetTextChannel(logchan);
+                                        await channel.SendMessageAsync($"Resetting roles for {u.Username}");
+                                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "authCheck", $"Resetting roles for {u.Username}"));
+                                        await u.RemoveRolesAsync(rroles);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Error removing roles: {ex.Message}", ex));
+                                    }
                                 }
-                                catch (Exception ex)
+                                else if (!removeAllRoles)
                                 {
-                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Error removing roles: {ex.Message}", ex));
+                                    foreach (var role in rolesOrig)
+                                    {
+                                        if (corps.ContainsValue(role.Name))
+                                        {
+                                            await u.RemoveRolesAsync(new ulong[] { role.Id });
+                                        }
+                                        if (alliance.ContainsValue(role.Name))
+                                        {
+                                            await u.RemoveRolesAsync(new ulong[] { role.Id });
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -3098,7 +3143,7 @@ namespace Opux
                 {
                     await channel.SendMessageAsync("Multiple results found see DM");
 
-                    channel = await context.Message.Author.GetOrCreateDMChannelAsync();
+                    channel = await context.Message.Author.CreateDMChannelAsync();
 
                     var tmp = JsonConvert.SerializeObject(ItemIDResults.inventory_type);
                     var httpContent = new StringContent(tmp);
