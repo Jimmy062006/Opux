@@ -51,7 +51,7 @@ namespace Opux
         static DateTime _lastTopicCheck = DateTime.Now;
         public static DateTime TsLastRan { get; private set; }
         public static bool ZkillInit { get; private set; }
-        public static List<int> Lastkill = new List<int>();
+        public static List<int> Lastkill = new();
 
         //Timer is setup here
         #region Timer stuff
@@ -166,10 +166,23 @@ namespace Opux
         {
             _avaliable = true;
 
-            await Program.Client.GetGuild(Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]))
-                .CurrentUser.ModifyAsync(x => x.Nickname = Program.Settings.GetSection("config")["name"]);
-            await Program.Client.SetGameAsync(Program.Settings.GetSection("config")["game"]);
-
+            try
+            {
+                await Program.Client.GetGuild(Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]))
+                    .CurrentUser.ModifyAsync(x => x.Nickname = Program.Settings.GetSection("config")["name"]);
+            }
+            catch(Exception ex)
+            {
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "SetNickName", ex.Message, ex));
+            }
+            try
+            {
+                await Program.Client.SetGameAsync(Program.Settings.GetSection("config")["game"]);
+            }
+            catch (Exception ex)
+            {
+                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "SetGame", ex.Message, ex));
+            }
             await Task.CompletedTask;
         }
         #endregion
@@ -858,7 +871,7 @@ namespace Opux
                 var ESIFailed = false;
                 var query = $"SELECT * FROM pendingUsers WHERE authString=\"{remainder}\"";
                 var responce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query);
-                if (responce.Count() == 0)
+                if (responce.Count == 0)
                 {
                     await context.Channel.SendMessageAsync($"{context.Message.Author.Mention} Key Invalid! Please auth using !auth");
                 }
@@ -1340,7 +1353,7 @@ namespace Opux
         //Complete Update to Embeds
         #region killFeed
 
-        public static WebSocket ws = new WebSocket("wss://zkillboard.com/websocket/");
+        public static WebSocket ws = new("wss://zkillboard.com/websocket/");
 
         public static async void ZKillMain()
         {
@@ -1365,7 +1378,7 @@ namespace Opux
                     ws.OnOpen -= Ws_OnOpen;
                     ws.OnError -= Ws_OnError;
                     ws.OnClose -= Ws_OnClose;
-                    new WebSocket("wss://zkillboard.com/websocket/");
+                    _ = new WebSocket("wss://zkillboard.com/websocket/");
                     ZkillInit = false;
 
                     await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, $"Ws_Socket", $"Web Socket Died Restarting"));
@@ -1416,7 +1429,7 @@ namespace Opux
                     return;
                 }
 
-                var count = Lastkill.Count();
+                var count = Lastkill.Count;
                 if (count >= 50)
                 {
                     Lastkill.RemoveRange(0, count - 50);
@@ -1435,12 +1448,12 @@ namespace Opux
                     var systemId = kill.solar_system_id;
                     var npckill = kill.zkb.npc;
 
-                    CharacterApi characterApi = new CharacterApi();
-                    CorporationApi corporationApi = new CorporationApi();
-                    AllianceApi allianceApi = new AllianceApi();
-                    UniverseApi universeApi = new UniverseApi();
-                    SearchApi searchApi = new SearchApi();
-                    RoutesApi routeApi = new RoutesApi();
+                    CharacterApi characterApi = new();
+                    CorporationApi corporationApi = new();
+                    AllianceApi allianceApi = new();
+                    UniverseApi universeApi = new();
+                    SearchApi searchApi = new();
+                    RoutesApi routeApi = new();
 
                     GetCharactersCharacterIdOk victim;
                     GetCorporationsCorporationIdOk victimCorp;
@@ -1483,7 +1496,7 @@ namespace Opux
                     var ship = await universeApi.GetUniverseTypesTypeIdAsync(shipID);
                     var secstatus = Math.Round((decimal)system.SecurityStatus, 1).ToString("N2");
 
-                    Dictionary<string, IEnumerable<IConfigurationSection>> feedGroups = new Dictionary<string, IEnumerable<IConfigurationSection>>();
+                    Dictionary<string, IEnumerable<IConfigurationSection>> feedGroups = new();
 
                     ulong guildID = Convert.ToUInt64(Program.Settings.GetSection("config")["guildId"]);
                     ulong logchan = Convert.ToUInt64(Program.Settings.GetSection("auth")["alertChannel"]);
@@ -1533,11 +1546,11 @@ namespace Opux
                                     var data = await routeApi.GetRouteOriginDestinationAsync(systemId, SystemID);
 
 
-                                    var gg = data.Count() - 1;
+                                    var gg = data.Count - 1;
                                     if (gg <= radius && !postedRadius)
                                     {
                                         postedRadius = true;
-                                        var jumpsText = data.Count() > 1 ? $"{gg} from {radiusSystem}" : $"in {system.Name} ({secstatus})";
+                                        var jumpsText = data.Count > 1 ? $"{gg} from {radiusSystem}" : $"in {system.Name} ({secstatus})";
                                         var builder = new EmbedBuilder()
                                             .WithColor(new Color(0x989898))
                                             .WithThumbnailUrl($"https://image.eveonline.com/Type/{shipID}_64.png")
@@ -1554,7 +1567,7 @@ namespace Opux
                                             .AddField("Corporation", victimCorp.Name)
                                             .AddField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name, true)
                                             .AddField("Total Value", string.Format("{0:n0} ISK", value), true)
-                                            .AddField("Involved Count", attackers.Count(), true);
+                                            .AddField("Involved Count", attackers.Length, true);
                                         var embed = builder.Build();
 
                                         var _radiusChannel = discordGuild.GetTextChannel(radiusChannel);
@@ -1577,7 +1590,7 @@ namespace Opux
                                                     {
                                                         if (TypeName.Types.Contains(a.ship_type_id))
                                                         {
-                                                            if (validships.Count() > 0)
+                                                            if (validships.Length > 0)
                                                             {
                                                                 var builder_group = new EmbedBuilder()
                                                                     .WithColor(new Color(0x989898))
@@ -1595,7 +1608,7 @@ namespace Opux
                                                                     .AddField("Corporation", victimCorp.Name)
                                                                     .AddField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name, true)
                                                                     .AddField("Total Value", string.Format("{0:n0} ISK", value), true)
-                                                                    .AddField("Involved Count", attackers.Count(), true);
+                                                                    .AddField("Involved Count", attackers.Length, true);
                                                                 var embed_group = builder_group.Build();
 
                                                                 var _groupalertChannel = discordGuild.GetTextChannel(groupalertChannel);
@@ -1633,7 +1646,7 @@ namespace Opux
                                             .AddField("Corporation", victimCorp.Name, true)
                                             .AddField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name, true)
                                             .AddField("Total Value", string.Format("{0:n0} ISK", value), true)
-                                            .AddField("Involved Count", attackers.Count(), true);
+                                            .AddField("Involved Count", attackers.Length, true);
                                         var embed = builder.Build();
 
                                         var _radiusChannel = discordGuild.GetTextChannel(radiusChannel);
@@ -1677,7 +1690,7 @@ namespace Opux
                                 .AddField("Corporation", victimCorp.Name, true)
                                 .AddField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name, true)
                                 .AddField("Total Value", string.Format("{0:n0} ISK", value), true)
-                                .AddField("Involved Count", attackers.Count(), true);
+                                .AddField("Involved Count", attackers.Length, true);
                             var embed = builder.Build();
 
                             var _Channel = discordGuild.GetTextChannel(bigKillGlobalChan);
@@ -1707,7 +1720,7 @@ namespace Opux
                                     .AddField("Corporation", victimCorp.Name, true)
                                     .AddField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name, true)
                                     .AddField("Total Value", string.Format("{0:n0} ISK", value), true)
-                                    .AddField("Involved Count", attackers.Count(), true);
+                                    .AddField("Involved Count", attackers.Length, true);
                                 var embed = builder.Build();
 
                                 var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["channel"]));
@@ -1723,7 +1736,7 @@ namespace Opux
                             //Losses
                             if (bigKillValue != 0 && value >= bigKillValue)
                             {
-                                if (victimAllianceID == allianceID && lastChannel != c || victimCorpID == corpID && lastChannel != c)
+                                if (allianceID != -1 && victimAllianceID == allianceID && lastChannel != c || victimCorpID == corpID && lastChannel != c)
                                 {
                                     var builder = new EmbedBuilder()
                                         .WithColor(new Color(0xD00000))
@@ -1740,7 +1753,7 @@ namespace Opux
                                         .AddField("Corporation", victimCorp.Name, true)
                                         .AddField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name, true)
                                         .AddField("Total Value", string.Format("{0:n0} ISK", value), true)
-                                        .AddField("Involved Count", attackers.Count(), true);
+                                        .AddField("Involved Count", attackers.Length, true);
                                     var embed = builder.Build();
 
                                     var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["bigKillChannel"]));
@@ -1776,7 +1789,7 @@ namespace Opux
                                             .AddField("Corporation", victimCorp.Name, true)
                                             .AddField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name, true)
                                             .AddField("Total Value", string.Format("{0:n0} ISK", value), true)
-                                            .AddField("Involved Count", attackers.Count(), true);
+                                            .AddField("Involved Count", attackers.Length, true);
                                         var embed = builder.Build();
 
                                         var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["channel"]));
@@ -1798,7 +1811,7 @@ namespace Opux
                             {
                                 if (bigKillValue != 0 && value >= bigKillValue && !npckill)
                                 {
-                                    if (attacker.alliance_id != 0 && attacker.alliance_id == allianceID && lastChannel != c || allianceID == 0 && attacker.corporation_id == corpID && lastChannel != c)
+                                    if (attacker.alliance_id != 0 && attacker.alliance_id == allianceID && lastChannel != c || allianceID == -1 && attacker.corporation_id == corpID && lastChannel != c)
                                     {
                                         var builder = new EmbedBuilder()
                                             .WithColor(new Color(0x00D000))
@@ -1815,7 +1828,7 @@ namespace Opux
                                             .AddField("Corporation", victimCorp.Name, true)
                                             .AddField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name, true)
                                             .AddField("Total Value", string.Format("{0:n0} ISK", value), true)
-                                            .AddField("Involved Count", attackers.Count(), true);
+                                            .AddField("Involved Count", attackers.Length, true);
                                         var embed = builder.Build();
 
                                         var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["bigKillChannel"]));
@@ -1831,7 +1844,7 @@ namespace Opux
                                     }
                                 }
                                 else if (!npckill && attacker.alliance_id != 0 && allianceID != 0 && attacker.alliance_id == allianceID && lastChannel != c ||
-                                    !npckill && allianceID == 0 && attacker.corporation_id == corpID && lastChannel != c)
+                                    !npckill && allianceID == -1 && attacker.corporation_id == corpID && lastChannel != c)
                                 {
                                     var builder = new EmbedBuilder()
                                         .WithColor(new Color(0x00FF00))
@@ -1848,7 +1861,7 @@ namespace Opux
                                             .AddField("Corporation", victimCorp.Name, true)
                                             .AddField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name, true)
                                             .AddField("Total Value", string.Format("{0:n0} ISK", value), true)
-                                            .AddField("Involved Count", attackers.Count(), true);
+                                            .AddField("Involved Count", attackers.Length, true);
                                     var embed = builder.Build();
 
                                     var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["channel"]));
@@ -2095,7 +2108,7 @@ namespace Opux
                 var query = $"SELECT * FROM authUsers WHERE discordID=\"{context.User.Id}\" AND active=\"yes\"";
 
                 var responce = await MysqlQuery(Program.Settings.GetSection("config")["connstring"], query);
-                if (responce.Count() == 0)
+                if (responce.Count == 0)
                 {
                     await context.Channel.SendMessageAsync($"{context.Message.Author.Mention} not authed on Discord yet use !auth");
                 }
@@ -2113,8 +2126,8 @@ namespace Opux
                         var test2 = Convert.ToUInt64(responce[0]["discordID"]) == context.User.Id;
                         var test3 = teamspeakEntry == null;
 
-                        CharacterData characterData = new CharacterData();
-                        CorporationData corporationData = new CorporationData();
+                        CharacterData characterData = new();
+                        CorporationData corporationData = new();
 
                         if (test1 && test2 && test3)
                         {
@@ -2225,7 +2238,7 @@ namespace Opux
                             await context.Channel.SendMessageAsync($"Please release your Other Teamspeak account binding with !ts reset whilst connected (If this fails contact support)");
                             continue;
                         }
-                        else if (TSUsers.Values.Count() == count)
+                        else if (TSUsers.Values.Count == count)
                         {
                             await context.Channel.SendMessageAsync($"Please connect to teamspeak first http://www.teamspeak.com/invite/{HttpUtility.UrlEncode(hostname)}" +
                                 $"/?port{serverport}&password={HttpUtility.UrlEncode(serverpassword)}&nickname={HttpUtility.UrlEncode(responce[0]["eveName"].ToString())}");
@@ -2262,7 +2275,7 @@ namespace Opux
             var serverGroups = await TS_client.SendCommandAsync(new ServerQueryCommand<ServerGroupListResult>(Command.servergrouplist));
             var discordUser = Program.Client.GetGuild(guildID).GetUser(context.Message.Author.Id);
 
-            if (client != null && client.ClientServerGroups.Count() != 0)
+            if (client != null && client.ClientServerGroups.Length != 0)
             {
                 foreach (int i in Array.ConvertAll(client.ClientServerGroups.Split(','), int.Parse))
                 {
@@ -2356,7 +2369,8 @@ namespace Opux
         internal async static Task NotificationFeed(CommandContext Context)
         {
             #region Notification Type Dictionary
-            Dictionary<int, string> types = new Dictionary<int, string>{
+            Dictionary<int, string> types = new()
+            {
                 {1, "Legacy"},
                 {2, "Character deleted"},
                 {3, "Give medal to character"},
@@ -2669,7 +2683,7 @@ namespace Opux
                                             else if (notificationType == 16)
                                             {
                                                 var responce = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/characters/{notificationText["charID"]}/?datasource=tranquility");
-                                                CharacterData characterData = new CharacterData();
+                                                CharacterData characterData = new();
                                                 if (responce.IsSuccessStatusCode)
                                                 {
                                                     characterData = JsonConvert.DeserializeObject<CharacterData>(await responce.Content.ReadAsStringAsync());
@@ -2745,7 +2759,7 @@ namespace Opux
                                             {
                                                 await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
                                                     $"Type: {types[notificationType]}"));
-                                                Int64.TryParse(notificationText["aggressorAllianceID"].AllNodes.ToList()[0].ToString(), out long allyResult);
+                                                _ = long.TryParse(notificationText["aggressorAllianceID"].AllNodes.ToList()[0].ToString(), out long allyResult);
                                                 var aggressorAllianceID = allyResult;
                                                 var aggressorCorpID = Convert.ToInt64(notificationText["aggressorCorpID"].AllNodes.ToList()[0].ToString());
                                                 var aggressorID = Convert.ToInt64(notificationText["aggressorID"].AllNodes.ToList()[0].ToString());
@@ -2791,7 +2805,7 @@ namespace Opux
                                             {
                                                 await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
                                                     $"Type: {types[notificationType]}"));
-                                                Int64.TryParse(notificationText["aggressorAllianceID"].AllNodes.ToList()[0].ToString(), out long allyResult);
+                                                _ = long.TryParse(notificationText["aggressorAllianceID"].AllNodes.ToList()[0].ToString(), out long allyResult);
                                                 var aggressorAllianceID = allyResult;
                                                 var aggressorCorpID = Convert.ToInt64(notificationText["aggressorCorpID"].AllNodes.ToList()[0].ToString());
                                                 var aggressorID = Convert.ToInt64(notificationText["aggressorID"].AllNodes.ToList()[0].ToString());
@@ -2879,7 +2893,7 @@ namespace Opux
                                             else if (notificationType == 130)
                                             {
                                                 var responce = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/characters/{notificationText["charID"]}/?datasource=tranquility");
-                                                CharacterData characterData = new CharacterData();
+                                                CharacterData characterData = new();
                                                 if (responce.IsSuccessStatusCode)
                                                 {
                                                     characterData = JsonConvert.DeserializeObject<CharacterData>(await responce.Content.ReadAsStringAsync());
@@ -2976,7 +2990,7 @@ namespace Opux
                                             {
                                                 await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, "NotificationFeed", $"Sending Notification TypeID: {notificationType} " +
                                                     $"Type: {types[notificationType]}"));
-                                                Int64.TryParse(notificationText["allianceID"].AllNodes.ToList()[0].ToString(), out long allyResult);
+                                                _ = long.TryParse(notificationText["allianceID"].AllNodes.ToList()[0].ToString(), out long allyResult);
                                                 var aggressorAllianceID = allyResult;
                                                 var armorValue = string.Format("{0:P2}", notificationText["armorPercentage"].AllNodes.ToList()[0].ToString());
                                                 var aggressorID = Convert.ToInt64(notificationText["charID"].AllNodes.ToList()[0].ToString());
@@ -3112,7 +3126,7 @@ namespace Opux
 
             try
             {
-                HttpResponseMessage ItemID = new HttpResponseMessage();
+                HttpResponseMessage ItemID = new();
                 if (String.ToLower().StartsWith("search"))
                 {
                     ItemID = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/search/?categories=inventory_type&datasource=tranquility&language=en-us&search=" +
@@ -3139,7 +3153,7 @@ namespace Opux
                 {
                     await channel.SendMessageAsync($"{context.Message.Author.Mention} Item {String} does not exist please try again");
                 }
-                else if (ItemIDResults.inventory_type.Count() > 1)
+                else if (ItemIDResults.inventory_type.Length > 1)
                 {
                     await channel.SendMessageAsync("Multiple results found see DM");
 
@@ -3622,12 +3636,12 @@ namespace Opux
             var characterName = x.ToLower();
             var channel = context.Channel;
 
-            SearchApi searchApi = new SearchApi();
-            CharacterApi characterapi = new CharacterApi();
-            CorporationApi corporationApi = new CorporationApi();
-            AllianceApi allianceApi = new AllianceApi();
-            KillmailsApi killmailsApi = new KillmailsApi();
-            UniverseApi universeApi = new UniverseApi();
+            SearchApi searchApi = new();
+            CharacterApi characterapi = new();
+            CorporationApi corporationApi = new();
+            AllianceApi allianceApi = new();
+            KillmailsApi killmailsApi = new();
+            UniverseApi universeApi = new();
 
             var CharacterIDList = await universeApi.PostUniverseIdsAsync(new List<string> { characterName });
             int? Id = 0;
@@ -3666,11 +3680,11 @@ namespace Opux
                     }
 
                     //Get last 200 kill
-                    List<GetKillmailsKillmailIdKillmailHashOk> Kills = new List<GetKillmailsKillmailIdKillmailHashOk>();
+                    List<GetKillmailsKillmailIdKillmailHashOk> Kills = new();
 
                     var responce = await Program._httpClient.GetAsync($"https://zkillboard.com/api/kills/characterID/{Id}/");
 
-                    List<ZKillAPI> zkillContent = new List<ZKillAPI>();
+                    List<ZKillAPI> zkillContent = new();
                     if (responce.IsSuccessStatusCode)
                     {
                         var result = await responce.Content.ReadAsStringAsync();
@@ -3684,11 +3698,11 @@ namespace Opux
                     }
 
                     //Get last 200 losses
-                    List<GetKillmailsKillmailIdKillmailHashOk> Losses = new List<GetKillmailsKillmailIdKillmailHashOk>();
+                    List<GetKillmailsKillmailIdKillmailHashOk> Losses = new();
 
                     responce = await Program._httpClient.GetAsync($"https://zkillboard.com/api/losses/characterID/{Id}/");
 
-                    List<ZKillAPI> zkillLosses = new List<ZKillAPI>();
+                    List<ZKillAPI> zkillLosses = new();
                     if (responce.IsSuccessStatusCode)
                     {
                         var result = await responce.Content.ReadAsStringAsync();
@@ -3702,7 +3716,7 @@ namespace Opux
 
                     responce = await Program._httpClient.GetAsync($"https://zkillboard.com/api/stats/characterID/{Id}/");
 
-                    CharacterStats characterStats = new CharacterStats();
+                    CharacterStats characterStats = new();
 
                     if (responce.IsSuccessStatusCode)
                     {
@@ -3729,8 +3743,8 @@ namespace Opux
                         }
                     }
 
-                    var lastKill = Kills.Count() > 0 ? Kills.FirstOrDefault() : null;
-                    var lastLoss = Losses.Count() > 0 ? Losses.FirstOrDefault() : null;
+                    var lastKill = Kills.Count > 0 ? Kills.FirstOrDefault() : null;
+                    var lastLoss = Losses.Count > 0 ? Losses.FirstOrDefault() : null;
 
                     GetKillmailsKillmailIdKillmailHashOk last = null;
 
@@ -3822,7 +3836,7 @@ namespace Opux
             var channel = context.Channel;
             var responce = await Program._httpClient.GetAsync(
                 $"https://esi.evetech.net/latest/search/?categories=corporation&datasource=tranquility&language=en-us&search={x}&strict=true");
-            CorpIDLookup corpContent = new CorpIDLookup();
+            CorpIDLookup corpContent = new();
             if (!responce.IsSuccessStatusCode)
             {
                 await channel.SendMessageAsync($"{context.User.Mention}, {x} Corporation was not found");
@@ -3834,7 +3848,7 @@ namespace Opux
                 {
                     responce = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/corporations/{corpIDLookup.corporation[0]}/?datasource=tranquility");
 
-                    CorporationData corporationData = new CorporationData();
+                    CorporationData corporationData = new();
                     if (responce.IsSuccessStatusCode)
                     {
                         corporationData = JsonConvert.DeserializeObject<CorporationData>(await responce.Content.ReadAsStringAsync());
@@ -3908,7 +3922,7 @@ namespace Opux
 
         internal static async Task HandleCommand(SocketMessage messageParam)
         {
-            if (!(messageParam is SocketUserMessage message)) return;
+            if (messageParam is not SocketUserMessage message) return;
 
             int argPos = 0;
 
@@ -3925,9 +3939,9 @@ namespace Opux
         #region MysqlQuery
         internal static async Task<IList<IDictionary<string, object>>> MysqlQuery(string connstring, string query)
         {
-            using MySqlConnection conn = new MySqlConnection(connstring);
+            using MySqlConnection conn = new(connstring);
             using MySqlCommand cmd = conn.CreateCommand();
-            List<IDictionary<string, object>> list = new List<IDictionary<string, object>>(); ;
+            List<IDictionary<string, object>> list = new(); ;
             cmd.CommandText = query;
             try
             {
@@ -3966,8 +3980,8 @@ namespace Opux
         #region SQLiteQuery
         internal async static Task<string> SQLiteDataQuery(string table, string field, string name)
         {
-            using SqliteConnection con = new SqliteConnection($"Data Source = {Path.Combine(Program.ApplicationBase, "Opux.db")};");
-            using SqliteCommand querySQL = new SqliteCommand($"SELECT {field} FROM {table} WHERE name = @name", con);
+            using SqliteConnection con = new($"Data Source = {Path.Combine(Program.ApplicationBase, "Opux.db")};");
+            using SqliteCommand querySQL = new($"SELECT {field} FROM {table} WHERE name = @name", con);
             await con.OpenAsync();
             querySQL.Parameters.Add(new SqliteParameter("@name", name));
             try
@@ -3984,8 +3998,8 @@ namespace Opux
         }
         internal async static Task<List<int>> SQLiteDataQuery(string table)
         {
-            using SqliteConnection con = new SqliteConnection($"Data Source = {Path.Combine(Program.ApplicationBase, "Opux.db")};");
-            using SqliteCommand querySQL = new SqliteCommand($"SELECT * FROM {table}", con);
+            using SqliteConnection con = new($"Data Source = {Path.Combine(Program.ApplicationBase, "Opux.db")};");
+            using SqliteCommand querySQL = new($"SELECT * FROM {table}", con);
             await con.OpenAsync();
             try
             {
@@ -4010,11 +4024,11 @@ namespace Opux
         #region SQLiteUpdate
         internal async static Task SQLiteDataUpdate(string table, string field, string name, string data)
         {
-            using SqliteConnection con = new SqliteConnection($"Data Source = {Path.Combine(Program.ApplicationBase, "Opux.db")};");
-            using SqliteCommand insertSQL = new SqliteCommand($"UPDATE {table} SET {field} = @data WHERE name = @name", con);
+            using SqliteConnection con = new($"Data Source = {Path.Combine(Program.ApplicationBase, "Opux.db")};");
+            using SqliteCommand insertSQL = new($"UPDATE {table} SET {field} = @data WHERE name = @name", con);
             await con.OpenAsync();
-            insertSQL.Parameters.Add(new SqliteParameter("@name", name));
-            insertSQL.Parameters.Add(new SqliteParameter("@data", data));
+            insertSQL.Parameters.Add(new("@name", name));
+            insertSQL.Parameters.Add(new("@data", data));
             try
             {
                 insertSQL.ExecuteNonQuery();
@@ -4031,10 +4045,10 @@ namespace Opux
         #region SQLiteDelete
         internal async static Task SQLiteDataDelete(string table, string name)
         {
-            using SqliteConnection con = new SqliteConnection($"Data Source = {Path.Combine(Program.ApplicationBase, "Opux.db")};");
-            using SqliteCommand insertSQL = new SqliteCommand($"REMOVE FROM {table} WHERE name = @name", con);
+            using SqliteConnection con = new($"Data Source = {Path.Combine(Program.ApplicationBase, "Opux.db")};");
+            using SqliteCommand insertSQL = new($"REMOVE FROM {table} WHERE name = @name", con);
             await con.OpenAsync();
-            insertSQL.Parameters.Add(new SqliteParameter("@name", name));
+            insertSQL.Parameters.Add(new("@name", name));
             try
             {
                 insertSQL.ExecuteNonQuery();
@@ -4060,7 +4074,7 @@ namespace Opux
         /// <summary>
         /// Compiled regular expression for performance.
         /// </summary>
-        static Regex _htmlRegex = new Regex("<.*?>", RegexOptions.Compiled);
+        static Regex _htmlRegex = new("<.*?>", RegexOptions.Compiled);
 
         /// <summary>
         /// Remove HTML from string with compiled Regex.
