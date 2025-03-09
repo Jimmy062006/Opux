@@ -311,7 +311,7 @@ namespace Opux
                                 "    <div class=\"jumbotron\">" +
                                 "        <h1>Discord</h1>" +
                                 "        <p class=\"lead\">Click the button below to login with your EVE Online account.</p>" +
-                                "        <p><a href=\"https://login.eveonline.com/oauth/authorize?response_type=code&amp;redirect_uri=" + callbackurl + "&amp;client_id=" + client_id + "\"><img src=\"https://images.contentful.com/idjq7aai9ylm/4fSjj56uD6CYwYyus4KmES/4f6385c91e6de56274d99496e6adebab/EVE_SSO_Login_Buttons_Large_Black.png\"/></a></p>" +
+                                "        <p><a href=\"https://login.eveonline.com/oauth/authorize?response_type=code&amp;redirect_uri=" + callbackurl + "&amp;client_id=" + client_id + "\"><img src=\"https://web.ccpgamescdn.com/eveonlineassets/developers/eve-sso-login-black-large.png\"/></a></p>" +
                                 "    </div>" +
                                 "</div>" +
                                 "<!-- /container -->" +
@@ -327,7 +327,7 @@ namespace Opux
                                 var temp = assembly.GetManifestResourceNames();
                                 var resource = assembly.GetManifestResourceStream("Opux.Discord-01.png");
                                 var buffer = new byte[resource.Length];
-                                resource.Read(buffer, 0, Convert.ToInt32(resource.Length));
+								resource.ReadExactly(buffer, 0, Convert.ToInt32(resource.Length));
                                 var image = Convert.ToBase64String(buffer);
                                 string accessToken = "";
                                 string responseString;
