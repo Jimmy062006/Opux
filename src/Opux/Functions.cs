@@ -905,7 +905,7 @@ namespace Opux
 					CharacterApi characterApi = new();
                     var charList = new List<int?>
                     {
-                        Convert.ToInt16(characterID),
+                        Convert.ToInt32(characterID),
                     };
 
 					var _characterDetails = await characterApi.PostCharactersAffiliationAsyncWithHttpInfo(charList);
