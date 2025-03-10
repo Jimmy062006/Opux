@@ -384,16 +384,16 @@ namespace Opux
 
                                     var CharacterID = JObject.Parse(verifyString)["CharacterID"];
                                     //JObject characterDetails;
-                                    var charList = new List<int?>
-									{
-										CharacterID.Value<int>()
-									};
 									JObject corporationDetails;
                                     JObject allianceDetails;
                                     CharacterApi characterApi = new();
+									var charList = new List<int?>
+									{
+										CharacterID.Value<int>()
+									};
 
-                                    //var _characterDetails = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/characters/{CharacterID}");
-                                    var _characterDetails = await characterApi.PostCharactersAffiliationAsyncWithHttpInfo(charList);
+									//var _characterDetails = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/characters/{CharacterID}");
+									var _characterDetails = await characterApi.PostCharactersAffiliationAsyncWithHttpInfo(charList);
 
 									string charData = null;
                                     if (_characterDetails.StatusCode != 200)
@@ -902,22 +902,39 @@ namespace Opux
 
                     var characterID = responce[0]["characterID"].ToString();
 
-                    var responceMessage = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/characters/{characterID}/?datasource=tranquility");
-                    var characterData = JsonConvert.DeserializeObject<CharacterData>(await responceMessage.Content.ReadAsStringAsync());
+					CharacterApi characterApi = new();
+                    var charList = new List<int?>
+                    {
+                        Convert.ToInt16(characterID),
+                    };
+
+					var _characterDetails = await characterApi.PostCharactersAffiliationAsyncWithHttpInfo(charList);
+
+
+					var responceMessage = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/characters/{characterID}/?datasource=tranquility");
+					var characterData = JsonConvert.DeserializeObject<CharacterData>(await responceMessage.Content.ReadAsStringAsync());
+					var _characterData = _characterDetails.Data;
+
+
+
+					var corporationid = _characterData[0].CorporationId;
+
+
+					if (_characterDetails.StatusCode != 200)
+                    {
+                        ESIFailed = true;
+                    }
+
+					responceMessage = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/corporations/{corporationid}/?datasource=tranquility");
+					
+					var corporationData = JsonConvert.DeserializeObject<CorporationData>(await responceMessage.Content.ReadAsStringAsync());
                     if (!responceMessage.IsSuccessStatusCode)
                     {
                         ESIFailed = true;
                     }
 
-                    responceMessage = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/corporations/{characterData.corporation_id}/?datasource=tranquility");
-                    var corporationData = JsonConvert.DeserializeObject<CorporationData>(await responceMessage.Content.ReadAsStringAsync());
-                    if (!responceMessage.IsSuccessStatusCode)
-                    {
-                        ESIFailed = true;
-                    }
-
-                    var allianceID = characterData.alliance_id.ToString();
-                    var corpID = characterData.corporation_id.ToString();
+                    var allianceID = _characterData[0].AllianceId.ToString();
+                    var corpID = _characterData[0].CorporationId.ToString();
 
                     var enable = false;
 
@@ -925,7 +942,7 @@ namespace Opux
                     {
                         enable = true;
                     }
-                    if (characterData.alliance_id != null && alliance.ContainsKey(allianceID))
+                    if (allianceID != null && alliance.ContainsKey(allianceID))
                     {
                         enable = true;
                     }
@@ -3108,9 +3125,9 @@ namespace Opux
                 {
                     await channel.SendMessageAsync("Multiple results found see DM");
 
-                    channel = await context.Message.Author.CreateDMChannelAsync(); // GetOrCreateDMChannelAsync();
+                    channel = await context.Message.Author.GetOrCreateDMChannelAsync(); // GetOrCreateDMChannelAsync() CreateDMChannelAsync();
 
-                    var tmp = JsonConvert.SerializeObject(ItemIDResults.inventory_type);
+					var tmp = JsonConvert.SerializeObject(ItemIDResults.inventory_type);
                     var httpContent = new StringContent(tmp);
 
                     var ItemName = await Program._httpClient.PostAsync($"https://esi.evetech.net/latest/universe/names/?datasource=tranquility", httpContent);
