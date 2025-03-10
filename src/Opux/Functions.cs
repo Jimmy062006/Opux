@@ -1095,17 +1095,30 @@ namespace Opux
 
                         if (responce.Count > 0)
                         {
+
                             var characterID = responce.OrderByDescending(x => x["id"]).FirstOrDefault()["characterID"];
 
-                            var responceMessage = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/characters/{characterID}/?datasource=tranquility");
-                            var characterData = JsonConvert.DeserializeObject<CharacterData>(await responceMessage.Content.ReadAsStringAsync());
-                            if (!responceMessage.IsSuccessStatusCode || characterData == null)
+							CharacterApi characterApi = new();
+                            var charList = new List<int?>
                             {
-                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential characterData {responceMessage.StatusCode} ESI Failure for {u.Nickname}"));
+                                Convert.ToInt32(characterID)
+                            };
+
+							//var _characterDetails = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/characters/{CharacterID}");
+							var _characterDetails = await characterApi.PostCharactersAffiliationAsyncWithHttpInfo(charList);
+
+                            var responceMessage = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/characters/{characterID}/?datasource=tranquility");
+							var characterData = JsonConvert.DeserializeObject<CharacterData>(await responceMessage.Content.ReadAsStringAsync());
+
+							var _characterData = _characterDetails.Data;
+
+							if (_characterDetails.StatusCode != 200 || _characterData == null)
+                            {
+                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, "authCheck", $"Potential characterData {_characterDetails.StatusCode} ESI Failure for {u.Nickname}"));
                                 continue;
                             }
 
-                            responceMessage = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/corporations/{characterData.corporation_id}/?datasource=tranquility");
+                            responceMessage = await Program._httpClient.GetAsync($"https://esi.evetech.net/latest/corporations/{_characterData[0].CorporationId}/?datasource=tranquility");
                             var corporationData = JsonConvert.DeserializeObject<CorporationData>(await responceMessage.Content.ReadAsStringAsync());
                             if (!responceMessage.IsSuccessStatusCode || corporationData == null)
                             {
@@ -1127,19 +1140,19 @@ namespace Opux
                             var active = false;
 
                             //Check for Corp roles
-                            if (corps.ContainsKey(characterData.corporation_id.ToString()))
+                            if (corps.ContainsKey(_characterData[0].CorporationId.ToString()))
                             {
-                                var cinfo = corps.FirstOrDefault(x => x.Key == characterData.corporation_id.ToString());
+                                var cinfo = corps.FirstOrDefault(x => x.Key == _characterData[0].CorporationId.ToString());
                                 roles.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == cinfo.Value));
                                 active = true;
                             }
 
                             //Check for Alliance roles
-                            if (characterData.alliance_id != null)
+                            if (_characterData[0].AllianceId != null)
                             {
-                                if (alliance.ContainsKey(characterData.alliance_id.ToString()))
+                                if (alliance.ContainsKey(_characterData[0].AllianceId.ToString()))
                                 {
-                                    var ainfo = alliance.FirstOrDefault(x => x.Key == characterData.alliance_id.ToString());
+                                    var ainfo = alliance.FirstOrDefault(x => x.Key == _characterData[0].AllianceId.ToString());
                                     roles.Add(discordGuild.Roles.FirstOrDefault(x => x.Name == ainfo.Value));
                                     active = true;
                                 }
