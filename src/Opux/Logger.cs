@@ -114,7 +114,7 @@ namespace Opux
 
     public class SpecialFolderPatternConverter : log4net.Util.PatternConverter
     {
-        override protected void Convert(TextWriter writer, object state)
+        override public void Convert(TextWriter writer, object state)
         {
             string specialFolder = AppContext.BaseDirectory;
             writer.Write(specialFolder);

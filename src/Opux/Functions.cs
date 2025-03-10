@@ -3202,7 +3202,7 @@ namespace Opux
                 {
                     await channel.SendMessageAsync("Multiple results found see DM");
 
-                    channel = await context.Message.Author.GetOrCreateDMChannelAsync();
+                    channel = await context.Message.Author.CreateDMChannelAsync(); // GetOrCreateDMChannelAsync();
 
                     var tmp = JsonConvert.SerializeObject(ItemIDResults.inventory_type);
                     var httpContent = new StringContent(tmp);
