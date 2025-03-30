@@ -1541,7 +1541,7 @@ namespace Opux
                                                 author
                                                     .WithName($"Radius Kill Reported: {ship.Name} destroyed {jumpsText}")
                                                     .WithUrl($"https://zkillboard.com/kill/{iD}/")
-                                                    .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                                    .WithIconUrl("http://opux.space/imgs/shipexplosion.png");
                                             })
                                             .WithDescription($"Died {killTime}")
                                             .AddField("Victim", victimName, true)
@@ -1582,7 +1582,7 @@ namespace Opux
                                                                         author
                                                                             .WithName($"{TypeName.Name} Reported Killing a {ship.Name}, {jumpsText}")
                                                                             .WithUrl($"https://zkillboard.com/kill/{iD}/")
-                                                                            .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                                                            .WithIconUrl("http://opux.space/imgs/shipexplosion.png");
                                                                     })
                                                                     .WithDescription($"Died {killTime}")
                                                                     .AddField("Victim", victimName, true)
@@ -1620,7 +1620,7 @@ namespace Opux
                                                 author
                                                     .WithName($"Radius Kill Reported: {ship.Name} destroyed in {system.Name}")
                                                     .WithUrl($"https://zkillboard.com/kill/{iD}/")
-                                                    .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                                    .WithIconUrl("http://opux.space/imgs/shipexplosion.png");
                                             })
                                             .WithDescription($"Died {killTime}")
                                             .AddField("Victim", victimName, true)
@@ -1665,7 +1665,7 @@ namespace Opux
                                     author
                                         .WithName($"Big Kill Reported: {ship.Name} destroyed in {system.Name} ({secstatus})")
                                         .WithUrl($"https://zkillboard.com/kill/{iD}/")
-                                        .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                        .WithIconUrl("http://opux.space/imgs/shipexplosion.png");
                                 })
                                 .WithDescription($"Died {killTime}")
                                 .AddField("Victim", victimName)
@@ -1695,7 +1695,7 @@ namespace Opux
                                         author
                                             .WithName($"Kill Reported: {ship.Name} destroyed in {system.Name} ({secstatus})")
                                             .WithUrl($"https://zkillboard.com/kill/{iD}/")
-                                            .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                            .WithIconUrl("http://opux.space/imgs/shipexplosion.png");
                                     })
                                     .WithDescription($"Died {killTime}")
                                     .AddField("Victim", victimName, true)
@@ -1728,7 +1728,7 @@ namespace Opux
                                             author
                                                 .WithName($"Big Loss Reported: {ship.Name} destroyed in {system.Name} ({secstatus})")
                                                 .WithUrl($"https://zkillboard.com/kill/{iD}/")
-                                                .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                                .WithIconUrl("http://opux.space/imgs/shipexplosion.png");
                                         })
                                         .WithDescription($"Died {killTime}")
                                         .AddField("Victim", victimName, true)
@@ -1764,7 +1764,7 @@ namespace Opux
                                                 author
                                                     .WithName($"Loss Reported: {ship.Name} destroyed in {system.Name} ({secstatus})")
                                                     .WithUrl($"https://zkillboard.com/kill/{iD}/")
-                                                    .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                                    .WithIconUrl("http://opux.space/imgs/shipexplosion.png");
                                             })
                                             .WithDescription($"Died {killTime}")
                                             .AddField("Victim", victimName, true)
@@ -1803,7 +1803,7 @@ namespace Opux
                                                 author
                                                     .WithName($"Big Kill Reported: {ship.Name} destroyed in {system.Name} ({secstatus})")
                                                     .WithUrl($"https://zkillboard.com/kill/{iD}/")
-                                                    .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                                    .WithIconUrl("http://opux.space/imgs/shipexplosion.png");
                                             })
                                             .WithDescription($"Died {killTime}")
                                             .AddField("Victim", victimName, true)
@@ -1836,7 +1836,7 @@ namespace Opux
                                             author
                                                 .WithName($"Kill Reported: {ship.Name} destroyed in {system.Name} ({secstatus})")
                                                 .WithUrl($"https://zkillboard.com/kill/{iD}/")
-                                                .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                                .WithIconUrl("http://opux.space/imgs/shipexplosion.png");
                                         })
                                             .WithDescription($"Died {killTime}")
                                             .AddField("Victim", victim == null ? victimName : victimName, true)
@@ -3162,7 +3162,7 @@ namespace Opux
                         {
                             author
                                 .WithName($"Multiple Items found use * for exact search:")
-                                .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                .WithIconUrl("http://opux.space/imgs/shipexplosion.png");
                         })
                         .WithDescription("Example: Hyperion*");
                     var count = 0;
@@ -3222,7 +3222,7 @@ namespace Opux
                                     author
                                         .WithName($"Item: {ItemNameResults.name}")
                                         .WithUrl($"https://www.fuzzwork.co.uk/info/?typeid={ItemNameResults.id}/")
-                                        .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                        .WithIconUrl("http://opux.space/imgs/shipexplosion.png");
                                 })
                                 .WithDescription($"Global Prices")
                                 .AddField("Buy", $"Low: {centralreply.buy.min:N2}{Environment.NewLine}" +
@@ -3255,7 +3255,7 @@ namespace Opux
                                     author
                                         .WithName($"Item: {ItemNameResults.name}")
                                         .WithUrl($"https://www.fuzzwork.co.uk/info/?typeid={ItemNameResults.id}/")
-                                        .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                        .WithIconUrl("http://opux.space/imgs/shipexplosion.png");
                                 })
                                 .WithDescription($"Prices from Jita")
                                 .AddField("Buy", $"Low: {centralreply.buy.min:N2}{Environment.NewLine}" +
@@ -3288,7 +3288,7 @@ namespace Opux
                                     author
                                         .WithName($"Item: {ItemNameResults.name}")
                                         .WithUrl($"https://www.fuzzwork.co.uk/info/?typeid={ItemNameResults.id}/")
-                                        .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                        .WithIconUrl("http://opux.space/imgs/shipexplosion.png");
                                 })
                                 .WithDescription($"Prices from Amarr")
                                 .AddField("Buy", $"Low: {centralreply.buy.min:N2}{Environment.NewLine}" +
@@ -3321,7 +3321,7 @@ namespace Opux
                                     author
                                         .WithName($"Item: {ItemNameResults.name}")
                                         .WithUrl($"https://www.fuzzwork.co.uk/info/?typeid={ItemNameResults.id}/")
-                                        .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                        .WithIconUrl("http://opux.space/imgs/shipexplosion.png");
                                 })
                                 .WithDescription($"Prices from Rens")
                                 .AddField("Buy", $"Low: {centralreply.buy.min:N2}{Environment.NewLine}" +
@@ -3354,7 +3354,7 @@ namespace Opux
                                     author
                                         .WithName($"Item: {ItemNameResults.name}")
                                         .WithUrl($"https://www.fuzzwork.co.uk/info/?typeid={ItemNameResults.id}/")
-                                        .WithIconUrl("https://just4dns2.co.uk/shipexplosion.png");
+                                        .WithIconUrl("http://opux.space/imgs/shipexplosion.png");
                                 })
                                 .WithDescription($"Prices from Dodixie")
                                 .AddField("Buy", $"Low: {centralreply.buy.min:N2}{Environment.NewLine}" +
