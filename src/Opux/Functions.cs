@@ -1524,11 +1524,9 @@ namespace Opux
 											.WithAuthor(author =>
 											{
 												author
-													.WithName($"Radius Kill Reported: {ship.Name} destroyed {jumpsText}")
-													.WithUrl($"https://zkillboard.com/kill/{iD}/")
 													.WithIconUrl("http://opux.space/imgs/shipexplosion.png");
 											})
-											.WithDescription($"[Kill Reported: {ship.Name} destroyed in {system.Name} ({secstatus})](https://zkillboard.com/kill/{iD}) \n\r Died {killTime}")
+											.WithDescription($"[Radius Kill Reported: {ship.Name} destroyed {jumpsText}](https://zkillboard.com/kill/{iD}) \n\r Died {killTime}")
 											.AddField("Victim", victimName, true)
 											.AddField("System", $"{system.Name} ({secstatus})", true)
 											.AddField("Corporation", victimCorp.Name)
@@ -1565,11 +1563,9 @@ namespace Opux
 																	.WithAuthor(author =>
 																	{
 																		author
-																			.WithName($"{TypeName.Name} Reported Killing a {ship.Name}, {jumpsText}")
-																			.WithUrl($"https://zkillboard.com/kill/{iD}/")
 																			.WithIconUrl("http://opux.space/imgs/shipexplosion.png");
 																	})
-																	.WithDescription($"[Kill Reported: {ship.Name} destroyed in {system.Name} ({secstatus})](https://zkillboard.com/kill/{iD}) \n\r Died {killTime}")
+																	.WithDescription($"[{TypeName.Name} Reported Killing a {ship.Name}, {jumpsText}](https://zkillboard.com/kill/{iD}) \n\r Died {killTime}")
 																	.AddField("Victim", victimName, true)
 																	.AddField("System", $"{system.Name} ({secstatus})", true)
 																	.AddField("Corporation", victimCorp.Name)
@@ -1603,11 +1599,9 @@ namespace Opux
 											.WithAuthor(author =>
 											{
 												author
-													.WithName($"Radius Kill Reported: {ship.Name} destroyed in {system.Name}")
-													.WithUrl($"https://zkillboard.com/kill/{iD}/")
 													.WithIconUrl("http://opux.space/imgs/shipexplosion.png");
 											})
-											.WithDescription($"[Kill Reported: {ship.Name} destroyed in {system.Name} ({secstatus})](https://zkillboard.com/kill/{iD}) \n\r Died {killTime}")
+											.WithDescription($"[Radius Kill Reported: {ship.Name} destroyed in {system.Name}](https://zkillboard.com/kill/{iD}) \n\r Died {killTime}")
 											.AddField("Victim", victimName, true)
 											.AddField("System", $"{system.Name} ({secstatus})", true)
 											.AddField("Corporation", victimCorp.Name, true)
@@ -1648,11 +1642,9 @@ namespace Opux
 								.WithAuthor(author =>
 								{
 									author
-										.WithName($"Big Kill Reported: {ship.Name} destroyed in {system.Name} ({secstatus})")
-										.WithUrl($"https://zkillboard.com/kill/{iD}/")
 										.WithIconUrl("http://opux.space/imgs/shipexplosion.png");
 								})
-								.WithDescription($"[Kill Reported: {ship.Name} destroyed in {system.Name} ({secstatus})](https://zkillboard.com/kill/{iD}) \n\r Died {killTime}")
+								.WithDescription($"[Big Kill Reported: {ship.Name} destroyed in {system.Name} ({secstatus})](https://zkillboard.com/kill/{iD}) \n\r Died {killTime}")
 								.AddField("Victim", victimName)
 								.AddField("Corporation", victimCorp.Name, true)
 								.AddField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name, true)
@@ -1709,11 +1701,9 @@ namespace Opux
 										.WithAuthor(author =>
 										{
 											author
-												.WithName($"Big Loss Reported: {ship.Name} destroyed in {system.Name} ({secstatus})")
-												.WithUrl($"https://zkillboard.com/kill/{iD}/")
 												.WithIconUrl("http://opux.space/imgs/shipexplosion.png");
 										})
-										.WithDescription($"[Kill Reported: {ship.Name} destroyed in {system.Name} ({secstatus})](https://zkillboard.com/kill/{iD}) \n\r Died {killTime}")
+										.WithDescription($"[Big Loss Reported: {ship.Name} destroyed in {system.Name} ({secstatus})](https://zkillboard.com/kill/{iD}) \n\r Died {killTime}")
 										.AddField("Victim", victimName, true)
 										.AddField("Corporation", victimCorp.Name, true)
 										.AddField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name, true)
@@ -1745,11 +1735,9 @@ namespace Opux
 											.WithAuthor(author =>
 											{
 												author
-													.WithName($"Loss Reported: {ship.Name} destroyed in {system.Name} ({secstatus})")
-													.WithUrl($"https://zkillboard.com/kill/{iD}/")
 													.WithIconUrl("http://opux.space/imgs/shipexplosion.png");
 											})
-											.WithDescription($"[Kill Reported: {ship.Name} destroyed in {system.Name} ({secstatus})](https://zkillboard.com/kill/{iD}) \n\r Died {killTime}")
+											.WithDescription($"[Loss Reported: {ship.Name} destroyed in {system.Name} ({secstatus})](https://zkillboard.com/kill/{iD}) \n\r Died {killTime}")
 											.AddField("Victim", victimName, true)
 											.AddField("Corporation", victimCorp.Name, true)
 											.AddField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name, true)
@@ -1784,11 +1772,9 @@ namespace Opux
 											.WithAuthor(author =>
 											{
 												author
-													.WithName($"Big Kill Reported: {ship.Name} destroyed in {system.Name} ({secstatus})")
-													.WithUrl($"https://zkillboard.com/kill/{iD}/")
 													.WithIconUrl("http://opux.space/imgs/shipexplosion.png");
 											})
-											.WithDescription($"[Kill Reported: {ship.Name} destroyed in {system.Name} ({secstatus})](https://zkillboard.com/kill/{iD}) \n\r Died {killTime}")
+											.WithDescription($"[Big Kill Reported: {ship.Name} destroyed in {system.Name} ({secstatus})](https://zkillboard.com/kill/{iD}) \n\r Died {killTime}")
 											.AddField("Victim", victimName, true)
 											.AddField("Corporation", victimCorp.Name, true)
 											.AddField("Alliance", victimAlliance == null ? "None" : victimAlliance.Name, true)
@@ -1817,8 +1803,6 @@ namespace Opux
 										.WithAuthor(author =>
 										{
 											author
-												.WithName($"Kill Reported: {ship.Name} destroyed in {system.Name} ({secstatus})")
-												.WithUrl($"https://zkillboard.com/kill/{iD}/")
 												.WithIconUrl("http://opux.space/imgs/shipexplosion.png");
 										})
 											.WithDescription($"[Kill Reported: {ship.Name} destroyed in {system.Name} ({secstatus})](https://zkillboard.com/kill/{iD}) \n\r Died {killTime}")
