@@ -1573,7 +1573,7 @@ namespace Opux
                                                                             .WithUrl($"https://zkillboard.com/kill/{iD}/")
                                                                             .WithIconUrl("http://opux.space/imgs/shipexplosion.png");
                                                                     })
-                                                                    .WithDescription($"Died {killTime}")
+																	.WithDescription($"Died {killTime}")
                                                                     .AddField("Victim", victimName, true)
                                                                     .AddField("System", $"{system.Name} ({secstatus})", true)
                                                                     .AddField("Corporation", victimCorp.Name)
@@ -1682,8 +1682,6 @@ namespace Opux
                                     .WithAuthor(author =>
                                     {
                                         author
-                                            .WithName($"Kill Reported: {ship.Name} destroyed in {system.Name} ({secstatus})")
-                                            .WithUrl($"https://zkillboard.com/kill/{iD}/")
                                             .WithIconUrl("http://opux.space/imgs/shipexplosion.png");
                                     })
                                     .WithDescription($"Died {killTime}")
@@ -1695,7 +1693,7 @@ namespace Opux
                                 var embed = builder.Build();
 
                                 var Channel = discordGuild.GetTextChannel(Convert.ToUInt64(i["channel"]));
-                                await Channel.SendMessageAsync($"", false, embed).ConfigureAwait(false);
+                                await Channel.SendMessageAsync($"[Kill Reported: {ship.Name} destroyed in {system.Name} ({secstatus})](https://zkillboard.com/kill/{iD})", false, embed).ConfigureAwait(false);
 
                                 var stringVal = string.Format("{0:n0} ISK", value);
 
