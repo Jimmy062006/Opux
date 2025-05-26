@@ -1338,8 +1338,6 @@ namespace Opux
         //Complete Update to Embeds
         #region killFeed
 
-        public static WebSocket ws = new WebSocket("wss://zkillboard.com/websocket/");
-
 		private static string QueueID = Program.Settings.GetSection("killFeed")["reDisqID"];
 		private const int TimeToWait = 10;
 		private static readonly string Url = $"https://zkillredisq.stream/listen.php?queueID={QueueID}&ttw={TimeToWait}";
@@ -1352,7 +1350,7 @@ namespace Opux
 
 				if (!ZkillInit)
                 {
-					Console.WriteLine("Starting RedisQ zKill listener...");
+					await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"zKill", $"Started Listening to zKill Redisq"));
 
 					var cts = new CancellationTokenSource();
 
