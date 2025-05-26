@@ -9,6 +9,7 @@ using EveLibCore;
 using JsonClasszAPIKill;
 using JsonClasszKill;
 using Matrix.Xmpp.Chatstates;
+using Matrix.Xmpp.XHtmlIM;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 using MySql.Data.MySqlClient;
@@ -25,7 +26,9 @@ using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Transactions;
 using System.Web;
 using TentacleSoftware.TeamSpeakQuery;
 using TentacleSoftware.TeamSpeakQuery.NotifyResult;
@@ -1337,34 +1340,25 @@ namespace Opux
 
         public static WebSocket ws = new WebSocket("wss://zkillboard.com/websocket/");
 
-        public static async void ZKillMain()
+		private static string QueueID = Program.Settings.GetSection("killFeed")["reDisqID"];
+		private const int TimeToWait = 10;
+		private static readonly string Url = $"https://zkillredisq.stream/listen.php?queueID={QueueID}&ttw={TimeToWait}";
+
+		public static async void ZKillMain()
         {
             try
             {
-                if (!ZkillInit)
-                {
-                    ws.OnMessage += Ws_OnMessageAsync;
-                    ws.OnOpen += Ws_OnOpen;
-                    ws.OnError += Ws_OnError;
-                    ws.OnClose += Ws_OnClose;
-                    ws.WaitTime = TimeSpan.FromSeconds(60);
+                
 
-                    ws.Connect();
-                    ws.Send("{\"action\":\"sub\",\"channel\":\"killstream\"}");
-                    ZkillInit = true;
-                    await Task.Yield();
-                }
-                if (!ws.IsAlive && ZkillInit)
+				if (!ZkillInit)
                 {
-                    ws.OnMessage -= Ws_OnMessageAsync;
-                    ws.OnOpen -= Ws_OnOpen;
-                    ws.OnError -= Ws_OnError;
-                    ws.OnClose -= Ws_OnClose;
-                    new WebSocket("wss://zkillboard.com/websocket/");
-                    ZkillInit = false;
+					Console.WriteLine("Starting RedisQ zKill listener...");
 
-                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, $"Ws_Socket", $"Web Socket Died Restarting"));
-                }
+					var cts = new CancellationTokenSource();
+
+					ZkillInit = true;
+					await Task.Run(() => PollRedisQAsync(cts.Token));
+				}
             }
             catch (Exception ex)
             {
@@ -1372,42 +1366,39 @@ namespace Opux
             }
         }
 
-        private static async void Ws_OnClose(object sender, CloseEventArgs e)
-        {
-            ws.OnMessage -= Ws_OnMessageAsync;
-            ws.OnOpen -= Ws_OnOpen;
-            ws.OnError -= Ws_OnError;
-            ws.OnClose -= Ws_OnClose;
-            ZkillInit = false;
+		private static async Task PollRedisQAsync(CancellationToken cancellationToken)
+		{
+			while (!cancellationToken.IsCancellationRequested)
+			{
+				try
+				{
+					var response = await Program._zKillhttpClient.GetStringAsync(Url, cancellationToken);
+					var result = JsonConvert.DeserializeObject(response);
 
-            await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"Ws_Socket", $"Web Socket close {e.Reason}"));
-        }
+                    OnMessage(response);
+				}
+				catch (TaskCanceledException)
+				{
+					break; // Graceful exit
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine($"Error: {ex.Message}");
+				}
 
-        private static async void Ws_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
-        {
-            ws.OnMessage -= Ws_OnMessageAsync;
-            ws.OnOpen -= Ws_OnOpen;
-            ws.OnError -= Ws_OnError;
-            ws.OnClose -= Ws_OnClose;
-            ZkillInit = false;
+				await Task.Delay(1000, cancellationToken); // optional delay
+			}
+		}
 
-            await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, $"Ws_Socket", $"Web Socket Error: {e.Message}"));
-        }
-
-        private static async void Ws_OnOpen(object sender, EventArgs e)
-        {
-            await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"Ws_Socket", $"Opened Web Socket to zKill"));
-        }
-
-        private static async void Ws_OnMessageAsync(object sender, WebSocketSharp.MessageEventArgs e)
-        {
-            try
+		private static async void OnMessage(string result)
+		{
+			try
             {
-                var kill = JsonConvert.DeserializeObject<ZKill>(e.Data);
+                var kill = JsonConvert.DeserializeObject<ZKillAPI>(result).package;
 
-                if (Lastkill.Contains(kill.killmail_id))
+                if (Lastkill.Contains(kill.killID))
                 {
-                    Debug.WriteLine($"Skipping {kill.killmail_id}");
+                    Debug.WriteLine($"Skipping {kill.killID}");
                     return;
                 }
 
@@ -1419,15 +1410,15 @@ namespace Opux
 
                 if (kill != null)
                 {
-                    var iD = kill.killmail_id;
-                    var killTime = kill.killmail_time;
-                    var shipID = kill.victim.ship_type_id;
+                    var iD = kill.killID;
+                    var killTime = kill.killmail.killmail_time;
+                    var shipID = kill.killmail.victim.ship_type_id;
                     var value = kill.zkb.totalValue;
-                    var victimCharacterID = kill.victim.character_id;
-                    var victimCorpID = kill.victim.corporation_id;
-                    var victimAllianceID = kill.victim.alliance_id;
-                    var attackers = kill.attackers;
-                    var systemId = kill.solar_system_id;
+                    var victimCharacterID = kill.killmail.victim.character_id;
+                    var victimCorpID = kill.killmail.victim.corporation_id;
+                    var victimAllianceID = kill.killmail.victim.alliance_id;
+                    var attackers = kill.killmail.attackers;
+                    var systemId = kill.killmail.solar_system_id;
                     var npckill = kill.zkb.npc;
 
                     CharacterApi characterApi = new CharacterApi();
@@ -1458,7 +1449,7 @@ namespace Opux
                             return;
                         }
 
-                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, $"killFeed", $"ESI Issue Trying Again KillId {kill.killmail_id} " +
+                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Error, $"killFeed", $"ESI Issue Trying Again KillId {kill.killmail.killmail_id} " +
                             $"(Loop {loop})"));
                         loop++;
                         goto GetInfo;
@@ -1467,7 +1458,7 @@ namespace Opux
                     string victimName;
                     if (victimCharacterID == 0)
                     {
-                        victimName = universeApi.GetUniverseTypesTypeId(kill.victim.ship_type_id).Name;
+                        victimName = universeApi.GetUniverseTypesTypeId(kill.killmail.victim.ship_type_id).Name;
                     }
                     else
                     {
@@ -1521,7 +1512,7 @@ namespace Opux
                                 var SystemName = !string.IsNullOrWhiteSpace(radiusSystem) ? await universeApi.PostUniverseIdsAsync(new List<string> { radiusSystem }) : null;
 
                                 SystemID = SystemName.Systems.FirstOrDefault().Id;
-                                var systemID = kill.solar_system_id;
+                                var systemID = kill.killmail.solar_system_id;
 
                                 if (!StartinWH && !EndinWH && test3)
                                 {
@@ -1557,7 +1548,7 @@ namespace Opux
 
                                         var stringVal = string.Format("{0:n0} ISK", value);
 
-                                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting  Radius Kill: {kill.killmail_id}  Value: {stringVal}"));
+                                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting  Radius Kill: {kill.killmail.killmail_id}  Value: {stringVal}"));
 
                                         if (groupenable)
                                         {
@@ -1598,7 +1589,7 @@ namespace Opux
 
                                                                 posted.Add(g);
 
-                                                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting  Radius Kill: {kill.killmail_id}  Value: {stringVal}"));
+                                                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting  Radius Kill: {kill.killID}  Value: {stringVal}"));
                                                             }
                                                         }
                                                     }
@@ -1636,7 +1627,7 @@ namespace Opux
 
                                         var stringVal = string.Format("{0:n0} ISK", value);
 
-                                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting  Radius Kill: {kill.killmail_id}  Value: {stringVal}"));
+                                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting  Radius Kill: {kill.killID}  Value: {stringVal}"));
                                     }
                                 }
                             }
@@ -1644,7 +1635,7 @@ namespace Opux
                             {
                                 if (ex.Message == "Error calling GetRouteOriginDestination: {\"error\":\"No route found\"}")
                                 {
-                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Radius Kill: {kill.killmail_id} Inside a WH"));
+                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Radius Kill: {kill.killID} Inside a WH"));
                                 }
                                 else
                                 {
@@ -1680,7 +1671,7 @@ namespace Opux
 
                             var stringVal = string.Format("{0:n0} ISK", value);
 
-                            await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting Global Big Kill: {kill.killmail_id}  Value: {stringVal}"));
+                            await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting Global Big Kill: {kill.killID}  Value: {stringVal}"));
 
                         }
                         if (allianceID == 0 && corpID == 0)
@@ -1710,7 +1701,7 @@ namespace Opux
 
                                 var stringVal = string.Format("{0:n0} ISK", value);
 
-                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting Global Kills: {kill.killmail_id}  Value: {stringVal}"));
+                                await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting Global Kills: {kill.killID}  Value: {stringVal}"));
                             }
                         }
                         else
@@ -1743,7 +1734,7 @@ namespace Opux
 
                                     var stringVal = string.Format("{0:n0} ISK", value);
 
-                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting     Big Loss: {kill.killmail_id}  Value: {stringVal}"));
+                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting     Big Loss: {kill.killID}  Value: {stringVal}"));
 
                                     lastChannel = c;
 
@@ -1779,7 +1770,7 @@ namespace Opux
 
                                         var stringVal = string.Format("{0:n0} ISK", value);
 
-                                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting         Loss: {kill.killmail_id}  Value: {stringVal}"));
+                                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting         Loss: {kill.killID}  Value: {stringVal}"));
 
                                         lastChannel = c;
 
@@ -1818,7 +1809,7 @@ namespace Opux
 
                                         var stringVal = string.Format("{0:n0} ISK", value);
 
-                                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting     Big Kill: {kill.killmail_id}  Value: {stringVal}"));
+                                        await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting     Big Kill: {kill.killID}  Value: {stringVal}"));
 
                                         lastChannel = c;
 
@@ -1851,21 +1842,21 @@ namespace Opux
 
                                     var stringVal = string.Format("{0:n0} ISK", value);
 
-                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting         Kill: {kill.killmail_id}  Value: {stringVal}"));
+                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Posting         Kill: {kill.killID}  Value: {stringVal}"));
 
                                     lastChannel = c;
                                     lastPosted = iD;
                                     break;
 
                                 }
-                                else if (kill != null && kill != null && lastPosted != 0 && lastPosted == kill.killmail_id && lastChannel == c)
+                                else if (kill != null && kill != null && lastPosted != 0 && lastPosted == kill.killID && lastChannel == c)
                                 {
-                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Skipping kill: {kill.killmail_id} as its been posted recently"));
+                                    await Logger.DiscordClient_Log(new LogMessage(LogSeverity.Info, $"killFeed", $"Skipping kill: {kill.killID} as its been posted recently"));
                                 }
                             }
                         }
                     }
-                    Lastkill.Add(kill.killmail_id);
+                    Lastkill.Add(kill.killID);
                 }
             }
             catch (Exception ex)
@@ -3138,7 +3129,7 @@ namespace Opux
                 {
                     await channel.SendMessageAsync("Multiple results found see DM");
 
-                    channel = await context.Message.Author.GetOrCreateDMChannelAsync(); // GetOrCreateDMChannelAsync() CreateDMChannelAsync();
+                    channel = await context.Message.Author.CreateDMChannelAsync(); // GetOrCreateDMChannelAsync() CreateDMChannelAsync();
 
 					var tmp = JsonConvert.SerializeObject(ItemIDResults.inventory_type);
                     var httpContent = new StringContent(tmp);
@@ -3673,7 +3664,7 @@ namespace Opux
 
                         foreach (var kill in kills)
                         {
-                            Kills.Add(await killmailsApi.GetKillmailsKillmailIdKillmailHashAsync($"{kill.zkb.hash}", kill.killmail_id));
+                            Kills.Add(await killmailsApi.GetKillmailsKillmailIdKillmailHashAsync($"{kill.package.zkb.hash}", kill.package.killID));
                             break;
                         }
                     }
@@ -3690,7 +3681,7 @@ namespace Opux
                         var losses = JsonConvert.DeserializeObject<List<ZKillAPI>>(result);
                         foreach (var loss in losses)
                         {
-                            Losses.Add(await killmailsApi.GetKillmailsKillmailIdKillmailHashAsync($"{loss.zkb.hash}", loss.killmail_id));
+                            Losses.Add(await killmailsApi.GetKillmailsKillmailIdKillmailHashAsync($"{loss.package.zkb.hash}", loss.package.killID));
                             break;
                         }
                     }
