@@ -1335,7 +1335,7 @@ namespace Opux
 		#region killFeed
 
 		private static string QueueID = Program.Settings.GetSection("killFeed")["reDisqID"];
-		private const int TimeToWait = 10;
+		private const int TimeToWait = 1;
 		private static readonly string Url = $"https://zkillredisq.stream/listen.php?queueID={QueueID}&ttw={TimeToWait}";
 
 		public static async void ZKillMain()
@@ -1393,11 +1393,16 @@ namespace Opux
 
                 if (kill != null)
                 {
-
+                    Debug.WriteLine($"Processing {kill.killID} {kill.killmail.killmail_time}");
                     if (Lastkill.Contains(kill.killID))
 					{
 						Debug.WriteLine($"Skipping {kill.killID}");
 						return;
+					}
+
+					if (kill.killID == 127389994 || kill.killID == 127390431 || kill.killmail.attackers.Where(x => x.corporation_id == 98604007).Any())
+					{
+						string g = "";
 					}
 
 					var count = Lastkill.Count();
@@ -1799,7 +1804,7 @@ namespace Opux
 										}
 									}
 									else if (!npckill && attacker.alliance_id != 0 && allianceID != 0 && attacker.alliance_id == allianceID && lastChannel != c ||
-										!npckill && allianceID == 0 && attacker.corporation_id == corpID && lastChannel != c)
+										!npckill && allianceID == -1 && attacker.corporation_id == corpID && lastChannel != c)
 									{
 										var builder = new EmbedBuilder()
 											.WithColor(new Color(0x00FF00))
